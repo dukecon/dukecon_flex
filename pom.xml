@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>org.dukecon</groupId>
+	<artifactId>dukecon-flex</artifactId>
+	<version>1.0.0-SNAPSHOT</version>
+	<packaging>pom</packaging>
+
+	<name>DukeCon Client: Flex</name>
+	<description>Flex implementation for a conference planner (mobile) client</description>
+
+	<properties>
+        <debug>false</debug>
+
+        <!-- General maven settings -->
+        <maven.version>3.1.0</maven.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Flex related properties -->
+        <flex.version>4.14.1</flex.version>
+        <flashplayer.version>14.0</flashplayer.version>
+        <flexmojos.version>7.1.0-SNAPSHOT</flexmojos.version>
+        <apparat.version>1.0-RC9</apparat.version>
+	</properties>
+
+    <prerequisites>
+        <maven>${maven.version}</maven>
+    </prerequisites>
+
+	<modules>
+		<module>core</module>
+	</modules>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>net.flexmojos.oss</groupId>
+                    <artifactId>flexmojos-maven-plugin</artifactId>
+                    <version>${flexmojos.version}</version>
+                    <extensions>true</extensions>
+                    <configuration>
+                        <debug>${debug}</debug>
+                        <advancedTelemetry>true</advancedTelemetry>
+                        <localesCompiled>
+                            <locale>de_DE</locale>
+                            <locale>en_US</locale>
+                        </localesCompiled>
+                        <rslUrls>
+                            <url>rsl/{artifactId}-{version}.{extension}</url>
+                        </rslUrls>
+                        <keepGeneratedActionscript>true</keepGeneratedActionscript>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.flex</groupId>
+                            <artifactId>compiler</artifactId>
+                            <version>${flex.version}</version>
+                            <type>pom</type>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+                <!--plugin>
+                    <groupId>com.googlecode.apparat</groupId>
+                    <artifactId>apparat-maven-plugin</artifactId>
+                    <version>${apparat.version}</version>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.googlecode.apparat</groupId>
+                            <artifactId>apparat-log</artifactId>
+                            <version>${apparat.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.googlecode.apparat</groupId>
+                            <artifactId>apparat-core</artifactId>
+                            <version>${apparat.version}</version>
+                            <exclusions>
+                                <exclusion>
+                                    <groupId>com.adobe.flex.framework</groupId>
+                                    <artifactId>playerglobal</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                    <groupId>com.adobe.flex.framework</groupId>
+                                    <artifactId>flex</artifactId>
+                                </exclusion>
+                            </exclusions>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.apache.maven</groupId>
+                            <artifactId>maven-plugin-api</artifactId>
+                            <version>${maven.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.apache.maven</groupId>
+                            <artifactId>maven-core</artifactId>
+                            <version>${maven.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.scala-lang</groupId>
+                            <artifactId>scala-library</artifactId>
+                            <version>2.8.1</version>
+                        </dependency>
+                    </dependencies>
+                </plugin-->
+            </plugins>
+        </pluginManagement>
+   </build>
+
+    <repositories>
+        <!--
+            This is where we get released stuff from.
+        -->
+        <repository>
+            <id>maven-central</id>
+            <url>http://repo1.maven.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <!--
+            This is where we get unreleased Apache stuff from
+        -->
+        <repository>
+            <id>apache-snapshots</id>
+            <url>http://repository.apache.org/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <!--
+            This is where we get unreleased Flexmojos stuff from.
+        -->
+        <repository>
+            <id>sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <!--
+            This is where we get released stuff from.
+        -->
+        <pluginRepository>
+            <id>maven-central</id>
+            <url>http://repo1.maven.org/maven2/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <!--
+            This is where we get unreleased Flexmojos stuff from.
+        -->
+        <pluginRepository>
+            <id>sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <profiles>
+        <profile>
+            <id>debug</id>
+            <properties>
+                <debug>true</debug>
+            </properties>
+        </profile>
+    </profiles>
+
+</project>
