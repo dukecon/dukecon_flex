@@ -5,10 +5,10 @@
  * your custom code here.
  */
 
-package org.dukecon.server.api.model {
+package org.dukecon.model {
 
     [Bindable]
-    [RemoteClass(alias="org.dukecon.server.api.model.MetaData")]
+    [RemoteClass(alias="org.dukecon.model.MetaData")]
     public class MetaData extends MetaDataBase {
     }
 }

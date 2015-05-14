@@ -5,10 +5,10 @@
  * your custom code here.
  */
 
-package org.dukecon.server.api.model {
+package org.dukecon.model {
 
     [Bindable]
-    [RemoteClass(alias="org.dukecon.server.api.model.Values")]
-    public class Values extends ValuesBase {
+    [RemoteClass(alias="org.dukecon.model.Speaker")]
+    public class Speaker extends SpeakerBase {
     }
 }

@@ -33,7 +33,7 @@
                         </goals>
                         <configuration>
                             <includeJavaClasses>
-                                <class>org.dukecon.server.api.model.*</class>
+                                <class>org.dukecon.model.*</class>
                             </includeJavaClasses>
                         </configuration>
                     </execution>

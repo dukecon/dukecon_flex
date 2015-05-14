@@ -5,10 +5,10 @@
  * your custom code here.
  */
 
-package org.dukecon.server.api.model {
+package org.dukecon.model {
 
     [Bindable]
-    [RemoteClass(alias="org.dukecon.server.api.model.Track")]
-    public class Track extends TrackBase {
+    [RemoteClass(alias="org.dukecon.model.Conference")]
+    public class Conference extends ConferenceBase {
     }
 }
