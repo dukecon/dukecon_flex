@@ -11,13 +11,12 @@
 
     <artifactId>dukecon-flex-core</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>swf</packaging>
+    <packaging>air</packaging>
 
     <name>DukeCon Client: Flex (Core-Application)</name>
 
     <build>
         <sourceDirectory>src/main/flex</sourceDirectory>
-        <testSourceDirectory>src/test/flex</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>net.flexmojos.oss</groupId>
@@ -35,13 +34,32 @@
                             <includeJavaClasses>
                                 <class>org.dukecon.model.*</class>
                             </includeJavaClasses>
+                            <templates>
+                                <base-bean-template>${basedir}/src/main/templates/beanBase.gsp</base-bean-template>
+                                <bean-template>${basedir}/src/main/templates/bean.gsp</bean-template>
+                            </templates>
                         </configuration>
+                    </execution>
+                    <execution>
+                        <goals>
+                            <goal>sign-air</goal>
+                        </goals>
                     </execution>
                 </executions>
 
                 <configuration>
-                    <storepass>pass</storepass>
+                    <storepass>flexmojos</storepass>
+                    <descriptorTemplate>${basedir}/src/main/resources/descriptor.xml</descriptorTemplate>
+                    <debug>true</debug>
                 </configuration>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>com.adobe.air.compiler</groupId>
+                        <artifactId>adt</artifactId>
+                        <version>${air.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
@@ -53,10 +71,29 @@
             <version>4.14.1</version>
             <type>pom</type>
         </dependency>
+
+        <!-- Add the components optimized for mobile use -->
         <dependency>
-            <groupId>com.adobe.flash.framework</groupId>
-            <artifactId>playerglobal</artifactId>
-            <version>14.0</version>
+            <groupId>org.apache.flex.framework</groupId>
+            <artifactId>mobile</artifactId>
+            <version>${flex.version}</version>
+            <type>pom</type>
+        </dependency>
+
+        <!-- Add the default mobile skin -->
+        <dependency>
+            <groupId>org.apache.flex.framework.themes</groupId>
+            <artifactId>mobile</artifactId>
+            <version>${flex.version}</version>
+            <type>swc</type>
+            <scope>theme</scope>
+        </dependency>
+
+        <!-- Air runtime dependencies -->
+        <dependency>
+            <groupId>com.adobe.air.framework</groupId>
+            <artifactId>airglobal</artifactId>
+            <version>${air.version}</version>
             <type>swc</type>
         </dependency>
 
@@ -75,7 +112,6 @@
             <version>1.0.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-
     </dependencies>
 
 </project>

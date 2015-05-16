@@ -7,8 +7,12 @@
 
 package org.dukecon.model {
 
-    [Bindable]
     [RemoteClass(alias="org.dukecon.model.Speaker")]
     public class Speaker extends SpeakerBase {
+
+        public function Speaker(obj:Object = null) {
+            super(obj);
+        }
+
     }
 }

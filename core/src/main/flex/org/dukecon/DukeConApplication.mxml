@@ -7,47 +7,36 @@
         [ResourceBundle("dukecon")]
     </fx:Metadata>
 
-    <fx:Declarations>
-        <s:HTTPService id="dukeServer" url="http://localhost:8080/talks/" method="GET"
-                       result="onResult(event)" fault="onFault(event)"/>
-    </fx:Declarations>
-
     <fx:Script>
         <![CDATA[
-        import mx.collections.ArrayCollection;
         import mx.events.FlexEvent;
-        import mx.rpc.events.FaultEvent;
-        import mx.rpc.events.ResultEvent;
 
-        [Bindable]
-        var talks:ArrayCollection;
+        import org.dukecon.controller.ConferenceController;
+
+        private var cc:ConferenceController;
 
         protected function onCreationComplete(event:FlexEvent):void {
-            dukeServer.contentType = "application/json";
-            dukeServer.headers = { Accept:"application/json" };
-            dukeServer.send();
-
-            talks = new ArrayCollection();
+            cc = ConferenceController.instance
         }
 
         public function get currentLocale():String {
             return resourceManager.getLocales()[0];
         }
 
-        protected function onResult(event:ResultEvent):void {
-            var result:Object = JSON.parse(String(event.result));
-            talks = new ArrayCollection(result as Array);
+        public function onExitClicked(event:MouseEvent):void {
+
         }
-
-        protected function onFault(event:FaultEvent):void {
-            trace(event);
-        }
-
-
         ]]>
     </fx:Script>
 
-    <s:List id="talkList" dataProvider="{talks}" width="100%" height="100%"
-            itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"/>
+    <s:ViewNavigator id="navigator" firstView="org.dukecon.views.TalksView"
+                     width="100%" height="100%">
+        <s:navigationContent>
+            <s:Label text="lalala"/>
+        </s:navigationContent>
+        <s:actionContent>
+            <s:Button label="exit" click="onExitClicked(event)"/>
+        </s:actionContent>
+    </s:ViewNavigator>
 
 </s:Application>

@@ -7,8 +7,12 @@
 
 package org.dukecon.model {
 
-    [Bindable]
     [RemoteClass(alias="org.dukecon.model.Conference")]
     public class Conference extends ConferenceBase {
+
+        public function Conference(obj:Object = null) {
+            super(obj);
+        }
+
     }
 }
