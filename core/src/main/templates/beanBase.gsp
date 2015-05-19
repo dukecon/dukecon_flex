@@ -67,9 +67,26 @@ package ${jClass.as3Type.packageName} {
     %> {
 
         public function ${jClass.as3Type.name}Base(obj:Object = null) {
-            if(obj) {<% for (jProperty in jClass.properties) { %>
-                this.${jProperty.name} = obj.${jProperty.name};<%    } %>
+            if(obj) {<% for (jProperty in jClass.properties) {
+                if((jProperty.member.declaredAnnotations != null) && (jProperty.member.declaredAnnotations.length > 0)) {%>
+                if(obj.${jProperty.name} is Date) {
+                    this.${jProperty.name} = obj.${jProperty.name} as Date;
+                } else {
+                    this.${jProperty.name} = isoToDate(obj.${jProperty.name});
+                }<%
+                } else { %>
+                this.${jProperty.name} = obj.${jProperty.name};<%
+                }
+            }%>
             }
+        }
+
+        private function isoToDate(value:String):Date {
+            var dateStr:String = value;
+            dateStr = dateStr.replace(/\-/g, "/");
+            dateStr = dateStr.replace("T", " ");
+            dateStr = dateStr.replace("Z", " GMT-0000");
+            return new Date(Date.parse(dateStr));
         }
 <%
 
@@ -78,7 +95,9 @@ package ${jClass.as3Type.packageName} {
     // Write Private Fields.
 
     for (jProperty in jClass.properties) {
-        if(jProperty.as3Type.name == "ListCollectionView") { %>
+        if((jProperty.member.declaredAnnotations != null) && (jProperty.member.declaredAnnotations.length > 0)) { %>
+        private var _${jProperty.name}:Date;<%
+        } else if(jProperty.as3Type.name == "ListCollectionView") { %>
         private var _${jProperty.name}:Array;<%
         } else if(jProperty.as3Type.name == "IMap") { %>
         private var _${jProperty.name}:Object;<%
@@ -94,7 +113,11 @@ package ${jClass.as3Type.packageName} {
         if (jProperty.readable || jProperty.writable) {%>
 <%
             if (jProperty.writable) {
-                if(jProperty.as3Type.name == "ListCollectionView") {%>
+                if((jProperty.member.declaredAnnotations != null) && (jProperty.member.declaredAnnotations.length > 0)) {%>
+        public function set ${jProperty.name}(value:Date):void {
+            _${jProperty.name} = value;
+        }<%
+                } else if(jProperty.as3Type.name == "ListCollectionView") {%>
         public function set ${jProperty.name}(value:Array):void {
             _${jProperty.name} = value;
         }<%
@@ -108,7 +131,12 @@ package ${jClass.as3Type.packageName} {
         }<%
                 }
             }
-            if (jProperty.readable) {                if(jProperty.as3Type.name == "ListCollectionView") {%>
+            if (jProperty.readable) {
+                if((jProperty.member.declaredAnnotations != null) && (jProperty.member.declaredAnnotations.length > 0)) {%>
+        public function get ${jProperty.name}():Date {
+            return _${jProperty.name};
+        }<%
+            } else if(jProperty.as3Type.name == "ListCollectionView") {%>
         public function get ${jProperty.name}():Array {
             return _${jProperty.name};
         }<%
@@ -150,7 +178,8 @@ package ${jClass.as3Type.packageName} {
             createTableStatement.sqlConnection = conn;
             createTableStatement.text = "CREATE TABLE IF NOT EXISTS ${jClass.as3Type.name} (<%
             boolean firstEntryWritten = false;
-            for (jProperty in jClass.properties) { if(firstEntryWritten) {%>, <% } else { firstEntryWritten = true; }%>${jProperty.name} TEXT<%}%>)";
+            for (jProperty in jClass.properties) { if(firstEntryWritten) {%>, <% } else { firstEntryWritten = true; }
+    if((jProperty.member.declaredAnnotations != null) && (jProperty.member.declaredAnnotations.length > 0)) {%>${jProperty.name} DATE<%} else {%>${jProperty.name} TEXT<%}}%>)";
             try {
                 createTableStatement.execute();
             } catch(initError:SQLError) {
