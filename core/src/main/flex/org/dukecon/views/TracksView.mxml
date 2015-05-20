@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 15.05.15.
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+        creationComplete="onCreationComplete(event)">
+
+  <fx:Script>
+    <![CDATA[
+    import mx.collections.ArrayList;
+    import mx.events.FlexEvent;
+
+    import org.dukecon.controller.ConferenceController;
+    import org.dukecon.events.ConferenceDataChangedEvent;
+
+    [Bindable]
+    protected var listData:ArrayList;
+
+    protected function onCreationComplete(event:FlexEvent):void {
+      ConferenceController.instance.addEventListener(
+              ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, onConferenceDataChanged);
+      listData = ConferenceController.instance.tracks;
+    }
+
+    protected function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
+      listData = ConferenceController.instance.tracks;
+    }
+
+    ]]>
+  </fx:Script>
+
+  <s:List width="100%" height="100%"
+          itemRenderer="org.dukecon.itemrenderer.TrackItemRenderer"
+          dataProvider="{listData}"/>
+
+</s:View>

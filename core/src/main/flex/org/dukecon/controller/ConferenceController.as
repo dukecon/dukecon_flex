@@ -6,7 +6,6 @@ import flash.events.EventDispatcher;
 import flash.filesystem.File;
 
 import mx.collections.ArrayList;
-
 import mx.rpc.AsyncToken;
 import mx.rpc.Responder;
 import mx.rpc.events.FaultEvent;
@@ -14,7 +13,6 @@ import mx.rpc.events.ResultEvent;
 import mx.rpc.http.HTTPService;
 
 import org.dukecon.events.ConferenceDataChangedEvent;
-
 import org.dukecon.model.ConferenceBase;
 import org.dukecon.model.MetaDataBase;
 import org.dukecon.model.SpeakerBase;
@@ -68,7 +66,6 @@ public class ConferenceController extends EventDispatcher {
             }
         } catch(error:SQLError) {
             trace("Error message:", error.message);
-            trace("Details:", error.details);
         }
     }
 
@@ -87,12 +84,20 @@ public class ConferenceController extends EventDispatcher {
         dispatchEvent(new ConferenceDataChangedEvent(ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED));
     }
 
-    protected function onFault(event:FaultEvent):void {
-        trace("crap!");
+    protected function onFault(foult:FaultEvent):void {
+        trace("Something went wrong:" + foult.message);
     }
 
     public function get talks():ArrayList {
         return TalkBase.select(conn);
+    }
+
+    public function get tracks():ArrayList {
+        return new ArrayList();
+    }
+
+    public function get speakers():ArrayList {
+        return SpeakerBase.select(conn);
     }
 
 }
