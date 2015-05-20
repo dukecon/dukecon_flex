@@ -1,6 +1,27 @@
 <?xml version="1.0"?>
-<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+        height="60">
 
-  <s:Label text="{String(data.title)}"/>
+  <s:Rect top="0" left="0" width="100%" bottom="0">
+    <s:fill>
+      <s:SolidColor color="white"/>
+    </s:fill>
+    <s:stroke>
+      <s:SolidColorStroke color="black"/>
+    </s:stroke>
+  </s:Rect>
+
+  <s:Rect top="2" left="2" width="56" bottom="2">
+    <s:fill>
+      <s:SolidColor color="0xff00ff"/>
+    </s:fill>
+    <s:stroke>
+      <s:SolidColorStroke color="black"/>
+    </s:stroke>
+  </s:Rect>
+
+  <s:HGroup top="2" left="70" right="2" bottom="2" verticalAlign="middle">
+    <s:Label text="{String(data.title)}"/>
+  </s:HGroup>
 
 </s:ItemRenderer>

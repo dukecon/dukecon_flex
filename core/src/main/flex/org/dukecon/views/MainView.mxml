@@ -2,6 +2,14 @@
 <!--
   Created by christoferdutz on 19.05.15.
 -->
-<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+        title="{resourceManager.getString('dukecon', 'main.title')}">
+
+  <fx:Metadata>
+    [ResourceBundle("dukecon")]
+  </fx:Metadata>
+
+  <s:Image source="@Embed('/conference-logo.jpg')"
+           width="100%" height="100%" scaleMode="letterbox"/>
 
 </s:View>
