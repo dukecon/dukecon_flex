@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
-<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:s="library://ns.adobe.com/flex/spark"
+                xmlns:u="org.dukecon.utils.*"
         height="60">
 
   <fx:Script>
@@ -40,7 +42,7 @@
     </s:stroke>
   </s:Rect>
 
-  <s:Image id="trackIcon" top="3" left="3"/>
+  <u:VectorImage id="trackIcon" top="3" left="3" width="54" bottom="3"/>
 
   <s:HGroup top="2" left="70" right="2" bottom="2" verticalAlign="middle">
     <s:Label text="{String(data.title)}"/>

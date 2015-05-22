@@ -13,9 +13,9 @@ public class TrackController {
         return _instance;
     }
 
-    [Embed(source="/tracks/architektur.svg")]
+    [Embed(source="/tracks/software-architecture-and-methods.svg")]
     [Bindable]
-    protected static var architektur:Class;
+    protected static var softwareArchitectureAndMethods:Class;
 
     [Embed(source="/tracks/cloud-and-big-data.svg")]
     [Bindable]
@@ -57,33 +57,35 @@ public class TrackController {
     }
 
     public function getIconForTrack(trackName:String):Class {
-        var trackCode:String = trackName.toLowerCase();
-        while(trackCode.indexOf(" ") != -1) {
-            trackCode = trackCode.replace(" ", "-");
+        if(trackName) {
+            var trackCode:String = trackName.toLowerCase();
+            while(trackCode.indexOf(" ") != -1) {
+                trackCode = trackCode.replace(" ", "-");
+            }
+            switch (trackCode) {
+                case "software-architecture-and-methods":
+                    return softwareArchitectureAndMethods;
+                case "cloud-and-big-data":
+                    return cloudAndBigData;
+                case "core-java":
+                    return coreJava;
+                case "enterprise-java":
+                    return enterpriseJava;
+                case "frontend":
+                    return frontend;
+                case "internet-of-things":
+                    return internetOfThings;
+                case "mobile":
+                    return mobile;
+                case "security":
+                    return secutiry;
+                case "jvm-languages":
+                    return jvmLanguages;
+                case "ides-and-tools":
+                    return idesAndTools;
+            }
+            trace("Couldn't find icon for: " + trackCode);
         }
-        switch (trackCode) {
-            case "architektur":
-                return architektur;
-            case "cloud-and-big-data":
-                return cloudAndBigData;
-            case "core-java":
-                return coreJava;
-            case "enterprise-java":
-                return enterpriseJava;
-            case "frontend":
-                return frontend;
-            case "internet-of-things":
-                return internetOfThings;
-            case "mobile":
-                return mobile;
-            case "security":
-                return secutiry;
-            case "jvm-languages":
-                return jvmLanguages;
-            case "ides-and-tools":
-                return idesAndTools;
-        }
-        trace("Couldn't find icon for: " + trackCode);
         return null;
     }
 
