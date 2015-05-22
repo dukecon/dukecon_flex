@@ -5,7 +5,9 @@ import flash.errors.SQLError;
 import flash.events.EventDispatcher;
 import flash.filesystem.File;
 
-import mx.collections.ArrayList;
+import mx.collections.ArrayCollection;
+import mx.collections.Sort;
+import mx.collections.SortField;
 import mx.rpc.AsyncToken;
 import mx.rpc.Responder;
 import mx.rpc.events.FaultEvent;
@@ -88,15 +90,34 @@ public class ConferenceController extends EventDispatcher {
         trace("Something went wrong:" + foult.message);
     }
 
-    public function get talks():ArrayList {
-        return TalkBase.select(conn);
+    public function get talks():ArrayCollection {
+        var talks:ArrayCollection = TalkBase.select(conn);
+
+        var sortField:SortField = new SortField();
+        sortField.name = "start";
+        sortField.compareFunction = function(a:Object, b:Object):int {
+            var aTime:Number = (a.start as Date).getTime();
+            var bTime:Number = (b.start as Date).getTime();
+            if(aTime < bTime) {
+                return -1;
+            }
+            if(aTime > bTime) {
+                return 1;
+            }
+            return 0;
+        };
+        var sort:Sort = new Sort();
+        sort.fields = [sortField];
+        talks.sort = sort;
+
+        return talks;
     }
 
-    public function get tracks():ArrayList {
-        return new ArrayList();
+    public function get tracks():ArrayCollection {
+        return new ArrayCollection();
     }
 
-    public function get speakers():ArrayList {
+    public function get speakers():ArrayCollection {
         return SpeakerBase.select(conn);
     }
 

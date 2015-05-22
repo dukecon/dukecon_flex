@@ -12,14 +12,14 @@
 
   <fx:Script>
     <![CDATA[
-    import mx.collections.ArrayList;
+    import mx.collections.ArrayCollection;
     import mx.events.FlexEvent;
 
     import org.dukecon.controller.ConferenceController;
     import org.dukecon.events.ConferenceDataChangedEvent;
 
     [Bindable]
-    protected var listData:ArrayList;
+    protected var listData:ArrayCollection;
 
     protected function onCreationComplete(event:FlexEvent):void {
       ConferenceController.instance.addEventListener(
@@ -30,7 +30,6 @@
     protected function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
       listData = ConferenceController.instance.talks;
     }
-
     ]]>
   </fx:Script>
 

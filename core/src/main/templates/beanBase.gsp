@@ -34,7 +34,7 @@ package ${jClass.as3Type.packageName} {
     import flash.data.SQLResult;
     import flash.errors.SQLError;
 
-    import mx.collections.ArrayList;
+    import mx.collections.ArrayCollection;
 
 <%
 ///////////////////////////////////////////////////////////////////////////////
@@ -212,8 +212,8 @@ package ${jClass.as3Type.packageName} {
             return 0;
         }
 
-        public static function select(conn:SQLConnection):ArrayList {
-            var result:ArrayList = new ArrayList();
+        public static function select(conn:SQLConnection):ArrayCollection {
+            var result:ArrayCollection = new ArrayCollection();
             var selectStatement:SQLStatement = new SQLStatement();
             selectStatement.sqlConnection = conn;
             selectStatement.text = "SELECT <%firstEntryWritten = false; for (jProperty in jClass.properties) { if(firstEntryWritten) {%>, <% } else { firstEntryWritten = true; } %>${jProperty.name}<% } %> FROM ${jClass.as3Type.name}";
