@@ -89,6 +89,49 @@ public class TrackController {
         return null;
     }
 
+    public function getColorForTrack(trackName:String):uint {
+        if(trackName) {
+            var trackCode:String = trackName.toLowerCase();
+            while(trackCode.indexOf(" ") != -1) {
+                trackCode = trackCode.replace(" ", "-");
+            }
+            switch (trackCode) {
+                case "software-architecture-and-methods":
+                    return 0xc8f0fa;
+                case "cloud-and-big-data":
+                    return 0xffffff;
+                case "core-java":
+                    return 0x8c96dc;
+                case "enterprise-java":
+                    return 0xfafa78;
+                case "frontend":
+                    return 0x9acd32;
+                case "internet-of-things":
+                    return 0x666666;
+                case "mobile":
+                    return 0xff66cc;
+                case "security":
+                    return 0xfe4401;
+                case "jvm-languages":
+                    return 0x166afa;
+                case "ides-and-tools":
+                    return 0xd2aabc;
+            }
+            trace("Couldn't find color for: " + trackCode);
+        }
+        return null;
+    }
+
+    public function getDayLabel(day:String):String {
+        switch (day) {
+            case "2015-03-24":
+                return "Dienstag";
+            case "2015-03-25":
+                return "Mittwoch";
+        }
+        return null;
+    }
+
 }
 }
 class SingletonEnforcer{}

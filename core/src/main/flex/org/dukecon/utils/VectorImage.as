@@ -7,6 +7,7 @@ import flash.display.DisplayObject;
 import mx.core.UIComponent;
 
 public class VectorImage extends UIComponent {
+
     public function VectorImage(source:Class = null) {
         if (source) {
             this.source = source;
@@ -48,7 +49,6 @@ public class VectorImage extends UIComponent {
                 this.addChild(this.imageInstance);
             }
             this.sourceChanged = false;
-
         }
     }
 
@@ -59,7 +59,6 @@ public class VectorImage extends UIComponent {
         super.commitProperties();
 
         if (this.sourceChanged) {
-            // if the source changed re-created it; which is done in createChildren();
             this.createChildren();
         }
     }
@@ -76,7 +75,7 @@ public class VectorImage extends UIComponent {
     override public function setActualSize(width:Number, height:Number):void {
         this.width = width;
         this.height = height;
-        ScaleImage(width, height);
+        scaleImage(width, height);
     }
 
     /**
@@ -84,18 +83,12 @@ public class VectorImage extends UIComponent {
      */
     override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number):void {
         super.updateDisplayList(unscaledWidth, unscaledHeight);
-
-        // size the element.
-        // I don't remember why I Wrote the code to check for unscaledHeight and unscaledWidth being 0
-
         if (imageInstance != null) {
-
-            //scale properly
-            ScaleImage(unscaledWidth, unscaledHeight);
+            scaleImage(unscaledWidth, unscaledHeight);
         }
     }
 
-    protected function ScaleImage(width:Number, height:Number) {
+    protected function scaleImage(width:Number, height:Number):void {
         if (imageInstance != null) {
             var scale:Number = Math.min(width / imageInstance.width, height / imageInstance.height);
 

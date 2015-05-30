@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 30.05.15.
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark">
+
+  <fx:Script>
+    <![CDATA[
+    import mx.collections.ArrayCollection;
+
+    import org.dukecon.controller.ConferenceController;
+
+    [Bindable]
+    protected var dataProvider:ArrayCollection;
+
+    [Bindable("dataChange")]
+    override public function get data():Object {
+      return super.data;
+    }
+
+    override public function set data(value:Object):void {
+      super.data = value;
+      if(value) {
+        dataProvider = ConferenceController.instance.getTalksForDay(String(value));
+      }
+    }
+    ]]>
+  </fx:Script>
+
+  <s:DataGrid id="grid" lockedColumnCount="1" lockedRowCount="0" dataProvider="{dataProvider}"
+              width="100%" height="100%">
+    <s:columns>
+      <s:ArrayList>
+        <s:GridColumn dataField="location" headerText=""/>
+        <s:GridColumn dataField="title" headerText="Titel"/>
+      </s:ArrayList>
+    </s:columns>
+  </s:DataGrid>
+
+</s:View>

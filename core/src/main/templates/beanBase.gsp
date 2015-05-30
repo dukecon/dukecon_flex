@@ -212,11 +212,14 @@ package ${jClass.as3Type.packageName} {
             return 0;
         }
 
-        public static function select(conn:SQLConnection):ArrayCollection {
+        public static function select(conn:SQLConnection, whereClause:String = null):ArrayCollection {
             var result:ArrayCollection = new ArrayCollection();
             var selectStatement:SQLStatement = new SQLStatement();
             selectStatement.sqlConnection = conn;
             selectStatement.text = "SELECT <%firstEntryWritten = false; for (jProperty in jClass.properties) { if(firstEntryWritten) {%>, <% } else { firstEntryWritten = true; } %>${jProperty.name}<% } %> FROM ${jClass.as3Type.name}";
+            if(whereClause) {
+                selectStatement.text += " WHERE " + whereClause;
+            }
             try {
                 selectStatement.execute();
                 var sqlResult:SQLResult = selectStatement.getResult();

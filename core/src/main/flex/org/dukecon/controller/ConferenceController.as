@@ -1,11 +1,14 @@
 package org.dukecon.controller {
 
 import flash.data.SQLConnection;
+import flash.data.SQLResult;
+import flash.data.SQLStatement;
 import flash.errors.SQLError;
 import flash.events.EventDispatcher;
 import flash.filesystem.File;
 
 import mx.collections.ArrayCollection;
+import mx.collections.ISort;
 import mx.collections.Sort;
 import mx.collections.SortField;
 import mx.rpc.AsyncToken;
@@ -44,7 +47,7 @@ public class ConferenceController extends EventDispatcher {
         service.method = "GET";
         service.contentType = "application/json";
         service.headers = { Accept:"application/json" };
-        service.url = "http://localhost:8080/talks/";
+        service.url = "http://dev.dukecon.org:9090/talks/";
 
         // This file will be used for storing the data on the device.
         var db:File = File.applicationStorageDirectory.resolvePath("dukecon.db");
@@ -112,15 +115,88 @@ public class ConferenceController extends EventDispatcher {
 
         return talks;
     }
+    
+    public function get days():ArrayCollection {
+        var days:ArrayCollection = executeQuery("SELECT DISTINCT date(start) AS day FROM Talk");
+        var result:ArrayCollection = new ArrayCollection();
+        for each(var obj:Object in days) {
+            if(obj.day) {
+                result.addItem(obj.day);
+            }
+        }
+        return result;
+    }
+
+    public function get locations():ArrayCollection {
+        var locations:ArrayCollection = executeQuery("SELECT DISTINCT location FROM Talk");
+        var result:ArrayCollection = new ArrayCollection();
+        for each(var obj:Object in locations) {
+            if(obj.location) {
+                result.addItem(obj.location);
+            }
+        }
+        return result;
+    }
 
     public function get tracks():ArrayCollection {
-        return new ArrayCollection();
+        var tracks:ArrayCollection = executeQuery("SELECT DISTINCT track FROM Talk");
+        var result:ArrayCollection = new ArrayCollection();
+        for each(var obj:Object in tracks) {
+            if(obj.track) {
+                result.addItem(obj.track);
+            }
+        }
+        var dataSortField:SortField = new SortField();
+        dataSortField.numeric = false;
+        var dataSort:Sort = new Sort();
+        dataSort.fields=[dataSortField];
+        result.sort = dataSort;
+        result.refresh();
+        return result;
     }
 
     public function get speakers():ArrayCollection {
-        return SpeakerBase.select(conn);
+        var speakers:ArrayCollection = executeQuery("SELECT DISTINCT speakers FROM Talk");
+        var result:ArrayCollection = new ArrayCollection();
+        for each(var obj:Object in speakers) {
+            if(obj.speakers) {
+                for each(var speaker:Object in (obj.speakers as Array)) {
+                    if(speaker && (!result.contains(speaker.name))) {
+                        result.addItem(speaker.name);
+                    }
+                }
+            }
+        }
+        var dataSortField:SortField = new SortField();
+        dataSortField.numeric = false;
+        var dataSort:Sort = new Sort();
+        dataSort.fields=[dataSortField];
+        result.sort = dataSort;
+        result.refresh();
+        return result;
     }
 
+    public function getTalksForDay(day:String):ArrayCollection {
+        return TalkBase.select(conn, "date(start) = '" + day + "'");
+    }
+    
+    protected function executeQuery(query:String):ArrayCollection {
+        var result:ArrayCollection = new ArrayCollection();
+        var selectStatement:SQLStatement = new SQLStatement();
+        selectStatement.sqlConnection = conn;
+        selectStatement.text = query;
+        try {
+            selectStatement.execute();
+            var sqlResult:SQLResult = selectStatement.getResult();
+            for each(var obj:Object in sqlResult.data) {
+                result.addItem(obj);
+            }
+        } catch(initError:SQLError) {
+            throw new Error("Error selecting records from table '${jClass.as3Type.name}': " + initError.message);
+        }
+        return result;
+    }
+    
 }
 }
 class SingletonEnforcer{}
