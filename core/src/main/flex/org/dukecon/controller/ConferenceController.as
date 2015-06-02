@@ -176,6 +176,24 @@ public class ConferenceController extends EventDispatcher {
         return result;
     }
 
+    public function getTimeSlotsForDay(day:String):ArrayCollection {
+        var slots:ArrayCollection = executeQuery("SELECT DISTINCT (strftime('%H:%M', start) || ' - ' || " +
+                "strftime('%H:%M', end)) AS slot FROM Talk WHERE date(start) = '" + day + "'");
+        var result:ArrayCollection = new ArrayCollection();
+        for each(var obj:Object in slots) {
+            if(obj.slot) {
+                result.addItem(obj.slot);
+            }
+        }
+        var dataSortField:SortField = new SortField();
+        dataSortField.numeric = false;
+        var dataSort:Sort = new Sort();
+        dataSort.fields=[dataSortField];
+        result.sort = dataSort;
+        result.refresh();
+        return result;
+    }
+
     public function getTalksForDay(day:String):ArrayCollection {
         return TalkBase.select(conn, "date(start) = '" + day + "'");
     }

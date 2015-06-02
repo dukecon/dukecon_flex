@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 30.05.15.
+-->
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+
+  <fx:Script>
+    <![CDATA[
+    import org.dukecon.controller.TrackController;
+    import org.dukecon.model.Talk;
+
+    [Bindable]
+    protected var talk:Talk;
+
+    [Bindable]
+    protected var color:uint;
+
+    [Bindable("dataChange")]
+    override public function get data():Object {
+      return super.data;
+    }
+
+    override public function set data(value:Object):void {
+      super.data = value;
+      talk = Talk(value[column.dataField]);
+      if(talk) {
+        color = TrackController.instance.getColorForTrack(talk.track);
+      } else {
+        color = 0xffffff;
+      }
+    }
+    ]]>
+  </fx:Script>
+
+  <s:Rect top="0" left="0" right="0" bottom="0">
+    <s:fill>
+      <s:SolidColor color="{color}"/>
+    </s:fill>
+    <s:stroke>
+      <s:SolidColorStroke color="0x000000"/>
+    </s:stroke>
+  </s:Rect>
+
+  <s:VGroup top="10" left="10" right="10" bottom="10" gap="30">
+    <s:Label text="{talk.title}" fontWeight="bold" width="420" height="100"/>
+    <s:RichText text="{talk.abstractText}" width="780" height="150"/>
+    <s:Label text="mehr..." fontWeight="bold" visible="{talk != null}"/>
+  </s:VGroup>
+
+</s:GridItemRenderer>

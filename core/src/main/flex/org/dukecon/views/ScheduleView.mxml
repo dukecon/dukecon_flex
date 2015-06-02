@@ -1,11 +1,15 @@
 <?xml version="1.0"?>
 <!--
-  Created by christoferdutz on 30.05.15.
+  Created by christoferdutz on 15.05.15.
 -->
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
         creationComplete="onCreationComplete(event)"
-        title="{resourceManager.getString('dukecon', 'schedule.title')}">
+        title="{resourceManager.getString('dukecon', 'speakers.title')}">
+
+  <fx:Metadata>
+    [ResourceBundle("dukecon")]
+  </fx:Metadata>
 
   <fx:Script>
     <![CDATA[
@@ -13,21 +17,32 @@
     import mx.events.FlexEvent;
 
     import org.dukecon.controller.ConferenceController;
+    import org.dukecon.events.ConferenceDataChangedEvent;
+    import org.dukecon.events.ScheduleEvent;
+
+    [Bindable]
+    protected var listData:ArrayCollection;
 
     protected function onCreationComplete(event:FlexEvent):void {
-      var days:ArrayCollection = ConferenceController.instance.days;
-      for each(var day:String in days) {
-        var dayTab:ScheduleDayViewTab = new ScheduleDayViewTab();
-        dayTab.day = day;
-        dayTab.firstView = ScheduleDayView;
-        dayTab.firstViewData = day;
-        dayTabs.addElement(dayTab);
-      }
+      ConferenceController.instance.addEventListener(
+              ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, onConferenceDataChanged);
+      listData = ConferenceController.instance.days;
+      list.addEventListener(ScheduleEvent.DAY_SELECTED, onDaySelected)
     }
+
+    protected function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
+      listData = ConferenceController.instance.days;
+    }
+
+    protected function onDaySelected(event:ScheduleEvent):void {
+      navigator.pushView(ScheduleDayView, event.day);
+    }
+
     ]]>
   </fx:Script>
 
-  <s:TabbedViewNavigator id="dayTabs" width="100%" height="100%"
-                         skinClass="org.dukecon.utils.TopTabbedViewNavigatorSkin"/>
+  <s:List id="list" width="100%" height="100%"
+          itemRenderer="org.dukecon.itemrenderer.ScheduleDayItemRenderer"
+          dataProvider="{listData}"/>
 
 </s:View>

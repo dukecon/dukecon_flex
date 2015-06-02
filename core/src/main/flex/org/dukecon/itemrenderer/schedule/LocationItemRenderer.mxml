@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 30.05.15.
+-->
+<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+
+  <fx:Script>
+    <![CDATA[
+    [Bindable("dataChange")]
+    override public function get data():Object {
+      return super.data;
+    }
+
+    override public function set data(value:Object):void {
+      super.data = value;
+    }
+    ]]>
+  </fx:Script>
+
+  <s:VGroup width="100%" height="350" verticalAlign="middle" horizontalAlign="center">
+    <s:Label text="{data.location}" rotationZ="-90"/>
+  </s:VGroup>
+
+</s:GridItemRenderer>
