@@ -15,19 +15,18 @@
         <debug>false</debug>
 
         <!-- General maven settings -->
-        <maven.version>3.1.0</maven.version>
+        <maven.version>3.3.1</maven.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Flex related properties -->
         <flex.version>4.14.1</flex.version>
-        <flashplayer.version>17.0</flashplayer.version>
         <air.version>17.0</air.version>
         <flexmojos.version>7.1.0-SNAPSHOT</flexmojos.version>
         <apparat.version>1.0-RC9</apparat.version>
         <!-- Set this to localhost if you would like to test upload server -->
         <nexus.repository.host>dev.dukecon.org</nexus.repository.host>
         <nexus.repository.port>:8081</nexus.repository.port>
-        <nexus.repository.base></nexus.repository.base>
+        <nexus.repository.base/>
 	</properties>
 
     <prerequisites>
@@ -66,48 +65,6 @@
                         </dependency>
                     </dependencies>
                 </plugin>
-                <!--plugin>
-                    <groupId>com.googlecode.apparat</groupId>
-                    <artifactId>apparat-maven-plugin</artifactId>
-                    <version>${apparat.version}</version>
-                    <dependencies>
-                        <dependency>
-                            <groupId>com.googlecode.apparat</groupId>
-                            <artifactId>apparat-log</artifactId>
-                            <version>${apparat.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>com.googlecode.apparat</groupId>
-                            <artifactId>apparat-core</artifactId>
-                            <version>${apparat.version}</version>
-                            <exclusions>
-                                <exclusion>
-                                    <groupId>com.adobe.flex.framework</groupId>
-                                    <artifactId>playerglobal</artifactId>
-                                </exclusion>
-                                <exclusion>
-                                    <groupId>com.adobe.flex.framework</groupId>
-                                    <artifactId>flex</artifactId>
-                                </exclusion>
-                            </exclusions>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.apache.maven</groupId>
-                            <artifactId>maven-plugin-api</artifactId>
-                            <version>${maven.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.apache.maven</groupId>
-                            <artifactId>maven-core</artifactId>
-                            <version>${maven.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.scala-lang</groupId>
-                            <artifactId>scala-library</artifactId>
-                            <version>2.8.1</version>
-                        </dependency>
-                    </dependencies>
-                </plugin-->
             </plugins>
         </pluginManagement>
    </build>

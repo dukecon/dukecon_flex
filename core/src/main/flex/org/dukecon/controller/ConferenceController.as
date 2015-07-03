@@ -5,10 +5,12 @@ import flash.data.SQLResult;
 import flash.data.SQLStatement;
 import flash.errors.SQLError;
 import flash.events.EventDispatcher;
+import flash.events.NetStatusEvent;
 import flash.filesystem.File;
+import flash.net.SharedObject;
+import flash.net.SharedObjectFlushStatus;
 
 import mx.collections.ArrayCollection;
-import mx.collections.ISort;
 import mx.collections.Sort;
 import mx.collections.SortField;
 import mx.rpc.AsyncToken;
@@ -41,6 +43,8 @@ public class ConferenceController extends EventDispatcher {
     private var conn:SQLConnection;
     private var db:File;
 
+    private var selectedTalkIds:SharedObject;
+
     public function ConferenceController(enforcer:SingletonEnforcer) {
 
         service = new HTTPService();
@@ -58,6 +62,8 @@ public class ConferenceController extends EventDispatcher {
         conn = new SQLConnection();
         try {
             conn.open(db);
+
+            selectedTalkIds = SharedObject.getLocal("selected-talk-ids");
 
             if(initDb) {
                 TalkBase.createTable(conn);
@@ -197,7 +203,65 @@ public class ConferenceController extends EventDispatcher {
     public function getTalksForDay(day:String):ArrayCollection {
         return TalkBase.select(conn, "date(start) = '" + day + "'");
     }
-    
+
+    public function isTalkSelected(talk:Talk):Boolean {
+        if(!talk) return false;
+        return (selectedTalkIds.data && selectedTalkIds.data.savedValue &&
+            ArrayCollection(selectedTalkIds.data.savedValue).contains(talk.id));
+    }
+
+    public function selectTalk(talk:Talk):void {
+        if(!talk) return;
+        if(!selectedTalkIds.data.savedValue) {
+            selectedTalkIds.data.savedValue = new ArrayCollection();
+        }
+        if(!ArrayCollection(selectedTalkIds.data.savedValue).contains(talk.id)) {
+            ArrayCollection(selectedTalkIds.data.savedValue).addItem(talk.id);
+            flushSharedObject();
+        }
+    }
+
+    public function unselectTalk(talk:Talk):void {
+        if(!talk) return;
+        if(isTalkSelected(talk)) {
+            ArrayCollection(selectedTalkIds.data.savedValue).removeItem(talk.id);
+            flushSharedObject();
+        }
+    }
+
+    protected function flushSharedObject():void {
+        var flushStatus:String = null;
+        try {
+            flushStatus = selectedTalkIds.flush(10000);
+        } catch (error:Error) {
+            trace("Error...Could not write SharedObject to disk\n");
+        }
+        if (flushStatus != null) {
+            switch (flushStatus) {
+                case SharedObjectFlushStatus.PENDING:
+                    trace("Requesting permission to save object...\n");
+                    selectedTalkIds.addEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
+                    break;
+                case SharedObjectFlushStatus.FLUSHED:
+                    trace("Value flushed to disk.\n");
+                    break;
+            }
+        }
+    }
+
+    private function onFlushStatus(event:NetStatusEvent):void {
+        trace("User closed permission dialog...\n");
+        switch (event.info.code) {
+            case "SharedObject.Flush.Success":
+                trace("User granted permission -- value saved.\n");
+                break;
+            case "SharedObject.Flush.Failed":
+                trace("User denied permission -- value not saved.\n");
+                break;
+        }
+        selectedTalkIds.removeEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
+    }
+
     protected function executeQuery(query:String):ArrayCollection {
         var result:ArrayCollection = new ArrayCollection();
         var selectStatement:SQLStatement = new SQLStatement();
