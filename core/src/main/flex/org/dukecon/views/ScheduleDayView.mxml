@@ -4,7 +4,8 @@
 -->
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
-        title="{formattedDate}">
+        title="{formattedDate}"
+        creationComplete="onCreationComplete(event)">
 
   <fx:Declarations>
     <s:DateTimeFormatter id="formatter" dateStyle="medium" timeStyle="none"/>
@@ -14,8 +15,10 @@
   <fx:Script>
     <![CDATA[
     import mx.collections.ArrayCollection;
+    import mx.events.FlexEvent;
 
     import org.dukecon.controller.ConferenceController;
+    import org.dukecon.events.ScheduleTalkSelectedEvent;
     import org.dukecon.model.Talk;
 
     [Bindable]
@@ -23,6 +26,10 @@
 
     [Bindable]
     protected var dataProvider:ArrayCollection;
+
+    protected function onCreationComplete(event:FlexEvent):void {
+      grid.addEventListener(ScheduleTalkSelectedEvent.TALK_SELECTED, onTalkSelected)
+    }
 
     [Bindable("dataChange")]
     override public function get data():Object {
@@ -62,6 +69,10 @@
       }
 
       updateGrid();
+    }
+
+    protected function onTalkSelected(event:ScheduleTalkSelectedEvent):void {
+      navigator.pushView(TalkView, event.talk);
     }
 
     protected function updateGrid():void {

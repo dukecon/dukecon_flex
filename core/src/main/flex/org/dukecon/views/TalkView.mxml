@@ -1,0 +1,140 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 06.07.15.
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:u="org.dukecon.utils.*"
+        title="{talk.title}">
+
+    <fx:Declarations>
+        <s:DateTimeFormatter id="formatter" dateStyle="medium" timeStyle="none"/>
+        <s:DateTimeFormatter id="timeFormatter" dateTimePattern="HH:mm"/>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+        import org.dukecon.controller.ConferenceController;
+        import org.dukecon.controller.TrackController;
+        import org.dukecon.model.Talk;
+
+        [Embed(source="/star-unselected.png")]
+        [Bindable]
+        public var starUnselected:Class;
+
+        [Embed(source="/star-selected.png")]
+        [Bindable]
+        public var starSelected:Class;
+
+        [Bindable]
+        protected var talk:Talk;
+
+        [Bindable]
+        protected var language:String;
+
+        [Bindable]
+        protected var selectedIcon:Class;
+
+        [Bindable]
+        protected var trackIcon:Class;
+
+        [Bindable]
+        protected var trackColor:uint;
+
+        [Bindable]
+        protected var speakers:String;
+
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
+
+        override public function set data(value:Object):void {
+            super.data = value;
+            talk = Talk(value);
+            updateSelectionIcon();
+            if (talk) {
+                language = talk.language;
+                trackColor = TrackController.instance.getColorForTrack(talk.track);
+                trackIcon = TrackController.instance.getIconForTrack(talk.track);
+            } else {
+                language = null;
+                trackColor = 0xffffff;
+                trackIcon = null;
+            }
+            speakers = "";
+            if (talk.speakers) {
+                for each(var speaker:Object in talk.speakers) {
+                    if (speaker) {
+                        if (speakers.length > 0) {
+                            speakers += " | ";
+                        }
+                        speakers += speaker.name + ", " + speaker.company;
+                    }
+                }
+            }
+            talk.speakers
+        }
+
+        protected function updateSelectionIcon():void {
+            if (talk) {
+                selectedIcon = ConferenceController.instance.isTalkSelected(talk) ? starSelected : starUnselected;
+            } else {
+                selectedIcon = null;
+            }
+        }
+
+        protected function toggleSelection(event:MouseEvent):void {
+            var controller:ConferenceController = ConferenceController.instance;
+            if (controller.isTalkSelected(talk)) {
+                controller.unselectTalk(talk);
+            } else {
+                controller.selectTalk(talk);
+            }
+            updateSelectionIcon();
+        }
+        ]]>
+    </fx:Script>
+
+    <s:navigationContent>
+        <s:Button label="&lt;" click="{navigator.popView()}"/>
+    </s:navigationContent>
+
+    <s:Scroller width="100%" height="100%" horizontalScrollPolicy="off">
+        <s:VGroup width="100%" padding="10" gap="30">
+            <s:HGroup width="100%">
+                <s:Label id="titleLabel" text="{talk.title}" width="480" fontWeight="bold" fontSize="50"/>
+                <s:Image source="@Embed('/english-small.png')" top="10" visible="{language == 'english'}"/>
+                <s:VGroup>
+                    <s:Image source="{selectedIcon}" click="toggleSelection(event)"/>
+                    <s:Group width="64" height="64">
+                        <s:Rect top="0" left="0" right="0" bottom="0">
+                            <s:fill>
+                                <s:SolidColor color="{trackColor}"/>
+                            </s:fill>
+                            <s:stroke>
+                                <s:SolidColorStroke color="black"/>
+                            </s:stroke>
+                        </s:Rect>
+                        <u:VectorImage source="{trackIcon}" top="2" left="2" right="2" bottom="2"/>
+                    </s:Group>
+                </s:VGroup>
+            </s:HGroup>
+            <s:Label text="{talk.abstractText}" width="{parent.width - 20}"/>
+            <s:Label text="{speakers}" width="{parent.width - 20}" fontWeight="bold"/>
+            <s:HGroup>
+                <s:Label text="Start:" fontWeight="bold"/>
+                <s:Label text="{formatter.format(talk.start)} {timeFormatter.format(talk.start)}"/>
+            </s:HGroup>
+            <s:HGroup>
+                <s:Label text="Raum:" fontWeight="bold"/>
+                <s:Label text="{talk.location}"/>
+            </s:HGroup>
+            <s:HGroup>
+                <s:Label text="Track:" fontWeight="bold"/>
+                <s:Label text="{talk.track}"/>
+            </s:HGroup>
+        </s:VGroup>
+    </s:Scroller>
+
+</s:View>

@@ -2,12 +2,17 @@
 <!--
   Created by christoferdutz on 30.05.15.
 -->
-<s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+<s:GridItemRenderer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:u="org.dukecon.utils.*">
 
   <fx:Script>
     <![CDATA[
     import org.dukecon.controller.ConferenceController;
     import org.dukecon.controller.TrackController;
+    import org.dukecon.events.ScheduleEvent;
+    import org.dukecon.events.ScheduleTalkSelectedEvent;
     import org.dukecon.model.Talk;
 
     [Embed(source="/star-unselected.png")]
@@ -34,9 +39,12 @@
       talk = Talk(value[column.dataField]);
       if (talk) {
         color = TrackController.instance.getColorForTrack(talk.track);
+        icon.source = TrackController.instance.getIconForTrack(talk.track);
+        icon.setActualSize(60, 60);
         languageImage.visible = talk.language == "english";
       } else {
         color = 0xffffff;
+        icon.source = null;
         languageImage.visible = false;
       }
       updateSelectionIcon();
@@ -60,24 +68,39 @@
       updateSelectionIcon();
     }
 
+    protected function onMoreClicked(event:MouseEvent):void {
+      dispatchEvent(new ScheduleTalkSelectedEvent(talk, ScheduleTalkSelectedEvent.TALK_SELECTED));
+    }
+
     ]]>
   </fx:Script>
 
   <s:Rect top="0" left="0" right="0" bottom="0">
     <s:fill>
-      <s:SolidColor color="{color}"/>
+      <s:SolidColor color="0xffffff"/>
     </s:fill>
     <s:stroke>
       <s:SolidColorStroke color="0x000000"/>
     </s:stroke>
   </s:Rect>
 
+  <s:Rect top="10" right="100" width="64" height="64" visible="{talk != null}">
+    <s:fill>
+      <s:SolidColor color="{color}"/>
+    </s:fill>
+    <s:stroke>
+      <s:SolidColorStroke color="black"/>
+    </s:stroke>
+  </s:Rect>
+
+  <u:VectorImage id="icon" top="12" right="102" width="64" height="64"/>
+
   <s:Image id="favoriteImage" top="10" right="20" click="toggleSelection(event)"/>
 
   <s:VGroup top="10" left="10" right="10" bottom="10" gap="30">
     <s:Label text="{talk.title}" fontWeight="bold" width="420" height="100"/>
     <s:RichText text="{talk.abstractText}" width="780" height="150"/>
-    <s:Label text="mehr..." fontWeight="bold" visible="{talk != null}"/>
+    <s:Label text="mehr..." fontWeight="bold" visible="{talk != null}" click="onMoreClicked(event)"/>
   </s:VGroup>
 
   <s:Image id="languageImage" bottom="10" right="20" source="@Embed('/english-small.png')" visible="false"/>

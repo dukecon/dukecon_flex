@@ -19,6 +19,7 @@
     import org.dukecon.controller.ConferenceController;
     import org.dukecon.events.ConferenceDataChangedEvent;
     import org.dukecon.events.ScheduleEvent;
+    import org.dukecon.events.ScheduleTalkSelectedEvent;
 
     [Bindable]
     protected var listData:ArrayCollection;
