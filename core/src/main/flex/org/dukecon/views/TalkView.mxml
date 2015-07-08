@@ -102,37 +102,44 @@
 
     <s:Scroller width="100%" height="100%" horizontalScrollPolicy="off">
         <s:VGroup width="100%" padding="10" gap="30">
-            <s:HGroup width="100%">
-                <s:Label id="titleLabel" text="{talk.title}" width="480" fontWeight="bold" fontSize="50"/>
-                <s:Image source="@Embed('/english-small.png')" top="10" visible="{language == 'english'}"/>
-                <s:VGroup>
-                    <s:Image source="{selectedIcon}" click="toggleSelection(event)"/>
-                    <s:Group width="64" height="64">
-                        <s:Rect top="0" left="0" right="0" bottom="0">
-                            <s:fill>
-                                <s:SolidColor color="{trackColor}"/>
-                            </s:fill>
-                            <s:stroke>
-                                <s:SolidColorStroke color="black"/>
-                            </s:stroke>
-                        </s:Rect>
-                        <u:VectorImage source="{trackIcon}" top="2" left="2" right="2" bottom="2"/>
-                    </s:Group>
-                </s:VGroup>
-            </s:HGroup>
-            <s:Label text="{talk.abstractText}" width="{parent.width - 20}"/>
+            <s:Group width="100%">
+                <s:Rect top="4" left="4" right="4" height="150" radiusX="10" radiusY="10" visible="{talk != null}">
+                    <s:fill>
+                        <s:SolidColor color="0x1AA3B1"/>
+                    </s:fill>
+                </s:Rect>
+
+                <s:Label id="titleLabel" text="{talk.title}" top="20" left="20" width="440" styleName="title"/>
+
+                <s:Rect top="20" right="100" width="64" height="64" visible="{talk != null}">
+                    <s:fill>
+                        <s:SolidColor color="{trackColor}"/>
+                    </s:fill>
+                    <s:stroke>
+                        <s:SolidColorStroke color="black"/>
+                    </s:stroke>
+                </s:Rect>
+
+                <u:VectorImage source="{trackIcon}" top="22" right="100" width="64" height="64"/>
+
+                <s:Image source="{selectedIcon}" top="20" right="20" click="toggleSelection(event)"/>
+
+                <s:Image top="100" right="28" width="48" height="36" source="@Embed('/english-small.png')"
+                         visible="{language == 'english'}"/>
+            </s:Group>
+            <s:Label text="{talk.abstractText}" styleName="content" width="{parent.width - 20}"/>
             <s:Label text="{speakers}" width="{parent.width - 20}" fontWeight="bold"/>
             <s:HGroup>
                 <s:Label text="Start:" fontWeight="bold"/>
-                <s:Label text="{formatter.format(talk.start)} {timeFormatter.format(talk.start)}"/>
+                <s:Label text="{formatter.format(talk.start)} {timeFormatter.format(talk.start)}" styleName="content"/>
             </s:HGroup>
             <s:HGroup>
                 <s:Label text="Raum:" fontWeight="bold"/>
-                <s:Label text="{talk.location}"/>
+                <s:Label text="{talk.location}" styleName="content"/>
             </s:HGroup>
             <s:HGroup>
                 <s:Label text="Track:" fontWeight="bold"/>
-                <s:Label text="{talk.track}"/>
+                <s:Label text="{talk.track}" styleName="content"/>
             </s:HGroup>
         </s:VGroup>
     </s:Scroller>

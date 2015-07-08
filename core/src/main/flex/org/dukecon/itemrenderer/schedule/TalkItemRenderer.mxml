@@ -75,7 +75,7 @@
     ]]>
   </fx:Script>
 
-  <s:Rect top="0" left="0" right="0" bottom="0">
+  <s:Rect top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10" visible="{talk != null}">
     <s:fill>
       <s:SolidColor color="0xffffff"/>
     </s:fill>
@@ -84,7 +84,13 @@
     </s:stroke>
   </s:Rect>
 
-  <s:Rect top="10" right="100" width="64" height="64" visible="{talk != null}">
+  <s:Rect top="4" left="4" right="4" height="120" radiusX="10" radiusY="10" visible="{talk != null}">
+    <s:fill>
+      <s:SolidColor color="0x1AA3B1"/>
+    </s:fill>
+  </s:Rect>
+
+  <s:Rect top="20" right="100" width="64" height="64" visible="{talk != null}">
     <s:fill>
       <s:SolidColor color="{color}"/>
     </s:fill>
@@ -93,16 +99,18 @@
     </s:stroke>
   </s:Rect>
 
-  <u:VectorImage id="icon" top="12" right="102" width="64" height="64"/>
+  <u:VectorImage id="icon" top="22" right="100" width="64" height="64"/>
 
-  <s:Image id="favoriteImage" top="10" right="20" click="toggleSelection(event)"/>
+  <s:Image id="favoriteImage" top="20" right="20" click="toggleSelection(event)"/>
 
-  <s:VGroup top="10" left="10" right="10" bottom="10" gap="30">
-    <s:Label text="{talk.title}" fontWeight="bold" width="420" height="100"/>
-    <s:RichText text="{talk.abstractText}" width="780" height="150"/>
-    <s:Label text="mehr..." fontWeight="bold" visible="{talk != null}" click="onMoreClicked(event)"/>
-  </s:VGroup>
+  <s:Label text="{talk.title}" styleName="title" top="20" left="20" width="420" height="100"/>
 
-  <s:Image id="languageImage" bottom="10" right="20" source="@Embed('/english-small.png')" visible="false"/>
+  <s:Label text="{talk.abstractText}" styleName="content" top="130" left="20" width="{column.width - 40}"
+           height="166" visible="{talk != null}"/>
+
+  <s:Label text="mehr..."  styleName="link" bottom="10" left="20" visible="{talk != null}"
+           click="onMoreClicked(event)"/>
+
+  <s:Image id="languageImage" bottom="10" right="20" width="48" height="36" source="@Embed('/english-small.png')" visible="false"/>
 
 </s:GridItemRenderer>

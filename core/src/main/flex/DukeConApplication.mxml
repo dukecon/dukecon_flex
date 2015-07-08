@@ -3,11 +3,13 @@
         xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
         creationComplete="onCreationComplete(event)"
-        applicationDPI="320">
+        applicationDPI="320" frameRate="60">
 
     <fx:Metadata>
         [ResourceBundle("dukecon")]
     </fx:Metadata>
+
+    <fx:Style source="DukeConStyle.css" />
 
     <fx:Script>
         <![CDATA[
