@@ -5,6 +5,7 @@
 
   <fx:Declarations>
     <s:DateTimeFormatter id="formatter" dateStyle="medium" timeStyle="none"/>
+    <s:DateTimeFormatter id="dayFormatter" dateTimePattern="EE"/>
   </fx:Declarations>
 
   <fx:Script>
@@ -24,6 +25,9 @@
       var matches : Array = String(value).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
       var date:Date = new Date(int(matches[1]), int(matches[2]), int(matches[3]));
       formattedData = formatter.format(date);
+
+      itemLabel.width = this.parent.parent.width - 168;
+      dayLabel.text = dayFormatter.format(date);
     }
 
     protected function onItemClick(event:MouseEvent):void {
@@ -52,10 +56,12 @@
     </s:stroke>
   </s:Rect>
 
+  <s:Label id="dayLabel" fontSize="60" top="42" left="22" text="MO"/>
+
   <!--u:VectorImage id="icon" top="6" left="6" width="116" bottom="3"/-->
 
   <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-    <s:Label height="100%" width="100%" text="{formattedData}" fontSize="60"/>
+    <s:Label id="itemLabel" text="{formattedData}" styleName="listTitle"/>
   </s:HGroup>
 
 </s:ItemRenderer>
