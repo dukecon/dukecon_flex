@@ -4,12 +4,11 @@
 -->
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
-        xmlns:u="org.dukecon.utils.*"
-        title="{talk.title}">
+        xmlns:u="org.dukecon.utils.*">
 
     <fx:Declarations>
-        <s:DateTimeFormatter id="formatter" dateStyle="medium" timeStyle="none"/>
-        <s:DateTimeFormatter id="timeFormatter" dateTimePattern="HH:mm"/>
+        <s:DateTimeFormatter id="startTimeFormatter" dateTimePattern="dd.MM.yyyy HH:mm"/>
+        <s:DateTimeFormatter id="endTimeFormatter" dateTimePattern="HH:mm"/>
     </fx:Declarations>
 
     <fx:Script>
@@ -74,6 +73,7 @@
                 }
             }
             talk.speakers
+            title = startTimeFormatter.format(talk.start) + " - " + endTimeFormatter.format(talk.end);
         }
 
         protected function updateSelectionIcon():void {
@@ -130,8 +130,8 @@
             <s:Label text="{talk.abstractText}" styleName="content" width="{parent.width - 20}"/>
             <s:Label text="{speakers}" width="{parent.width - 20}" fontWeight="bold"/>
             <s:HGroup>
-                <s:Label text="Start:" fontWeight="bold"/>
-                <s:Label text="{formatter.format(talk.start)} {timeFormatter.format(talk.start)}" styleName="content"/>
+                <s:Label text="Zeit:" fontWeight="bold"/>
+                <s:Label text="{startTimeFormatter.format(talk.start)} - {endTimeFormatter.format(talk.end)}" styleName="content"/>
             </s:HGroup>
             <s:HGroup>
                 <s:Label text="Raum:" fontWeight="bold"/>

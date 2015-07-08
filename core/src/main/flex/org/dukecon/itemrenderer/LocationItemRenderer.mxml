@@ -1,10 +1,16 @@
 <?xml version="1.0"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
+                xmlns:u="org.dukecon.utils.*"
                 height="136">
 
   <fx:Script>
     <![CDATA[
+    import org.dukecon.controller.LocationController;
+
+    [Bindable]
+    protected var locationIcon:Class;
+
     [Bindable("dataChange")]
     override public function get data():Object {
       return super.data;
@@ -12,15 +18,22 @@
 
     override public function set data(value:Object):void {
       super.data = value;
-      //backgroundColor.color = TrackController.instance.getColorForTrack(String(value));
+
+      if (value) {
+        locationIcon = LocationController.instance.getIconForLocation(String(value));
+      } else {
+        locationIcon = null;
+      }
+      itemLabel.width = this.parent.parent.width - 168;
+
+      invalidateDisplayList();
     }
     ]]>
   </fx:Script>
 
-
   <s:Rect top="0" left="0" width="100%" bottom="0">
     <s:fill>
-      <s:SolidColor id="backgroundColor" color="white"/>
+      <s:SolidColor color="white"/>
     </s:fill>
     <s:stroke>
       <s:SolidColorStroke color="black"/>
@@ -36,10 +49,10 @@
     </s:stroke>
   </s:Rect>
 
-  <!--u:VectorImage id="icon" top="6" left="6" width="116" bottom="3"/-->
+  <u:VectorImage source="{locationIcon}" top="10" left="10" width="110" bottom="10"/>
 
   <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-    <s:Label height="100%" width="100%" text="{String(data)}" fontSize="60"/>
+    <s:Label id="itemLabel" text="{String(data)}" styleName="listTitle"/>
   </s:HGroup>
 
 </s:ItemRenderer>

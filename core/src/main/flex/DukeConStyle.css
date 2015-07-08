@@ -1,5 +1,12 @@
 @namespace s "library://ns.adobe.com/flex/spark";
 
+.listTitle {
+    fontFamily: _sans;
+    fontWeight: normal;
+    fontSize: 50px;
+    color: #1AA3B1;
+}
+
 .title {
     fontFamily: _sans;
     fontWeight: normal;
@@ -16,4 +23,14 @@
 
 .link {
 
+}
+
+.dukeconGrid {
+    borderStyle: none;
+    verticalGridLines: false;
+    horizontalGridLines: false;
+    paddingLeft: 0;
+    paddingRight: 0;
+    paddingTop: 0;
+    paddingBottom: 0;
 }

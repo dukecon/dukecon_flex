@@ -46,6 +46,7 @@
                     <storepass>flexmojos</storepass>
                     <descriptorTemplate>${basedir}/src/main/resources/descriptor.xml</descriptorTemplate>
                     <debug>true</debug>
+                    <sourceFile>DukeConApplication.mxml</sourceFile>
                 </configuration>
 
                 <dependencies>
