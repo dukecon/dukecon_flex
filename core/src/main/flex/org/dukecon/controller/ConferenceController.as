@@ -44,6 +44,7 @@ public class ConferenceController extends EventDispatcher {
     private var db:File;
 
     private var selectedTalkIds:SharedObject;
+    private var trackRatings:SharedObject;
 
     public function ConferenceController(enforcer:SingletonEnforcer) {
 
@@ -64,6 +65,7 @@ public class ConferenceController extends EventDispatcher {
             conn.open(db);
 
             selectedTalkIds = SharedObject.getLocal("selected-talk-ids");
+            trackRatings = SharedObject.getLocal("track-ratings");
 
             if(initDb) {
                 TalkBase.createTable(conn);
@@ -217,7 +219,7 @@ public class ConferenceController extends EventDispatcher {
         }
         if(!ArrayCollection(selectedTalkIds.data.savedValue).contains(talk.id)) {
             ArrayCollection(selectedTalkIds.data.savedValue).addItem(talk.id);
-            flushSharedObject();
+            flushSharedObject(selectedTalkIds);
         }
     }
 
@@ -225,14 +227,30 @@ public class ConferenceController extends EventDispatcher {
         if(!talk) return;
         if(isTalkSelected(talk)) {
             ArrayCollection(selectedTalkIds.data.savedValue).removeItem(talk.id);
-            flushSharedObject();
+            flushSharedObject(selectedTalkIds);
         }
     }
 
-    protected function flushSharedObject():void {
+    public function setRating(talk:Talk, rating:Number):void {
+        if(!talk) return;
+        if(!trackRatings.data.savedValue) {
+            trackRatings.data.savedValue = {};
+        }
+        trackRatings.data.savedValue[talk.id] = rating;
+        flushSharedObject(trackRatings);
+    }
+
+    public function getRating(talk:Talk):Number {
+        if(talk && trackRatings.data && trackRatings.data.savedValue) {
+            return trackRatings.data.savedValue[talk.id];
+        }
+        return -2;
+    }
+
+    protected function flushSharedObject(so:SharedObject):void {
         var flushStatus:String = null;
         try {
-            flushStatus = selectedTalkIds.flush(10000);
+            flushStatus = so.flush(10000);
         } catch (error:Error) {
             trace("Error...Could not write SharedObject to disk\n");
         }
@@ -240,7 +258,7 @@ public class ConferenceController extends EventDispatcher {
             switch (flushStatus) {
                 case SharedObjectFlushStatus.PENDING:
                     trace("Requesting permission to save object...\n");
-                    selectedTalkIds.addEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
+                    so.addEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
                     break;
                 case SharedObjectFlushStatus.FLUSHED:
                     trace("Value flushed to disk.\n");

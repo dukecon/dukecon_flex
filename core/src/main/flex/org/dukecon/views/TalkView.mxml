@@ -9,8 +9,8 @@
     <fx:Declarations>
         <s:DateTimeFormatter id="startTimeFormatter" dateTimePattern="dd.MM.yyyy HH:mm"/>
         <s:DateTimeFormatter id="endTimeFormatter" dateTimePattern="HH:mm"/>
+        <s:RadioButtonGroup id="ratingGroup" itemClick="onRatingChanged(event)"/>
     </fx:Declarations>
-
     <fx:Script>
         <![CDATA[
         import org.dukecon.controller.ConferenceController;
@@ -40,8 +40,6 @@
         [Bindable]
         protected var speakers:String;
 
-
-
         [Bindable("dataChange")]
         override public function get data():Object {
             return super.data;
@@ -69,8 +67,8 @@
                     }
                 }
             }
-            talk.speakers
             title = startTimeFormatter.format(talk.start) + " - " + endTimeFormatter.format(talk.end);
+            ratingGroup.selectedValue = ConferenceController.instance.getRating(talk)
         }
 
         protected function updateSelectionIcon():void {
@@ -90,6 +88,11 @@
             }
             updateSelectionIcon();
         }
+
+        protected function onRatingChanged(event:Event):void {
+            ConferenceController.instance.setRating(talk, Number(ratingGroup.selectedValue))
+        }
+
         ]]>
     </fx:Script>
 
@@ -137,6 +140,12 @@
             <s:HGroup>
                 <s:Label text="Track:" fontWeight="bold"/>
                 <s:Label text="{talk.track}" styleName="content"/>
+            </s:HGroup>
+            <s:HGroup>
+                <s:Label text="Rating:" fontWeight="bold"/>
+                <s:RadioButton groupName="ratingGroup" label="Bad" value="-1" color="red"/>
+                <s:RadioButton groupName="ratingGroup" label="Avg." value="0" color="#FFA500"/>
+                <s:RadioButton groupName="ratingGroup" label="Good" value="1" color="green"/>
             </s:HGroup>
         </s:VGroup>
     </s:Scroller>
