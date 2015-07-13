@@ -38,10 +38,9 @@
         protected var trackIcon:Class;
 
         [Bindable]
-        protected var trackColor:uint;
-
-        [Bindable]
         protected var speakers:String;
+
+
 
         [Bindable("dataChange")]
         override public function get data():Object {
@@ -54,11 +53,9 @@
             updateSelectionIcon();
             if (talk) {
                 language = talk.language;
-                trackColor = TrackController.instance.getColorForTrack(talk.track);
                 trackIcon = TrackController.instance.getIconForTrack(talk.track);
             } else {
                 language = null;
-                trackColor = 0xffffff;
                 trackIcon = null;
             }
             speakers = "";
@@ -113,7 +110,7 @@
 
                 <s:Rect top="20" right="100" width="64" height="64" visible="{talk != null}">
                     <s:fill>
-                        <s:SolidColor color="{trackColor}"/>
+                        <s:SolidColor color="0xffffff"/>
                     </s:fill>
                     <s:stroke>
                         <s:SolidColorStroke color="black"/>

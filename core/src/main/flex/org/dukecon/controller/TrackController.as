@@ -89,7 +89,7 @@ public class TrackController {
         return null;
     }
 
-    public function getColorForTrack(trackName:String):uint {
+    private function getColorForTrack(trackName:String):uint {
         if(trackName) {
             var trackCode:String = trackName.toLowerCase();
             while(trackCode.indexOf(" ") != -1) {

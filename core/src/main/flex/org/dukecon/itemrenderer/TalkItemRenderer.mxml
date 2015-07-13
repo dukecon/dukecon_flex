@@ -26,9 +26,6 @@
     [Bindable]
     protected var talk:Talk;
 
-    [Bindable]
-    protected var color:uint;
-
     [Bindable("dataChange")]
     override public function get data():Object {
       return super.data;
@@ -38,12 +35,10 @@
       super.data = value;
       talk = Talk(value[column.dataField]);
       if (talk) {
-        color = TrackController.instance.getColorForTrack(talk.track);
         icon.source = TrackController.instance.getIconForTrack(talk.track);
         icon.setActualSize(60, 60);
         languageImage.visible = talk.language == "english";
       } else {
-        color = 0xffffff;
         icon.source = null;
         languageImage.visible = false;
       }
@@ -92,7 +87,7 @@
 
   <s:Rect top="20" right="100" width="64" height="64" visible="{talk != null}">
     <s:fill>
-      <s:SolidColor color="{color}"/>
+      <s:SolidColor color="0xffffff"/>
     </s:fill>
     <s:stroke>
       <s:SolidColorStroke color="black"/>
