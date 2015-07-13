@@ -80,7 +80,7 @@ public class ConferenceController extends EventDispatcher {
         }
     }
 
-    protected function updateTalks():void {
+    public function updateTalks():void {
         var token:AsyncToken = service.send();
         token.addResponder(new Responder(onResult, onFault));
     }
