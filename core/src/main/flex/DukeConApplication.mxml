@@ -13,12 +13,19 @@
 
     <fx:Script>
         <![CDATA[
+        import flashx.textLayout.utils.NavigationUtil;
+
         import mx.events.FlexEvent;
 
         import org.dukecon.controller.ConferenceController;
+        import org.dukecon.views.SettingsView;
 
         protected function onCreationComplete(event:FlexEvent):void {
             ConferenceController.instance;
+        }
+
+        protected function onOpenSettingsClicked(event:MouseEvent):void {
+            tabbedNavigator.activeView.navigator.pushView(SettingsView);
         }
 
         ]]>
@@ -26,18 +33,43 @@
 
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'main.title')}"
                      icon="@Embed('/conference.png')"
-                     firstView="org.dukecon.views.MainView" width="100%" height="100%"/>
+                     firstView="org.dukecon.views.MainView" width="100%" height="100%">
+        <s:actionContent>
+            <s:Button icon="@Embed('/settings.png')" name="settingsButton"
+                      click="onOpenSettingsClicked(event)"/>
+        </s:actionContent>
+    </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'schedule.title')}"
                      icon="@Embed('/schedule.png')"
-                     firstView="org.dukecon.views.ScheduleView" width="100%" height="100%"/>
+                     firstView="org.dukecon.views.ScheduleView" width="100%" height="100%">
+        <s:actionContent>
+            <s:Button icon="@Embed('/settings.png')" name="settingsButton"
+                      click="onOpenSettingsClicked(event)"/>
+        </s:actionContent>
+    </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'tracks.title')}"
                      icon="@Embed('/track.png')"
-                     firstView="org.dukecon.views.TracksView" width="100%" height="100%"/>
+                     firstView="org.dukecon.views.TracksView" width="100%" height="100%">
+        <s:actionContent>
+            <s:Button icon="@Embed('/settings.png')" name="settingsButton"
+                      click="onOpenSettingsClicked(event)"/>
+        </s:actionContent>
+    </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'locations.title')}"
                      icon="@Embed('/location.png')"
-                     firstView="org.dukecon.views.LocationsView" width="100%" height="100%"/>
+                     firstView="org.dukecon.views.LocationsView" width="100%" height="100%">
+        <s:actionContent>
+            <s:Button icon="@Embed('/settings.png')" name="settingsButton"
+                      click="onOpenSettingsClicked(event)"/>
+        </s:actionContent>
+    </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'speakers.title')}"
                      icon="@Embed('/speaker.png')"
-                     firstView="org.dukecon.views.SpeakersView" width="100%" height="100%"/>
+                     firstView="org.dukecon.views.SpeakersView" width="100%" height="100%">
+        <s:actionContent>
+            <s:Button icon="@Embed('/settings.png')" name="settingsButton"
+                      click="onOpenSettingsClicked(event)"/>
+        </s:actionContent>
+    </s:ViewNavigator>
 
 </s:TabbedViewNavigatorApplication>

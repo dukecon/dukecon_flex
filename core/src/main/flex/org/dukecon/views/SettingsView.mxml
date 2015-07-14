@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 14.07.15.
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+        title="{resourceManager.getString('dukecon', 'settings.title')}"
+        creationComplete="onCreationComplete(event)">
+
+    <s:navigationContent>
+        <s:Button label="&lt;" click="onBackClicked(event)"/>
+    </s:navigationContent>
+
+    <fx:Script>
+        <![CDATA[
+        import mx.events.FlexEvent;
+
+        protected function onCreationComplete(event:FlexEvent) {
+            for each(var button:Button in navigator.actionContent) {
+                if(button.name == "settingsButton") {
+                    button.visible = false;
+                }
+            }
+        }
+
+        protected function onBackClicked(event:MouseEvent):void {
+            for each(var button:Button in navigator.actionContent) {
+                if(button.name == "settingsButton") {
+                    button.visible = true;
+                }
+            }
+            navigator.popView()
+        }
+
+        ]]>
+    </fx:Script>
+</s:View>
