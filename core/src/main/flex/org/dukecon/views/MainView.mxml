@@ -24,7 +24,8 @@
     <s:Image source="@Embed('/conference-logo.jpg')"
              width="100%" height="100%" scaleMode="letterbox"/>
     <s:HGroup height="100%" verticalAlign="middle">
-      <s:Button id="refreshButton" label="Refresh Talk Data" click="onRefreshClicked(event)"/>
+      <s:Button id="refreshButton" label="{resourceManager.getString('dukecon', 'main.refresh')}"
+                click="onRefreshClicked(event)"/>
     </s:HGroup>
   </s:VGroup>
 

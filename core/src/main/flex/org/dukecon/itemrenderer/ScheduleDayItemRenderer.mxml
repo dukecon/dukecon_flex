@@ -4,8 +4,10 @@
                 height="136" click="onItemClick(event)">
 
   <fx:Declarations>
-    <s:DateTimeFormatter id="formatter" dateStyle="medium" timeStyle="none"/>
-    <s:DateTimeFormatter id="dayFormatter" dateTimePattern="EE"/>
+    <s:DateTimeFormatter id="formatter"
+                         dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
+    <s:DateTimeFormatter id="dayFormatter"
+                         dateTimePattern="{resourceManager.getString('dukecon', 'datetime.dayOfWeek')}"/>
   </fx:Declarations>
 
   <fx:Script>

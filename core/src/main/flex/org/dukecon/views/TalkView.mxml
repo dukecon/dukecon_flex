@@ -6,11 +6,18 @@
         xmlns:s="library://ns.adobe.com/flex/spark"
         xmlns:u="org.dukecon.utils.*">
 
+    <fx:Metadata>
+        [ResourceBundle("dukecon")]
+    </fx:Metadata>
+
     <fx:Declarations>
-        <s:DateTimeFormatter id="startTimeFormatter" dateTimePattern="dd.MM.yyyy HH:mm"/>
-        <s:DateTimeFormatter id="endTimeFormatter" dateTimePattern="HH:mm"/>
+        <s:DateTimeFormatter id="startTimeFormatter"
+                             dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
+        <s:DateTimeFormatter id="endTimeFormatter"
+                             dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>
         <s:RadioButtonGroup id="ratingGroup" itemClick="onRatingChanged(event)"/>
     </fx:Declarations>
+
     <fx:Script>
         <![CDATA[
         import org.dukecon.controller.ConferenceController;
@@ -130,22 +137,26 @@
             <s:Label text="{talk.abstractText}" styleName="content" width="{parent.width - 20}"/>
             <s:Label text="{speakers}" width="{parent.width - 20}" fontWeight="bold"/>
             <s:HGroup>
-                <s:Label text="Zeit:" fontWeight="bold"/>
-                <s:Label text="{startTimeFormatter.format(talk.start)} - {endTimeFormatter.format(talk.end)}" styleName="content"/>
+                <s:Label text="{resourceManager.getString('dukecon', 'talks.time')}:" fontWeight="bold"/>
+                <s:Label text="{startTimeFormatter.format(talk.start)} - {endTimeFormatter.format(talk.end)}"
+                         styleName="content"/>
             </s:HGroup>
             <s:HGroup>
-                <s:Label text="Raum:" fontWeight="bold"/>
+                <s:Label text="{resourceManager.getString('dukecon', 'talks.room')}:" fontWeight="bold"/>
                 <s:Label text="{talk.location}" styleName="content"/>
             </s:HGroup>
             <s:HGroup>
-                <s:Label text="Track:" fontWeight="bold"/>
+                <s:Label text="{resourceManager.getString('dukecon', 'talks.track')}:" fontWeight="bold"/>
                 <s:Label text="{talk.track}" styleName="content"/>
             </s:HGroup>
             <s:HGroup>
-                <s:Label text="Rating:" fontWeight="bold"/>
-                <s:RadioButton groupName="ratingGroup" label="Bad" value="-1" color="red"/>
-                <s:RadioButton groupName="ratingGroup" label="Avg." value="0" color="#FFA500"/>
-                <s:RadioButton groupName="ratingGroup" label="Good" value="1" color="green"/>
+                <s:Label text="{resourceManager.getString('dukecon', 'talks.rating')}:" fontWeight="bold"/>
+                <s:RadioButton groupName="ratingGroup" value="-1" color="red"
+                               skinClass="org.dukecon.skins.ImageRadioButtonSkin"/>
+                <s:RadioButton groupName="ratingGroup" value="0" color="#FFA500"
+                               skinClass="org.dukecon.skins.ImageRadioButtonSkin"/>
+                <s:RadioButton groupName="ratingGroup" value="1" color="green"
+                               skinClass="org.dukecon.skins.ImageRadioButtonSkin"/>
             </s:HGroup>
         </s:VGroup>
     </s:Scroller>
