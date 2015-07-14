@@ -5,7 +5,8 @@
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
         xmlns:u="org.dukecon.utils.*"
-        title="{resourceManager.getString('dukecon', 'location.title')}">
+        title="{resourceManager.getString('dukecon', 'location.title')}"
+        creationComplete="onCreationComplete(event)">
 
     <fx:Metadata>
         [ResourceBundle("dukecon")]
@@ -13,13 +14,26 @@
 
     <fx:Script>
         <![CDATA[
+        import mx.collections.ArrayCollection;
+        import mx.events.FlexEvent;
+
+        import org.dukecon.controller.ConferenceController;
+
         import org.dukecon.controller.LocationController;
+        import org.dukecon.events.ListEvent;
 
         [Bindable]
         protected var location:String;
 
         [Bindable]
         protected var locationIcon:Class;
+
+        [Bindable]
+        protected var talks:ArrayCollection;
+
+        protected function onCreationComplete(event:FlexEvent):void {
+            talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
+        }
 
         [Bindable("dataChange")]
         override public function get data():Object {
@@ -30,7 +44,13 @@
             super.data = value;
             location = String(value);
             locationIcon = LocationController.instance.getIconForLocation(location);
+            talks = ConferenceController.instance.getTalksForLocation(location);
         }
+
+        protected function onTalkSelected(event:ListEvent):void {
+            navigator.pushView(TalkView, event.data);
+        }
+
         ]]>
     </fx:Script>
 
@@ -60,6 +80,9 @@
 
                 <u:VectorImage source="{locationIcon}" top="22" right="22" width="116" height="116"/>
             </s:Group>
+            <s:List id="talkList" width="100%" height="100%"
+                    itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                    dataProvider="{talks}"/>
         </s:VGroup>
     </s:Scroller>
 

@@ -7,6 +7,13 @@
     color: #1AA3B1;
 }
 
+.talkListTitle {
+    fontFamily: _sans;
+    fontWeight: normal;
+    fontSize: 30px;
+    color: #1AA3B1;
+}
+
 .title {
     fontFamily: _sans;
     fontWeight: normal;

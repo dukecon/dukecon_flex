@@ -197,6 +197,27 @@ public class ConferenceController extends EventDispatcher {
         return TalkBase.select(conn, "date(start) = '" + day + "'");
     }
 
+    public function getTalksForTrack(track:String):ArrayCollection {
+        return TalkBase.select(conn, "track = '" + track + "'");
+    }
+
+    public function getTalksForLocation(location:String):ArrayCollection {
+        return TalkBase.select(conn, "location = '" + location + "'");
+    }
+
+    public function getTalksForSpeaker(speaker:Speaker):ArrayCollection {
+        var result:ArrayCollection = new ArrayCollection();
+        for each(var talk:Talk in talks) {
+            for each(var speakerObj:Object in talk.speakers) {
+                if(speakerObj && speakerObj.name == speaker.name) {
+                    result.addItem(talk);
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
     public function isTalkSelected(talk:Talk):Boolean {
         if(!talk) return false;
         return (selectedTalkIds.data && selectedTalkIds.data.savedValue &&

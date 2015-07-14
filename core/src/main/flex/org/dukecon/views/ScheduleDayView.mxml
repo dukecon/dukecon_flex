@@ -105,31 +105,31 @@
         <s:GridColumn dataField="location" headerText="" width="40"
                       itemRenderer="org.dukecon.itemrenderer.header.LocationItemRenderer"/>
         <s:GridColumn dataField="09:00 - 09:45" width="600"
-                      itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                      itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
                       headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
         <s:GridColumn dataField="10:00 - 10:45" width="600"
-                      itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                      itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
                       headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
         <s:GridColumn dataField="11:00 - 11:45" width="600"
-                      itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                      itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
                       headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
         <s:GridColumn dataField="12:00 - 12:45" width="600"
-                      itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                      itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
                       headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
         <s:GridColumn dataField="13:00 - 13:45" width="600"
-                      itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                      itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
                       headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
         <s:GridColumn dataField="14:00 - 14:45" width="600"
-                      itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                      itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
                       headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
         <s:GridColumn dataField="15:00 - 15:45" width="600"
-                      itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                      itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
                       headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
         <s:GridColumn dataField="16:00 - 16:45" width="600"
-                      itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                      itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
                       headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
         <s:GridColumn dataField="17:00 - 17:45" width="600"
-                      itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                      itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
                       headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
       </s:ArrayList>
     </s:columns>

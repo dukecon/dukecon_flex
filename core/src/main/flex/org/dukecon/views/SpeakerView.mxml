@@ -5,7 +5,8 @@
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
         xmlns:u="org.dukecon.utils.*"
-        title="{resourceManager.getString('dukecon', 'speaker.title')}">
+        title="{resourceManager.getString('dukecon', 'speaker.title')}"
+        creationComplete="onCreationComplete(event)">
 
     <fx:Metadata>
         [ResourceBundle("dukecon")]
@@ -13,17 +14,27 @@
 
     <fx:Script>
         <![CDATA[
+        import mx.collections.ArrayCollection;
+        import mx.events.FlexEvent;
+
         import org.dukecon.controller.ConferenceController;
+
         import org.dukecon.controller.SpeakerController;
-        import org.dukecon.controller.TrackController;
+        import org.dukecon.events.ListEvent;
         import org.dukecon.model.Speaker;
-        import org.dukecon.model.Talk;
 
         [Bindable]
         protected var speaker:Speaker;
 
         [Bindable]
         protected var speakerPortrait:Class;
+
+        [Bindable]
+        protected var talks:ArrayCollection;
+
+        protected function onCreationComplete(event:FlexEvent):void {
+            talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
+        }
 
         [Bindable("dataChange")]
         override public function get data():Object {
@@ -34,6 +45,11 @@
             super.data = value;
             speaker = Speaker(value);
             speakerPortrait = SpeakerController.instance.getIconForSpeaker(speaker.name);
+            talks = ConferenceController.instance.getTalksForSpeaker(speaker);
+        }
+
+        protected function onTalkSelected(event:ListEvent):void {
+            navigator.pushView(TalkView, event.data);
         }
 
         ]]>
@@ -81,6 +97,9 @@
                     <s:Label text="{speaker.gplus}"/>
                 </s:FormItem>
             </s:Form>
+            <s:List id="talkList" width="100%"
+                    itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
+                    dataProvider="{talks}"/>
         </s:VGroup>
     </s:Scroller>
 

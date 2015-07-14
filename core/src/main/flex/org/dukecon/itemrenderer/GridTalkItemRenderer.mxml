@@ -1,0 +1,115 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 30.05.15.
+-->
+<s:GridItemRenderer
+        xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:u="org.dukecon.utils.*">
+
+  <fx:Metadata>
+    [ResourceBundle("dukecon")]
+  </fx:Metadata>
+
+  <fx:Script>
+    <![CDATA[
+    import org.dukecon.controller.ConferenceController;
+    import org.dukecon.controller.TrackController;
+    import org.dukecon.events.ListEvent;
+    import org.dukecon.model.Talk;
+
+    [Embed(source="/star-unselected.png")]
+    [Bindable]
+    public var starUnselected:Class;
+
+    [Embed(source="/star-selected.png")]
+    [Bindable]
+    public var starSelected:Class;
+
+    [Bindable]
+    protected var talk:Talk;
+
+    [Bindable("dataChange")]
+    override public function get data():Object {
+      return super.data;
+    }
+
+    override public function set data(value:Object):void {
+      super.data = value;
+      talk = Talk(value[column.dataField]);
+      if (talk) {
+        icon.source = TrackController.instance.getIconForTrack(talk.track);
+        icon.setActualSize(60, 60);
+        languageImage.visible = talk.language == "english";
+      } else {
+        icon.source = null;
+        languageImage.visible = false;
+      }
+      updateSelectionIcon();
+    }
+
+    protected function updateSelectionIcon():void {
+      if (talk) {
+        favoriteImage.source = ConferenceController.instance.isTalkSelected(talk) ? starSelected : starUnselected;
+      } else {
+        favoriteImage.source = null;
+      }
+    }
+
+    protected function toggleSelection(event:MouseEvent):void {
+      var controller:ConferenceController = ConferenceController.instance;
+      if (controller.isTalkSelected(talk)) {
+        controller.unselectTalk(talk);
+      } else {
+        controller.selectTalk(talk);
+      }
+      updateSelectionIcon();
+    }
+
+    protected function onMoreClicked(event:MouseEvent):void {
+      dispatchEvent(new ListEvent(talk, ListEvent.ITEM_SELECTED));
+    }
+    ]]>
+  </fx:Script>
+
+  <s:Rect top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10" visible="{talk != null}">
+    <s:fill>
+      <s:SolidColor color="0xffffff"/>
+    </s:fill>
+    <s:stroke>
+      <s:SolidColorStroke color="0x000000"/>
+    </s:stroke>
+  </s:Rect>
+
+  <s:Rect top="4" left="4" right="4" height="120" radiusX="10" radiusY="10" visible="{talk != null}">
+    <s:fill>
+      <s:SolidColor color="0x1AA3B1"/>
+    </s:fill>
+  </s:Rect>
+
+  <s:Rect top="20" right="100" width="64" height="64" visible="{talk != null}">
+    <s:fill>
+      <s:SolidColor color="0xffffff"/>
+    </s:fill>
+    <s:stroke>
+      <s:SolidColorStroke color="black"/>
+    </s:stroke>
+  </s:Rect>
+
+  <u:VectorImage id="icon" top="22" right="100" width="64" height="64"/>
+
+  <s:Image id="favoriteImage" top="20" right="20" click="toggleSelection(event)"/>
+
+  <s:Label text="{talk.title}" styleName="title" top="20" left="20" width="420" height="100"/>
+
+  <s:Label text="{talk.abstractText}" styleName="content" top="130" left="20" width="{column.width - 40}"
+           height="166" visible="{talk != null}"/>
+
+  <s:Label text="{resourceManager.getString('dukecon', 'talks.more')}" styleName="link" bottom="10" left="20"
+           visible="{talk != null}"
+           click="onMoreClicked(event)"/>
+
+  <s:Image id="languageImage" bottom="10" right="20" width="48" height="36" source="@Embed('/english-small.png')"
+           visible="false"/>
+
+</s:GridItemRenderer>
