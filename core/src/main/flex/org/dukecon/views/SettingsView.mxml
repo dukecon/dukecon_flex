@@ -6,6 +6,14 @@
         title="{resourceManager.getString('dukecon', 'settings.title')}"
         creationComplete="onCreationComplete(event)">
 
+    <fx:Metadata>
+        [ResourceBundle("dukecon")]
+    </fx:Metadata>
+
+    <fx:Declarations>
+        <s:RadioButtonGroup id="languageGroup" change="onLanguageChange(event)"/>
+    </fx:Declarations>
+
     <s:navigationContent>
         <s:Button label="&lt;" click="onBackClicked(event)"/>
     </s:navigationContent>
@@ -14,23 +22,47 @@
         <![CDATA[
         import mx.events.FlexEvent;
 
+        import org.dukecon.controller.SettingsController;
+
         protected function onCreationComplete(event:FlexEvent) {
+            // Hide the settings action button.
             for each(var button:Button in navigator.actionContent) {
-                if(button.name == "settingsButton") {
+                if (button.name == "settingsButton") {
                     button.visible = false;
                 }
+            }
+
+            // Select the currently selected locale button.
+            if(resourceManager.localeChain[0] == "en_US") {
+                englishButton.selected = true;
+            } else {
+                germanButton.selected = true;
             }
         }
 
         protected function onBackClicked(event:MouseEvent):void {
+            // Un-hide the settings action button.
             for each(var button:Button in navigator.actionContent) {
-                if(button.name == "settingsButton") {
+                if (button.name == "settingsButton") {
                     button.visible = true;
                 }
             }
             navigator.popView()
         }
 
+        protected function onLanguageChange(event:Event):void {
+            resourceManager.localeChain = [languageGroup.selectedValue];
+            SettingsController.instance.selectedLanguage = String(languageGroup.selectedValue);
+        }
+
         ]]>
     </fx:Script>
+
+    <s:Form width="100%">
+        <s:FormItem label="{resourceManager.getString('dukecon', 'settings.language')}:" width="300">
+            <s:RadioButton id="englishButton" groupName="languageGroup" label="English" value="en_US"/>
+            <s:RadioButton id="germanButton" groupName="languageGroup" label="Deutsch" value="de_DE"/>
+        </s:FormItem>
+    </s:Form>
+
 </s:View>

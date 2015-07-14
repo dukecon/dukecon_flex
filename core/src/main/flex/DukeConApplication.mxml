@@ -13,21 +13,23 @@
 
     <fx:Script>
         <![CDATA[
-        import flashx.textLayout.utils.NavigationUtil;
-
         import mx.events.FlexEvent;
 
         import org.dukecon.controller.ConferenceController;
+        import org.dukecon.controller.SettingsController;
         import org.dukecon.views.SettingsView;
 
         protected function onCreationComplete(event:FlexEvent):void {
             ConferenceController.instance;
+
+            // Get the selected language from the settings.
+            var selectedLanguage:String = SettingsController.instance.selectedLanguage;
+            resourceManager.localeChain = [selectedLanguage];
         }
 
         protected function onOpenSettingsClicked(event:MouseEvent):void {
             tabbedNavigator.activeView.navigator.pushView(SettingsView);
         }
-
         ]]>
     </fx:Script>
 
