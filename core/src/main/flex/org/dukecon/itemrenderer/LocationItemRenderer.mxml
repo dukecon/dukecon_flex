@@ -2,11 +2,13 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
                 xmlns:u="org.dukecon.utils.*"
-                height="136">
+                height="136"
+                click="onItemClick(event)">
 
   <fx:Script>
     <![CDATA[
     import org.dukecon.controller.LocationController;
+    import org.dukecon.events.ListEvent;
 
     [Bindable]
     protected var locationIcon:Class;
@@ -28,6 +30,11 @@
 
       invalidateDisplayList();
     }
+
+    protected function onItemClick(event:MouseEvent):void {
+      dispatchEvent(new ListEvent(data, ListEvent.ITEM_SELECTED));
+    }
+
     ]]>
   </fx:Script>
 

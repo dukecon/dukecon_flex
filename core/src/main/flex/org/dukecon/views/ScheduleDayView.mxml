@@ -28,7 +28,7 @@
     protected var dataProvider:ArrayCollection;
 
     protected function onCreationComplete(event:FlexEvent):void {
-      grid.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected)
+      grid.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
     }
 
     [Bindable("dataChange")]
