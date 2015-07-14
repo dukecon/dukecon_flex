@@ -15,7 +15,7 @@
 
 	<!-- A universally unique application identifier. Must be unique across all AIR applications.
 	Using a reverse DNS-style name as the id is recommended. (Eg. com.example.ExampleApplication.) Required. -->
-	<id>DukeConMobile</id>
+	<id>de.cware.apps.DukeConMobile</id>
 
 	<!-- Used as the filename for the application. Required. -->
 	<filename>DukeConMobile</filename>
@@ -282,16 +282,7 @@
 			
 		]]></manifestAdditions>
     </android>
-    <!--iPhone>
-        <InfoAdditions><![CDATA[
-			<key>UIDeviceFamily</key>
-			<array>
-				<string>1</string>
-				<string>2</string>
-			</array>
-            <key>UIApplicationExitsOnSuspend</key>
-            <true/>
-		]]></InfoAdditions>
+    <iPhone>
         <requestedDisplayResolution>high</requestedDisplayResolution>
-    </iPhone-->
+    </iPhone>
 </application>
