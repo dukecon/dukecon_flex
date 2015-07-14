@@ -18,7 +18,7 @@
     import mx.events.FlexEvent;
 
     import org.dukecon.controller.ConferenceController;
-    import org.dukecon.events.ScheduleTalkSelectedEvent;
+    import org.dukecon.events.ListEvent;
     import org.dukecon.model.Talk;
 
     [Bindable]
@@ -28,7 +28,7 @@
     protected var dataProvider:ArrayCollection;
 
     protected function onCreationComplete(event:FlexEvent):void {
-      grid.addEventListener(ScheduleTalkSelectedEvent.TALK_SELECTED, onTalkSelected)
+      grid.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected)
     }
 
     [Bindable("dataChange")]
@@ -71,8 +71,8 @@
       updateGrid();
     }
 
-    protected function onTalkSelected(event:ScheduleTalkSelectedEvent):void {
-      navigator.pushView(TalkView, event.talk);
+    protected function onTalkSelected(event:ListEvent):void {
+      navigator.pushView(TalkView, event.data);
     }
 
     protected function updateGrid():void {

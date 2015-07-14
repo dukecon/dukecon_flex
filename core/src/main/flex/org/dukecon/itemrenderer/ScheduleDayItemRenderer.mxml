@@ -12,7 +12,7 @@
 
   <fx:Script>
     <![CDATA[
-    import org.dukecon.events.ScheduleEvent;
+    import org.dukecon.events.ListEvent;
 
     [Bindable]
     protected var formattedData:String;
@@ -24,7 +24,7 @@
 
     override public function set data(value:Object):void {
       super.data = value;
-      var matches : Array = String(value).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+      var matches:Array = String(value).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
       var date:Date = new Date(int(matches[1]), int(matches[2]), int(matches[3]));
       formattedData = formatter.format(date);
 
@@ -33,9 +33,8 @@
     }
 
     protected function onItemClick(event:MouseEvent):void {
-      dispatchEvent(new ScheduleEvent(String(data), ScheduleEvent.DAY_SELECTED));
+      dispatchEvent(new ListEvent(String(data), ListEvent.ITEM_SELECTED));
     }
-
     ]]>
   </fx:Script>
 

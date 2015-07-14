@@ -15,8 +15,7 @@
     <![CDATA[
     import org.dukecon.controller.ConferenceController;
     import org.dukecon.controller.TrackController;
-    import org.dukecon.events.ScheduleEvent;
-    import org.dukecon.events.ScheduleTalkSelectedEvent;
+    import org.dukecon.events.ListEvent;
     import org.dukecon.model.Talk;
 
     [Embed(source="/star-unselected.png")]
@@ -68,9 +67,8 @@
     }
 
     protected function onMoreClicked(event:MouseEvent):void {
-      dispatchEvent(new ScheduleTalkSelectedEvent(talk, ScheduleTalkSelectedEvent.TALK_SELECTED));
+      dispatchEvent(new ListEvent(talk, ListEvent.ITEM_SELECTED));
     }
-
     ]]>
   </fx:Script>
 

@@ -18,7 +18,7 @@
 
     import org.dukecon.controller.ConferenceController;
     import org.dukecon.events.ConferenceDataChangedEvent;
-    import org.dukecon.events.ScheduleEvent;
+    import org.dukecon.events.ListEvent;
 
     [Bindable]
     protected var listData:ArrayCollection;
@@ -27,15 +27,15 @@
       ConferenceController.instance.addEventListener(
               ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, onConferenceDataChanged);
       listData = ConferenceController.instance.days;
-      list.addEventListener(ScheduleEvent.DAY_SELECTED, onDaySelected)
+      list.addEventListener(ListEvent.ITEM_SELECTED, onDaySelected)
     }
 
     protected function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
       listData = ConferenceController.instance.days;
     }
 
-    protected function onDaySelected(event:ScheduleEvent):void {
-      navigator.pushView(ScheduleDayView, event.day);
+    protected function onDaySelected(event:ListEvent):void {
+      navigator.pushView(ScheduleDayView, event.data);
     }
     ]]>
   </fx:Script>
