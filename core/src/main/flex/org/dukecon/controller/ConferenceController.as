@@ -22,6 +22,7 @@ import mx.rpc.http.HTTPService;
 import org.dukecon.events.ConferenceDataChangedEvent;
 import org.dukecon.model.ConferenceBase;
 import org.dukecon.model.MetaDataBase;
+import org.dukecon.model.Speaker;
 import org.dukecon.model.SpeakerBase;
 import org.dukecon.model.Talk;
 import org.dukecon.model.TalkBase;
@@ -90,8 +91,19 @@ public class ConferenceController extends EventDispatcher {
     protected function onResult(event:ResultEvent):void {
         var result:Object = JSON.parse(String(event.result));
         TalkBase.clearTable(conn);
+        SpeakerBase.clearTable(conn);
+        var persistedSpeakers:Array = [];
         for each(var obj:Object in result as Array) {
             var talk:Talk = new Talk(obj);
+            for each(var speakerObj:Object in talk.speakers) {
+                if(speakerObj) {
+                    var speaker:Speaker = new Speaker(speakerObj);
+                    if(persistedSpeakers.indexOf(speaker.name + "-" + speaker.company) == -1) {
+                        speaker.persist(conn);
+                        persistedSpeakers.push(speaker.name + "-" + speaker.company);
+                    }
+                }
+            }
             talk.persist(conn);
         }
         dispatchEvent(new ConferenceDataChangedEvent(ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED));
@@ -152,27 +164,6 @@ public class ConferenceController extends EventDispatcher {
         for each(var obj:Object in tracks) {
             if(obj.track) {
                 result.addItem(obj.track);
-            }
-        }
-        var dataSortField:SortField = new SortField();
-        dataSortField.numeric = false;
-        var dataSort:Sort = new Sort();
-        dataSort.fields=[dataSortField];
-        result.sort = dataSort;
-        result.refresh();
-        return result;
-    }
-
-    public function get speakers():ArrayCollection {
-        var speakers:ArrayCollection = executeQuery("SELECT DISTINCT speakers FROM Talk");
-        var result:ArrayCollection = new ArrayCollection();
-        for each(var obj:Object in speakers) {
-            if(obj.speakers) {
-                for each(var speaker:Object in (obj.speakers as Array)) {
-                    if(speaker && (!result.contains(speaker.name))) {
-                        result.addItem(speaker.name);
-                    }
-                }
             }
         }
         var dataSortField:SortField = new SortField();
@@ -245,6 +236,20 @@ public class ConferenceController extends EventDispatcher {
             return trackRatings.data.savedValue[talk.id];
         }
         return -2;
+    }
+
+    public function get speakers():ArrayCollection {
+        var speakers:ArrayCollection = SpeakerBase.select(conn);
+
+        var sortField:SortField = new SortField();
+        sortField.name = "name";
+        sortField.numeric = false;
+        var sort:Sort = new Sort();
+        sort.fields = [sortField];
+        speakers.sort = sort;
+        speakers.refresh();
+
+        return speakers;
     }
 
     protected function flushSharedObject(so:SharedObject):void {

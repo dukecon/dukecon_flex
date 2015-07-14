@@ -2,11 +2,17 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
                 xmlns:u="org.dukecon.utils.*"
-                height="136">
+                height="136"
+                click="onItemClick(event)">
 
     <fx:Script>
     <![CDATA[
         import org.dukecon.controller.SpeakerController;
+        import org.dukecon.events.ListEvent;
+        import org.dukecon.model.Speaker;
+
+        [Bindable]
+        protected var speaker:Speaker;
 
         [Bindable]
         protected var speakerIcon:Class;
@@ -18,9 +24,10 @@
 
         override public function set data(value:Object):void {
             super.data = value;
+            speaker = Speaker(value);
 
             if (value) {
-                speakerIcon = SpeakerController.instance.getIconForSpeaker(String(value));
+                speakerIcon = SpeakerController.instance.getIconForSpeaker(speaker.name);
             } else {
                 speakerIcon = null;
             }
@@ -28,6 +35,11 @@
 
             invalidateDisplayList();
         }
+
+        protected function onItemClick(event:MouseEvent):void {
+            dispatchEvent(new ListEvent(data, ListEvent.ITEM_SELECTED));
+        }
+
         ]]>
   </fx:Script>
 
@@ -52,7 +64,7 @@
     <u:VectorImage source="{speakerIcon}" top="10" left="10" width="110" bottom="10"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="itemLabel" text="{String(data)}" styleName="listTitle"/>
+        <s:Label id="itemLabel" text="{speaker.name}" styleName="listTitle"/>
     </s:HGroup>
 
 </s:ItemRenderer>

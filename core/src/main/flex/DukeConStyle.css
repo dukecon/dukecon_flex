@@ -14,6 +14,13 @@
     color: #FFFFFF;
 }
 
+.subTitle {
+    fontFamily: _sans;
+    fontWeight: normal;
+    fontSize: 30px;
+    color: #DDDDDD;
+}
+
 .content {
     fontFamily: _sans;
     fontWeight: normal;
