@@ -122,7 +122,7 @@
 	<!-- devices supported by AIR. If you wish to restrict deployment -->
 	<!-- (i.e., to only mobile devices) then add this element and list -->
 	<!-- only the profiles which your application does support. -->
-	<!-- <supportedProfiles>desktop extendedDesktop mobileDevice extendedMobileDevice</supportedProfiles> -->
+	<!-- <supportedProfiles>${supportedProfiles}</supportedProfiles> -->
 
 	<!-- Languages supported by application -->
 	<!-- Only these languages can be specified -->
@@ -258,7 +258,7 @@
 	<!-- End of the schema for adding the android specific tags in AndroidManifest.xml file -->
 
     <android>
-        <colorDepth>16bit</colorDepth>
+        <colorDepth>32bit</colorDepth>
         <manifestAdditions><![CDATA[
 			<manifest android:installLocation="auto">
 			    <!--See the Adobe AIR documentation for more information about setting Google Android permissions-->
@@ -282,7 +282,9 @@
 			
 		]]></manifestAdditions>
     </android>
+
     <iPhone>
         <requestedDisplayResolution>high</requestedDisplayResolution>
     </iPhone>
+
 </application>

@@ -40,20 +40,145 @@
                             </templates>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>default-package-air</id>
+                        <goals>
+                            <goal>package-air</goal>
+                        </goals>
+                        <configuration>
+                            <storepass>flexmojos</storepass>
+                        </configuration>
+                    </execution>
+                    <!--
+                        Packaging for Windows
+                    -->
+                    <!--execution>
+                        <id>package-windows</id>
+                        <goals>
+                            <goal>package-air</goal>
+                        </goals>
+                        <configuration>
+                            <targetPlatform>windows</targetPlatform>
+                            <classifier>windows</classifier>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>package-windows-captive</id>
+                        <goals>
+                            <goal>package-air</goal>
+                        </goals>
+                        <configuration>
+                            <targetPlatform>windows</targetPlatform>
+                            <includeCaptiveRuntime>true</includeCaptiveRuntime>
+                            <classifier>windows-captive</classifier>
+                        </configuration>
+                    </execution-->
+                    <!--
+                        Packaging for Mac
+                    -->
+                    <!--execution>
+                        <id>package-mac</id>
+                        <goals>
+                            <goal>package-air</goal>
+                        </goals>
+                        <configuration>
+                            <targetPlatform>mac</targetPlatform>
+                            <classifier>mac</classifier>
+                        </configuration>
+                    </execution-->
+                    <!--
+                        This variant produces a directory as output.
+                        Therefore mavens "install" goal fails with an error ...
+                        need to zip that up first.
+                    -->
+                    <!--execution>
+                        <id>package-mac-captive</id>
+                        <goals>
+                            <goal>package-air</goal>
+                        </goals>
+                        <configuration>
+                            <targetPlatform>mac</targetPlatform>
+                            <includeCaptiveRuntime>true</includeCaptiveRuntime>
+                            <classifier>mac-captive</classifier>
+                        </configuration>
+                    </execution-->
+                    <!--
+                        Packaging for linux
+                    -->
+                    <!--execution>
+                        <id>package-linux-debian</id>
+                        <goals>
+                            <goal>package-air</goal>
+                        </goals>
+                        <configuration>
+                            <targetPlatform>linux-debian</targetPlatform>
+                            <classifier>debian</classifier>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>package-linux-rpm</id>
+                        <goals>
+                            <goal>package-air</goal>
+                        </goals>
+                        <configuration>
+                            <targetPlatform>linux-rpm</targetPlatform>
+                            <classifier>rpm</classifier>
+                        </configuration>
+                    </execution-->
+                    <!--
+                        Packaging for Android
+                    -->
+                    <!--execution>
+                        <id>package-android</id>
+                        <goals>
+                            <goal>package-air</goal>
+                        </goals>
+                        <configuration>
+                            <targetPlatform>android</targetPlatform>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>package-android-captive</id>
+                        <goals>
+                            <goal>package-air</goal>
+                        </goals>
+                        <configuration>
+                            <targetPlatform>android</targetPlatform>
+                            <includeCaptiveRuntime>true</includeCaptiveRuntime>
+                            <classifier>captive</classifier>
+                        </configuration>
+                    </execution-->
+                    <!--
+                        Packaging for ios
+                    -->
+                    <execution>
+                        <id>package-ios</id>
+                        <goals>
+                            <goal>package-air</goal>
+                        </goals>
+                        <configuration>
+                            <targetPlatform>ios</targetPlatform>
+                            <iosPackagingType>ipa-debug</iosPackagingType>
+                            <storefile>${ios-certificate}</storefile>
+                            <storepass>${ios-password}</storepass>
+                            <iosProvisioningProfile>${ios-provisioning-profile}</iosProvisioningProfile>
+                            <!--iosPlatformSdk>/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.4.sdk</iosPlatformSdk-->
+                        </configuration>
+                    </execution>
                 </executions>
 
                 <configuration>
-                    <storepass>flexmojos</storepass>
-                    <descriptorTemplate>${basedir}/src/main/resources/descriptor.xml</descriptorTemplate>
                     <debug>true</debug>
+                    <storepass>flexmojos</storepass>
                     <sourceFile>DukeConApplication.mxml</sourceFile>
                 </configuration>
 
                 <dependencies>
                     <dependency>
-                        <groupId>com.adobe.air.compiler</groupId>
-                        <artifactId>adt</artifactId>
+                        <groupId>com.adobe.air</groupId>
+                        <artifactId>compiler</artifactId>
                         <version>${air.version}</version>
+                        <type>pom</type>
                     </dependency>
                 </dependencies>
             </plugin>

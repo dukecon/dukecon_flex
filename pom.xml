@@ -20,7 +20,7 @@
 
         <!-- Flex related properties -->
         <flex.version>4.14.1</flex.version>
-        <air.version>17.0</air.version>
+        <air.version>18.0</air.version>
         <flexmojos.version>7.1.0-SNAPSHOT</flexmojos.version>
         <apparat.version>1.0-RC9</apparat.version>
         <!-- Set this to localhost if you would like to test upload server -->
