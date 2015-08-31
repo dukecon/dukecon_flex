@@ -24,7 +24,7 @@
 
         import org.dukecon.controller.SettingsController;
 
-        protected function onCreationComplete(event:FlexEvent) {
+        protected function onCreationComplete(event:FlexEvent):void {
             // Hide the settings action button.
             for each(var button:Button in navigator.actionContent) {
                 if (button.name == "settingsButton") {

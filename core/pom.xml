@@ -248,7 +248,7 @@
         <dependency>
             <groupId>org.apache.flex</groupId>
             <artifactId>framework</artifactId>
-            <version>4.14.1</version>
+            <version>${flex.version}</version>
             <type>pom</type>
         </dependency>
 

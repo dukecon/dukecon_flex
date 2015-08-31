@@ -20,6 +20,8 @@
 
     <fx:Script>
         <![CDATA[
+        import mx.core.UIComponent;
+
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.controller.TrackController;
         import org.dukecon.model.Talk;
@@ -134,8 +136,8 @@
                 <s:Image top="100" right="28" width="48" height="36" source="@Embed('/english-small.png')"
                          visible="{language == 'english'}"/>
             </s:Group>
-            <s:Label text="{talk.abstractText}" styleName="content" width="{parent.width - 20}"/>
-            <s:Label text="{speakers}" width="{parent.width - 20}" fontWeight="bold"/>
+            <s:Label text="{talk.abstractText}" styleName="content" width="{UIComponent(parent).width - 20}"/>
+            <s:Label text="{speakers}" width="{UIComponent(parent).width - 20}" fontWeight="bold"/>
             <s:HGroup>
                 <s:Label text="{resourceManager.getString('dukecon', 'talks.time')}:" fontWeight="bold"/>
                 <s:Label text="{startTimeFormatter.format(talk.start)} - {endTimeFormatter.format(talk.end)}"

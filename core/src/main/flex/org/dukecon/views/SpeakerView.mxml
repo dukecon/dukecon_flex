@@ -15,6 +15,7 @@
     <fx:Script>
         <![CDATA[
         import mx.collections.ArrayCollection;
+        import mx.core.UIComponent;
         import mx.events.FlexEvent;
 
         import org.dukecon.controller.ConferenceController;
@@ -82,7 +83,7 @@
 
                 <u:VectorImage source="{speakerPortrait}" top="22" right="22" width="116" height="116"/>
             </s:Group>
-            <s:Label text="{speaker.bio}" styleName="content" width="{parent.width - 20}"/>
+            <s:Label text="{speaker.bio}" styleName="content" width="{UIComponent(parent).width - 20}"/>
             <s:Form width="100%">
                 <s:FormItem label="Email">
                     <s:Label text="{speaker.email}"/>
