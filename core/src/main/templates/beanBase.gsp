@@ -188,11 +188,11 @@ package ${jClass.as3Type.packageName} {
         }
 
         public static function clearTable(conn:SQLConnection):void {
-            var createTableStatement:SQLStatement = new SQLStatement();
-            createTableStatement.sqlConnection = conn;
-            createTableStatement.text = "DELETE FROM ${jClass.as3Type.name}";
+            var clearTableStatement:SQLStatement = new SQLStatement();
+            clearTableStatement.sqlConnection = conn;
+            clearTableStatement.text = "DELETE FROM ${jClass.as3Type.name}";
             try {
-                createTableStatement.execute();
+                clearTableStatement.execute();
             } catch(initError:SQLError) {
                 throw new Error("Error clearing table '${jClass.as3Type.name}': " + initError.message);
             }

@@ -45,7 +45,6 @@ public class ConferenceController extends EventDispatcher {
     private var conn:SQLConnection;
     private var db:File;
 
-    private var selectedTalkIds:SharedObject;
     private var trackRatings:SharedObject;
 
     public function ConferenceController(enforcer:SingletonEnforcer) {
@@ -57,7 +56,7 @@ public class ConferenceController extends EventDispatcher {
         service.url = "http://dev.dukecon.org/latest/rest/talks/";
 
         // This file will be used for storing the data on the device.
-        var db:File = File.applicationStorageDirectory.resolvePath("dukecon.db");
+        var db:File = File.applicationStorageDirectory.resolvePath("dukecon-conference.db");
         // This file will be located in
         var initDb:Boolean = !db.exists;
 
@@ -66,7 +65,6 @@ public class ConferenceController extends EventDispatcher {
         try {
             conn.open(db);
 
-            selectedTalkIds = SharedObject.getLocal("selected-talk-ids");
             trackRatings = SharedObject.getLocal("track-ratings");
 
             if(initDb) {
@@ -74,7 +72,6 @@ public class ConferenceController extends EventDispatcher {
                 SpeakerBase.createTable(conn);
                 MetaDataBase.createTable(conn);
                 ConferenceBase.createTable(conn);
-                UserPreferenceBase.clearTable(conn);
             }
 
             if(TalkBase.count(conn) == 0) {
@@ -220,31 +217,6 @@ public class ConferenceController extends EventDispatcher {
         return result;
     }
 
-    public function isTalkSelected(talk:Talk):Boolean {
-        if(!talk) return false;
-        return (selectedTalkIds.data && selectedTalkIds.data.savedValue &&
-            ArrayCollection(selectedTalkIds.data.savedValue).contains(talk.id));
-    }
-
-    public function selectTalk(talk:Talk):void {
-        if(!talk) return;
-        if(!selectedTalkIds.data.savedValue) {
-            selectedTalkIds.data.savedValue = new ArrayCollection();
-        }
-        if(!ArrayCollection(selectedTalkIds.data.savedValue).contains(talk.id)) {
-            ArrayCollection(selectedTalkIds.data.savedValue).addItem(talk.id);
-            flushSharedObject(selectedTalkIds);
-        }
-    }
-
-    public function unselectTalk(talk:Talk):void {
-        if(!talk) return;
-        if(isTalkSelected(talk)) {
-            ArrayCollection(selectedTalkIds.data.savedValue).removeItem(talk.id);
-            flushSharedObject(selectedTalkIds);
-        }
-    }
-
     public function setRating(talk:Talk, rating:Number):void {
         if(!talk) return;
         if(!trackRatings.data.savedValue) {
@@ -305,7 +277,7 @@ public class ConferenceController extends EventDispatcher {
                 trace("User denied permission -- value not saved.\n");
                 break;
         }
-        selectedTalkIds.removeEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
+        trackRatings.removeEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
     }
 
     protected function executeQuery(query:String):ArrayCollection {

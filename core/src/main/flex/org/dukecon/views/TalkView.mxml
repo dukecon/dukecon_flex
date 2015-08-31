@@ -24,6 +24,7 @@
 
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.controller.TrackController;
+        import org.dukecon.controller.UserPreferenceController;
         import org.dukecon.model.Talk;
 
         [Embed(source="/star-unselected.png")]
@@ -82,14 +83,14 @@
 
         protected function updateSelectionIcon():void {
             if (talk) {
-                selectedIcon = ConferenceController.instance.isTalkSelected(talk) ? starSelected : starUnselected;
+                selectedIcon = UserPreferenceController.instance.isTalkSelected(talk) ? starSelected : starUnselected;
             } else {
                 selectedIcon = null;
             }
         }
 
         protected function toggleSelection(event:MouseEvent):void {
-            var controller:ConferenceController = ConferenceController.instance;
+            var controller:UserPreferenceController = UserPreferenceController.instance;
             if (controller.isTalkSelected(talk)) {
                 controller.unselectTalk(talk);
             } else {

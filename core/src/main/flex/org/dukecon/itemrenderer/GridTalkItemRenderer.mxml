@@ -15,6 +15,7 @@
     <![CDATA[
     import org.dukecon.controller.ConferenceController;
     import org.dukecon.controller.TrackController;
+    import org.dukecon.controller.UserPreferenceController;
     import org.dukecon.events.ListEvent;
     import org.dukecon.model.Talk;
 
@@ -50,14 +51,14 @@
 
     protected function updateSelectionIcon():void {
       if (talk) {
-        favoriteImage.source = ConferenceController.instance.isTalkSelected(talk) ? starSelected : starUnselected;
+        favoriteImage.source = UserPreferenceController.instance.isTalkSelected(talk) ? starSelected : starUnselected;
       } else {
         favoriteImage.source = null;
       }
     }
 
     protected function toggleSelection(event:MouseEvent):void {
-      var controller:ConferenceController = ConferenceController.instance;
+      var controller:UserPreferenceController = UserPreferenceController.instance;
       if (controller.isTalkSelected(talk)) {
         controller.unselectTalk(talk);
       } else {

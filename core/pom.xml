@@ -136,7 +136,7 @@
                         <configuration>
                             <targetPlatform>android</targetPlatform>
                         </configuration>
-                    </execution>
+                    </execution-->
                     <execution>
                         <id>package-android-captive</id>
                         <goals>
@@ -147,11 +147,11 @@
                             <includeCaptiveRuntime>true</includeCaptiveRuntime>
                             <classifier>captive</classifier>
                         </configuration>
-                    </execution-->
+                    </execution>
                     <!--
                         Packaging for ios
                     -->
-                    <execution>
+                    <!--execution>
                         <id>package-ios</id>
                         <goals>
                             <goal>package-air</goal>
@@ -162,9 +162,9 @@
                             <storefile>${ios-certificate}</storefile>
                             <storepass>${ios-password}</storepass>
                             <iosProvisioningProfile>${ios-provisioning-profile}</iosProvisioningProfile>
-                            <!--iosPlatformSdk>/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.4.sdk</iosPlatformSdk-->
+                            <-iosPlatformSdk>/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.4.sdk</iosPlatformSdk->
                         </configuration>
-                    </execution>
+                    </execution-->
                 </executions>
 
                 <configuration>
