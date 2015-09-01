@@ -277,6 +277,17 @@
             <type>pom</type>
         </dependency>
 
+        <!-- Library for AIR OAuth2 support -->
+        <!-- Not available in any public repo -->
+        <dependency>
+            <groupId>com.adobe.protocols.oauth</groupId>
+            <artifactId>actionscript-oauth2</artifactId>
+            <version>1.0.0</version>
+            <type>swc</type>
+            <scope>system</scope>
+            <systemPath>${basedir}/libs/actionscript-oauth2-1.0.0.swc</systemPath>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.flex.flexunit</groupId>
             <artifactId>flexunit-flex</artifactId>

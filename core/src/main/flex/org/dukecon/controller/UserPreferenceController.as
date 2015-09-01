@@ -64,7 +64,7 @@ public class UserPreferenceController extends EventDispatcher {
         }
     }
 
-    public function updateTalks():void {
+    public function updateUserPreferences():void {
         var token:AsyncToken = service.send();
         token.addResponder(new Responder(onResult, onFault));
     }

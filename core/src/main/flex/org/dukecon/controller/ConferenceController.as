@@ -26,7 +26,6 @@ import org.dukecon.model.Speaker;
 import org.dukecon.model.SpeakerBase;
 import org.dukecon.model.Talk;
 import org.dukecon.model.TalkBase;
-import org.dukecon.model.UserPreferenceBase;
 
 [Event(type="org.dukecon.events.ConferenceDataChangedEvent", name="conferenceDataChanged")]
 public class ConferenceController extends EventDispatcher {
