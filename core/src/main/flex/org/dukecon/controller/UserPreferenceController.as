@@ -10,6 +10,7 @@ import flash.events.EventDispatcher;
 import flash.filesystem.File;
 
 import mx.collections.ArrayCollection;
+import mx.messaging.messages.HTTPRequestMessage;
 import mx.rpc.AsyncToken;
 import mx.rpc.Responder;
 import mx.rpc.events.FaultEvent;
@@ -41,10 +42,8 @@ public class UserPreferenceController extends EventDispatcher {
     public function UserPreferenceController(enforcer:SingletonEnforcer) {
 
         service = new HTTPService();
-        service.method = "GET";
         service.contentType = "application/json";
-        service.headers = { Accept:"application/json" };
-        service.url = "http://dev.dukecon.org/latest/rest/preferences/";
+        service.url = "http://dev.dukecon.org/latest/rest/preferences";
 
         // This file will be used for storing the data on the device.
         var db:File = File.applicationStorageDirectory.resolvePath("dukecon-user-preferences.db");
@@ -64,12 +63,24 @@ public class UserPreferenceController extends EventDispatcher {
         }
     }
 
-    public function updateUserPreferences():void {
+    public function readUserPreferences():void {
+        service.method = HTTPRequestMessage.GET_METHOD;
+        service.headers = { Accept:"application/json",
+            Authorization: "Bearer " + OAuthControllerSimple.instance.oauthData.access_token };
         var token:AsyncToken = service.send();
-        token.addResponder(new Responder(onResult, onFault));
+        token.addResponder(new Responder(onReadResult, onFault));
     }
 
-    protected function onResult(event:ResultEvent):void {
+    public function writeUserPreferences():void {
+        service.method = HTTPRequestMessage.POST_METHOD;
+        service.headers = { Accept:"application/json",
+            Authorization: "Bearer " + OAuthControllerSimple.instance.oauthData.access_token };
+        var jsonString:String = JSON.stringify(userPreferences);
+        var token:AsyncToken = service.send(jsonString);
+        token.addResponder(new Responder(onWriteResult, onFault));
+    }
+
+    protected function onReadResult(event:ResultEvent):void {
         var result:Object = JSON.parse(String(event.result));
         UserPreferenceBase.clearTable(conn);
         for each(var obj:Object in result as Array) {
@@ -79,8 +90,12 @@ public class UserPreferenceController extends EventDispatcher {
         dispatchEvent(new ConferenceDataChangedEvent(UserPreferenceDataChangedEvent.USER_PREFERENCE_DATA_CHANGED));
     }
 
-    protected function onFault(foult:FaultEvent):void {
-        trace("Something went wrong:" + foult.message);
+    protected function onWriteResult(event:ResultEvent):void {
+        trace("Saved");
+    }
+
+    protected function onFault(fault:FaultEvent):void {
+        trace("Something went wrong:" + fault.message);
     }
 
     public function get userPreferences():ArrayCollection {
@@ -100,6 +115,9 @@ public class UserPreferenceController extends EventDispatcher {
         userPreference.talkId = talk.id;
         userPreference.version = 0;
         userPreference.persist(conn);
+
+        // Write the preferences back to the server.
+        writeUserPreferences();
     }
 
     public function unselectTalk(talk:Talk):void {
@@ -107,6 +125,9 @@ public class UserPreferenceController extends EventDispatcher {
         if(isTalkSelected(talk)) {
             executeQuery("DELETE FROM UserPreference WHERE talkId = '" + talk.id + "'");
         }
+
+        // Write the preferences back to the server.
+        writeUserPreferences();
     }
 
     protected function executeQuery(query:String):ArrayCollection {

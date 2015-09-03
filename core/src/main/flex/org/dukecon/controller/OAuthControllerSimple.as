@@ -14,13 +14,13 @@ import mx.rpc.http.HTTPService;
 import org.dukecon.events.LoginChangedEvent;
 
 [Event(type="org.dukecon.events.ConferenceDataChangedEvent", name="conferenceDataChanged")]
-public class SimpleOAuthController extends EventDispatcher {
+public class OAuthControllerSimple extends EventDispatcher {
 
-    private static var _instance:SimpleOAuthController;
+    private static var _instance:OAuthControllerSimple;
 
-    public static function get instance():SimpleOAuthController {
+    public static function get instance():OAuthControllerSimple {
         if(!_instance) {
-            _instance = new SimpleOAuthController(new SingletonEnforcer());
+            _instance = new OAuthControllerSimple(new SingletonEnforcer());
         }
         return _instance;
     }
@@ -28,9 +28,9 @@ public class SimpleOAuthController extends EventDispatcher {
     private var service:HTTPService;
 
     [Bindable]
-    public var accessToken:String;
+    public var oauthData:Object;
 
-    public function SimpleOAuthController(enforcer:SingletonEnforcer) {
+    public function OAuthControllerSimple(enforcer:SingletonEnforcer) {
         service = new HTTPService();
         service.method = "POST";
         service.contentType = "application/x-www-form-urlencoded";
@@ -39,7 +39,7 @@ public class SimpleOAuthController extends EventDispatcher {
     }
 
     public function isLoggedIn():Boolean {
-        return (accessToken != null);
+        return (oauthData != null);
     }
 
     public function login(username:String, password:String):void {
@@ -51,18 +51,18 @@ public class SimpleOAuthController extends EventDispatcher {
     }
 
     public function logout():void {
-        accessToken = null;
+        oauthData = null;
         dispatchEvent(new LoginChangedEvent(LoginChangedEvent.USER_LOGGED_OUT));
     }
 
     protected function onResult(event:ResultEvent):void {
-        var result:Object = JSON.parse(String(event.result));
-        accessToken = result["access_token"];
+        oauthData = JSON.parse(String(event.result));
         dispatchEvent(new LoginChangedEvent(LoginChangedEvent.USER_LOGGED_IN,
-                String(event.token.username), accessToken));
+                String(event.token.username), oauthData["access_token"]));
     }
 
     protected function onFault(event:FaultEvent):void {
+        oauthData = null;
         dispatchEvent(new LoginChangedEvent(LoginChangedEvent.USER_LOGIN_FAILURE));
     }
 

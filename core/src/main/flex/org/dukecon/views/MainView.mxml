@@ -12,20 +12,22 @@
     <fx:Script>
     <![CDATA[
         import org.dukecon.controller.ConferenceController;
-        import org.dukecon.controller.SimpleOAuthController;
+        import org.dukecon.controller.OAuthControllerSimple;
         import org.dukecon.controller.UserPreferenceController;
 
         protected function onRefreshClicked(event:MouseEvent):void {
             ConferenceController.instance.updateTalks();
-            UserPreferenceController.instance.updateUserPreferences()
+            if (OAuthControllerSimple.instance.isLoggedIn()) {
+                UserPreferenceController.instance.readUserPreferences()
+            }
         }
 
         protected function onLoginClicked(event:MouseEvent):void {
-            navigator.pushView(SimpleOAuthView);
+            navigator.pushView(OAuthViewSimple);
         }
 
         protected function onLogoutClicked(event:MouseEvent):void {
-            SimpleOAuthController.instance.logout();
+            OAuthControllerSimple.instance.logout();
         }
         ]]>
   </fx:Script>
@@ -37,9 +39,9 @@
             <s:Button id="refreshButton" label="{resourceManager.getString('dukecon', 'main.refresh')}"
                       click="onRefreshClicked(event)"/>
             <s:Button id="loginButton" label="{resourceManager.getString('dukecon', 'main.login')}"
-                      click="onLoginClicked(event)" visible="{SimpleOAuthController.instance.accessToken == null}"/>
+                      click="onLoginClicked(event)" visible="{OAuthControllerSimple.instance.oauthData == null}"/>
             <s:Button id="logoutButton" label="{resourceManager.getString('dukecon', 'main.logout')}"
-                      click="onLogoutClicked(event)" visible="{SimpleOAuthController.instance.accessToken != null}"/>
+                      click="onLogoutClicked(event)" visible="{OAuthControllerSimple.instance.oauthData != null}"/>
         </s:VGroup>
     </s:VGroup>
 
