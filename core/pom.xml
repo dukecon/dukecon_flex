@@ -137,7 +137,7 @@
                             <targetPlatform>android</targetPlatform>
                         </configuration>
                     </execution-->
-                    <execution>
+                    <!--<execution>
                         <id>package-android-captive</id>
                         <goals>
                             <goal>package-air</goal>
@@ -147,7 +147,7 @@
                             <includeCaptiveRuntime>true</includeCaptiveRuntime>
                             <classifier>captive</classifier>
                         </configuration>
-                    </execution>
+                    </execution>-->
                     <!--
                         Packaging for ios
                     -->
