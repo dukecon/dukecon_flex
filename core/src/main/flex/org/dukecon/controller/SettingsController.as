@@ -5,7 +5,9 @@ import flash.events.NetStatusEvent;
 import flash.net.SharedObject;
 import flash.net.SharedObjectFlushStatus;
 
-[Event(type="org.dukecon.events.ConferenceDataChangedEvent", name="conferenceDataChanged")]
+import org.dukecon.events.SettingsChangedEvent;
+
+[Event(type="org.dukecon.events.SettingsChangedEvent", name="settingsChanged")]
 public class SettingsController extends EventDispatcher {
 
     private static var _instance:SettingsController;
@@ -36,6 +38,7 @@ public class SettingsController extends EventDispatcher {
         }
         settings.data.savedValue["language"] = language;
         flushSharedObject(settings);
+        dispatchEvent(new SettingsChangedEvent(SettingsChangedEvent.SETTINGS_CHANGED));
     }
 
     protected function flushSharedObject(so:SharedObject):void {

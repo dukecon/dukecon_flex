@@ -8,8 +8,10 @@
         creationComplete="onCreationComplete(event)">
 
   <fx:Declarations>
-    <s:DateTimeFormatter id="formatter" dateStyle="medium" timeStyle="none"/>
-    <s:DateTimeFormatter id="timeFormatter" dateTimePattern="HH:mm"/>
+      <s:DateTimeFormatter id="formatter"
+                           dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
+      <s:DateTimeFormatter id="timeFormatter"
+                           dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>
   </fx:Declarations>
 
   <fx:Script>
@@ -18,7 +20,9 @@
     import mx.events.FlexEvent;
 
     import org.dukecon.controller.ConferenceController;
+    import org.dukecon.controller.SettingsController;
     import org.dukecon.events.ListEvent;
+    import org.dukecon.events.SettingsChangedEvent;
     import org.dukecon.model.Talk;
 
     [Bindable]

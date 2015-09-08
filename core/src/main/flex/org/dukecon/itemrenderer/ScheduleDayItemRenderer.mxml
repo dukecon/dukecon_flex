@@ -1,21 +1,32 @@
 <?xml version="1.0"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
-                height="136" click="onItemClick(event)">
+                height="136"
+                click="onItemClick(event)">
 
   <fx:Declarations>
     <s:DateTimeFormatter id="formatter"
+                         locale="{SettingsController.instance.selectedLanguage}"
                          dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
     <s:DateTimeFormatter id="dayFormatter"
+                         locale="{SettingsController.instance.selectedLanguage}"
                          dateTimePattern="{resourceManager.getString('dukecon', 'datetime.dayOfWeek')}"/>
   </fx:Declarations>
 
   <fx:Script>
     <![CDATA[
+
+    import org.dukecon.controller.SettingsController;
     import org.dukecon.events.ListEvent;
 
     [Bindable]
     protected var formattedData:String;
+
+    [Bindable]
+    protected var dayString:String;
+
+    [Bindable]
+    protected var date:Date;
 
     [Bindable("dataChange")]
     override public function get data():Object {
@@ -25,11 +36,11 @@
     override public function set data(value:Object):void {
       super.data = value;
       var matches:Array = String(value).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
-      var date:Date = new Date(int(matches[1]), int(matches[2]), int(matches[3]));
+      date = new Date(int(matches[1]), int(matches[2]), int(matches[3]));
       formattedData = formatter.format(date);
+      dayString = dayFormatter.format(date);
 
       itemLabel.width = this.parent.parent.width - 168;
-      dayLabel.text = dayFormatter.format(date);
     }
 
     protected function onItemClick(event:MouseEvent):void {
@@ -57,7 +68,7 @@
     </s:stroke>
   </s:Rect>
 
-  <s:Label id="dayLabel" fontSize="60" top="42" left="22" text="MO"/>
+  <s:Label id="dayLabel" fontSize="60" top="42" left="22" text="{dayString}"/>
 
   <!--u:VectorImage id="icon" top="6" left="6" width="116" bottom="3"/-->
 
