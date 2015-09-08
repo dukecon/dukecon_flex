@@ -38,21 +38,12 @@
             grid.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
         }
 
-        [Bindable("dataChange")]
-        override public function get data():Object {
-            return super.data;
-        }
-
-        override public function set data(value:Object):void {
-            super.data = value;
-        }
-
         override protected function commitProperties():void {
             super.commitProperties();
             if (data) {
                 var key:String;
                 var matches:Array = String(data).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
-                var date:Date = new Date(int(matches[1]), int(matches[2]), int(matches[3]));
+                var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
                 formattedDate = formatter.format(date);
 
                 var talksForDay:ArrayCollection = conferenceController.getTalksForDay(String(data));
