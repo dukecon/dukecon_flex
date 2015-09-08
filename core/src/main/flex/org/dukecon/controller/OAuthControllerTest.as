@@ -12,9 +12,9 @@ import flash.media.StageWebView;
 
 import org.as3commons.logging.setup.LogSetupLevel;
 
-public class OAuthController {
+public class OAuthControllerTest {
 
-    public function OAuthController(stageWebView:StageWebView) {
+    public function OAuthControllerTest(stageWebView:StageWebView) {
         // set up the call
         var oauth2:OAuth2 = new OAuth2("http://keycloak.dukecon.org/auth/realms/dukecon-latest/protocol/openid-connect/auth",
                 "http://keycloak.dukecon.org/auth/realms/dukecon-latest/protocol/openid-connect/token", LogSetupLevel.ALL);
@@ -28,15 +28,12 @@ public class OAuthController {
         oauth2.addEventListener(GetAccessTokenEvent.TYPE, onGetAccessToken);
         oauth2.getAccessToken(grant);
 
-        function onGetAccessToken(getAccessTokenEvent:GetAccessTokenEvent):void
-        {
-            if (getAccessTokenEvent.errorCode == null && getAccessTokenEvent.errorMessage == null)
-            {
+        function onGetAccessToken(getAccessTokenEvent:GetAccessTokenEvent):void {
+            if (getAccessTokenEvent.errorCode == null && getAccessTokenEvent.errorMessage == null) {
                 // success!
                 trace("Your access token value is: " + getAccessTokenEvent.accessToken);
             }
-            else
-            {
+            else {
                 // fail :(
             }
         }  // onGetAccessToken

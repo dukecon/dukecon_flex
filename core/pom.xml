@@ -15,6 +15,10 @@
 
     <name>DukeCon Client: Flex (Core-Application)</name>
 
+    <properties>
+        <base-url>http://dev.dukecon.org/latest</base-url>
+    </properties>
+
     <build>
         <sourceDirectory>src/main/flex</sourceDirectory>
         <plugins>
@@ -171,6 +175,12 @@
                     <debug>true</debug>
                     <storepass>flexmojos</storepass>
                     <sourceFile>DukeConApplication.mxml</sourceFile>
+                    <defines>
+                        <property>
+                            <name>CONFIG::baseUrl</name>
+                            <value>"${base-url}"</value>
+                        </property>
+                    </defines>
                 </configuration>
 
                 <dependencies>
@@ -277,16 +287,21 @@
             <type>pom</type>
         </dependency>
 
-        <!-- Library for AIR OAuth2 support -->
-        <!-- Not available in any public repo -->
-        <!--dependency>
+        <!-- IOC framework -->
+        <dependency>
+            <groupId>org.spicefactory</groupId>
+            <artifactId>parsley-flex</artifactId>
+            <version>3.0.0</version>
+            <type>swc</type>
+        </dependency>
+
+        <!-- Library for OAuth2 support -->
+        <dependency>
             <groupId>com.adobe.protocols.oauth</groupId>
             <artifactId>actionscript-oauth2</artifactId>
             <version>1.0.0</version>
             <type>swc</type>
-            <scope>system</scope>
-            <systemPath>${basedir}/libs/actionscript-oauth2-1.0.0.swc</systemPath>
-        </dependency-->
+        </dependency>
 
         <dependency>
             <groupId>org.apache.flex.flexunit</groupId>
@@ -305,8 +320,19 @@
         </dependency>
     </dependencies>
 
-    <!-- Android packaging is currently only enabled on windows or mac machines -->
     <profiles>
+        <!--
+            Enabling this profile will make the application connect to localhost
+            instead of connecting to the official server.
+        -->
+        <profile>
+            <id>debug-localhost</id>
+            <properties>
+                <base-url>http://localhost:8080</base-url>
+            </properties>
+        </profile>
+
+        <!-- Android packaging is currently only enabled on windows or mac machines -->
         <profile>
             <id>windows-build</id>
             <activation>

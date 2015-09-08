@@ -4,13 +4,15 @@
 -->
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
-        xmlns:u="org.dukecon.utils.*">
+        xmlns:u="org.dukecon.utils.*"
+        xmlns:parsley="http://www.spicefactory.org/parsley">
 
     <fx:Metadata>
         [ResourceBundle("dukecon")]
     </fx:Metadata>
 
     <fx:Declarations>
+        <parsley:Configure/>
         <s:DateTimeFormatter id="startTimeFormatter"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
         <s:DateTimeFormatter id="endTimeFormatter"
@@ -50,59 +52,63 @@
         [Bindable]
         protected var speakers:String;
 
-        [Bindable("dataChange")]
-        override public function get data():Object {
-            return super.data;
-        }
+        [Inject]
+        public var conferenceController:ConferenceController;
 
-        override public function set data(value:Object):void {
-            super.data = value;
-            talk = Talk(value);
-            updateSelectionIcon();
-            if (talk) {
-                language = talk.language;
-                trackIcon = TrackController.instance.getIconForTrack(talk.track);
-            } else {
-                language = null;
-                trackIcon = null;
-            }
-            speakers = "";
-            if (talk.speakers) {
-                for each(var speaker:Object in talk.speakers) {
-                    if (speaker) {
-                        if (speakers.length > 0) {
-                            speakers += " | ";
+        [Inject]
+        public var trackController:TrackController;
+
+        [Inject]
+        public var userPreferenceController:UserPreferenceController;
+
+        override protected function commitProperties():void {
+            super.commitProperties();
+            if (data) {
+                talk = Talk(data);
+                updateSelectionIcon();
+                if (talk) {
+                    language = talk.language;
+                    trackIcon = trackController.getIconForTrack(talk.track);
+                } else {
+                    language = null;
+                    trackIcon = null;
+                }
+                speakers = "";
+                if (talk.speakers) {
+                    for each(var speaker:Object in talk.speakers) {
+                        if (speaker) {
+                            if (speakers.length > 0) {
+                                speakers += " | ";
+                            }
+                            speakers += speaker.name + ", " + speaker.company;
                         }
-                        speakers += speaker.name + ", " + speaker.company;
                     }
                 }
+                title = startTimeFormatter.format(talk.start) + " - " + endTimeFormatter.format(talk.end);
+                ratingGroup.selectedValue = conferenceController.getRating(talk);
             }
-            title = startTimeFormatter.format(talk.start) + " - " + endTimeFormatter.format(talk.end);
-            ratingGroup.selectedValue = ConferenceController.instance.getRating(talk)
         }
 
         protected function updateSelectionIcon():void {
             if (talk) {
-                selectedIcon = UserPreferenceController.instance.isTalkSelected(talk) ? starSelected : starUnselected;
+                selectedIcon = userPreferenceController.isTalkSelected(talk) ? starSelected : starUnselected;
             } else {
                 selectedIcon = null;
             }
         }
 
         protected function toggleSelection(event:MouseEvent):void {
-            var controller:UserPreferenceController = UserPreferenceController.instance;
-            if (controller.isTalkSelected(talk)) {
-                controller.unselectTalk(talk);
+            if (userPreferenceController.isTalkSelected(talk)) {
+                userPreferenceController.unselectTalk(talk);
             } else {
-                controller.selectTalk(talk);
+                userPreferenceController.selectTalk(talk);
             }
             updateSelectionIcon();
         }
 
         protected function onRatingChanged(event:Event):void {
-            ConferenceController.instance.setRating(talk, Number(ratingGroup.selectedValue))
+            conferenceController.setRating(talk, Number(ratingGroup.selectedValue))
         }
-
         ]]>
     </fx:Script>
 

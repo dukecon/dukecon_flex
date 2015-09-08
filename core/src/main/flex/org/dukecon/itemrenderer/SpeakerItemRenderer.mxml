@@ -2,8 +2,13 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
                 xmlns:u="org.dukecon.utils.*"
+                xmlns:parsley="http://www.spicefactory.org/parsley"
                 height="136"
                 click="onItemClick(event)">
+
+    <fx:Declarations>
+        <parsley:Configure/>
+    </fx:Declarations>
 
     <fx:Script>
     <![CDATA[
@@ -17,17 +22,15 @@
         [Bindable]
         protected var speakerIcon:Class;
 
-        [Bindable("dataChange")]
-        override public function get data():Object {
-            return super.data;
-        }
+        [Inject]
+        public var speakerController:SpeakerController;
 
-        override public function set data(value:Object):void {
-            super.data = value;
-            speaker = Speaker(value);
+        override protected function commitProperties():void {
+            super.commitProperties();
 
-            if (value) {
-                speakerIcon = SpeakerController.instance.getIconForSpeaker(speaker.name);
+            speaker = Speaker(data);
+            if (speaker) {
+                speakerIcon = speakerController.getIconForSpeaker(speaker.name);
             } else {
                 speakerIcon = null;
             }
@@ -39,7 +42,6 @@
         protected function onItemClick(event:MouseEvent):void {
             dispatchEvent(new ListEvent(data, ListEvent.ITEM_SELECTED));
         }
-
         ]]>
   </fx:Script>
 

@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-    [RemoteClass(alias="org.dukecon.model.UserPreference")]
-    public class UserPreference extends UserPreferenceBase {
+[RemoteClass(alias="org.dukecon.model.UserPreference")]
+public class UserPreference extends UserPreferenceBase {
 
-        public function UserPreference(obj:Object = null) {
-            super(obj);
-        }
-
+    public function UserPreference(obj:Object = null) {
+        super(obj);
     }
+
+}
 }

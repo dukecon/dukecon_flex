@@ -4,44 +4,51 @@
 -->
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
-        creationComplete="onCreationComplete(event)"
+        xmlns:parsley="http://www.spicefactory.org/parsley"
         title="{resourceManager.getString('dukecon', 'schedule.title')}">
 
-  <fx:Metadata>
-    [ResourceBundle("dukecon")]
-  </fx:Metadata>
+    <fx:Metadata>
+        [ResourceBundle("dukecon")]
+    </fx:Metadata>
 
-  <fx:Script>
+    <fx:Declarations>
+        <parsley:Configure/>
+    </fx:Declarations>
+
+    <fx:Script>
     <![CDATA[
-    import mx.collections.ArrayCollection;
-    import mx.events.FlexEvent;
+            import mx.collections.ArrayCollection;
 
-    import org.dukecon.controller.ConferenceController;
-    import org.dukecon.events.ConferenceDataChangedEvent;
-    import org.dukecon.events.ListEvent;
+            import org.dukecon.controller.ConferenceController;
+            import org.dukecon.events.ConferenceDataChangedEvent;
+            import org.dukecon.events.ListEvent;
 
-    [Bindable]
-    protected var listData:ArrayCollection;
+            [Bindable]
+            protected var listData:ArrayCollection;
 
-    protected function onCreationComplete(event:FlexEvent):void {
-      ConferenceController.instance.addEventListener(
-              ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, onConferenceDataChanged);
-      listData = ConferenceController.instance.days;
-      list.addEventListener(ListEvent.ITEM_SELECTED, onDaySelected)
-    }
+            [Inject]
+            public var conferenceController:ConferenceController;
 
-    protected function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
-      listData = ConferenceController.instance.days;
-    }
+            [Init]
+            public function init():void {
+                    conferenceController.addEventListener(
+                            ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, onConferenceDataChanged);
+                    listData = conferenceController.days;
+                    list.addEventListener(ListEvent.ITEM_SELECTED, onDaySelected)
+            }
 
-    protected function onDaySelected(event:ListEvent):void {
-      navigator.pushView(ScheduleDayView, event.data);
-    }
-    ]]>
-  </fx:Script>
+            protected function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
+                    listData = conferenceController.days;
+            }
 
-  <s:List id="list" width="100%" height="100%"
-          itemRenderer="org.dukecon.itemrenderer.ScheduleDayItemRenderer"
-          dataProvider="{listData}"/>
+            protected function onDaySelected(event:ListEvent):void {
+                    navigator.pushView(ScheduleDayView, event.data);
+            }
+            ]]>
+    </fx:Script>
+
+    <s:List id="list" width="100%" height="100%"
+            itemRenderer="org.dukecon.itemrenderer.ScheduleDayItemRenderer"
+            dataProvider="{listData}"/>
 
 </s:View>

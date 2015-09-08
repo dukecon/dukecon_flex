@@ -82,11 +82,16 @@ package ${jClass.as3Type.packageName} {
         }
 
         private function isoToDate(value:String):Date {
-            var dateStr:String = value;
+            var matches:Array = value.match(/(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d):(\d\d)/);
+            var date:Date = new Date();
+            date.setUTCFullYear(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
+            date.setUTCHours(int(matches[4]), int(matches[5]), 0, 0);
+            return date;
+            /*var dateStr:String = value;
             dateStr = dateStr.replace(/\-/g, "/");
             dateStr = dateStr.replace("T", " ");
             dateStr = dateStr.replace("Z", " GMT-0000");
-            return new Date(Date.parse(dateStr));
+            return new Date(Date.parse(dateStr));*/
         }
 <%
 

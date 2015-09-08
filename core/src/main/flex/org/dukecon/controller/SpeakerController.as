@@ -8,15 +8,6 @@ import mx.utils.SHA256;
 
 public class SpeakerController {
 
-    private static var _instance:SpeakerController;
-
-    public static function get instance():SpeakerController {
-        if(!_instance) {
-            _instance = new SpeakerController(new SingletonEnforcer());
-        }
-        return _instance;
-    }
-
     [Embed(source="/speakers/speaker1.png")]
     [Bindable]
     public var speaker1:Class;
@@ -47,7 +38,7 @@ public class SpeakerController {
 
     protected var icons:Array = [speaker1, speaker2, speaker3, speaker4, speaker5, speaker6, speaker7];
 
-    public function SpeakerController(enforcer:SingletonEnforcer) {
+    public function SpeakerController() {
     }
 
     public function getIconForSpeaker(speakerName:String):Class {
@@ -60,5 +51,4 @@ public class SpeakerController {
 
 }
 }
-class SingletonEnforcer{}
 

@@ -2,20 +2,25 @@
 <!--
   Created by christoferdutz on 31.08.15.
 -->
-<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:parsley="http://www.spicefactory.org/parsley">
+
+    <fx:Declarations>
+        <parsley:Configure/>
+    </fx:Declarations>
 
     <fx:Script><![CDATA[
         import mx.events.FlexEvent;
 
-        import org.dukecon.controller.OAuthController;
+        import org.dukecon.controller.OAuthControllerTest;
 
         protected function onCreationComplete(event:FlexEvent):void {
             var stageWebView:StageWebView = new StageWebView();
             stageWebView.stage = systemManager.stage;
             stageWebView.viewPort = new Rectangle(x, y, width, height);
-            var oauthController:OAuthController = new OAuthController(stageWebView);
+            var oauthController:OAuthControllerTest = new OAuthControllerTest(stageWebView);
         }
-
         ]]></fx:Script>
 
 </s:View>

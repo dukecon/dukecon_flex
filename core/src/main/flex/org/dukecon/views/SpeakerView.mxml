@@ -5,6 +5,7 @@
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
         xmlns:u="org.dukecon.utils.*"
+        xmlns:parsley="http://www.spicefactory.org/parsley"
         title="{resourceManager.getString('dukecon', 'speaker.title')}"
         creationComplete="onCreationComplete(event)">
 
@@ -12,48 +13,51 @@
         [ResourceBundle("dukecon")]
     </fx:Metadata>
 
+    <fx:Declarations>
+        <parsley:Configure/>
+    </fx:Declarations>
+
     <fx:Script>
         <![CDATA[
-        import mx.collections.ArrayCollection;
-        import mx.core.UIComponent;
-        import mx.events.FlexEvent;
+            import mx.collections.ArrayCollection;
+            import mx.core.UIComponent;
+            import mx.events.FlexEvent;
 
-        import org.dukecon.controller.ConferenceController;
+            import org.dukecon.controller.ConferenceController;
+            import org.dukecon.controller.SpeakerController;
+            import org.dukecon.events.ListEvent;
+            import org.dukecon.model.Speaker;
 
-        import org.dukecon.controller.SpeakerController;
-        import org.dukecon.events.ListEvent;
-        import org.dukecon.model.Speaker;
+            [Bindable]
+            protected var speaker:Speaker;
 
-        [Bindable]
-        protected var speaker:Speaker;
+            [Bindable]
+            protected var speakerPortrait:Class;
 
-        [Bindable]
-        protected var speakerPortrait:Class;
+            [Bindable]
+            protected var talks:ArrayCollection;
 
-        [Bindable]
-        protected var talks:ArrayCollection;
+            [Inject]
+            public var conferenceController:ConferenceController;
 
-        protected function onCreationComplete(event:FlexEvent):void {
-            talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
-        }
+            [Inject]
+            public var speakerController:SpeakerController;
 
-        [Bindable("dataChange")]
-        override public function get data():Object {
-            return super.data;
-        }
+            protected function onCreationComplete(event:FlexEvent):void {
+                    talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
+            }
 
-        override public function set data(value:Object):void {
-            super.data = value;
-            speaker = Speaker(value);
-            speakerPortrait = SpeakerController.instance.getIconForSpeaker(speaker.name);
-            talks = ConferenceController.instance.getTalksForSpeaker(speaker);
-        }
+            override protected function commitProperties():void {
+                    super.commitProperties();
+                    speaker = Speaker(data);
+                    speakerPortrait = speakerController.getIconForSpeaker(speaker.name);
+                    talks = conferenceController.getTalksForSpeaker(speaker);
+            }
 
-        protected function onTalkSelected(event:ListEvent):void {
-            navigator.pushView(TalkView, event.data);
-        }
-
-        ]]>
+            protected function onTalkSelected(event:ListEvent):void {
+                    navigator.pushView(TalkView, event.data);
+            }
+            ]]>
     </fx:Script>
 
     <s:navigationContent>

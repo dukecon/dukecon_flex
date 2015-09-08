@@ -5,6 +5,7 @@
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
         xmlns:u="org.dukecon.utils.*"
+        xmlns:parsley="http://www.spicefactory.org/parsley"
         title="{resourceManager.getString('dukecon', 'track.title')}"
         creationComplete="onCreationComplete(event)">
 
@@ -12,13 +13,16 @@
         [ResourceBundle("dukecon")]
     </fx:Metadata>
 
+    <fx:Declarations>
+        <parsley:Configure/>
+    </fx:Declarations>
+
     <fx:Script>
         <![CDATA[
         import mx.collections.ArrayCollection;
         import mx.events.FlexEvent;
 
         import org.dukecon.controller.ConferenceController;
-
         import org.dukecon.controller.TrackController;
         import org.dukecon.events.ListEvent;
 
@@ -31,26 +35,26 @@
         [Bindable]
         protected var talks:ArrayCollection;
 
+        [Inject]
+        public var conferenceController:ConferenceController;
+
+        [Inject]
+        public var trackController:TrackController;
+
         protected function onCreationComplete(event:FlexEvent):void {
             talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
         }
 
-        [Bindable("dataChange")]
-        override public function get data():Object {
-            return super.data;
-        }
-
-        override public function set data(value:Object):void {
-            super.data = value;
-            track = String(value);
-            trackIcon = TrackController.instance.getIconForTrack(track);
-            talks = ConferenceController.instance.getTalksForTrack(track);
+        override protected function commitProperties():void {
+            super.commitProperties();
+            track = String(data);
+            trackIcon = trackController.getIconForTrack(track);
+            talks = conferenceController.getTalksForTrack(track);
         }
 
         protected function onTalkSelected(event:ListEvent):void {
             navigator.pushView(TalkView, event.data);
         }
-
         ]]>
     </fx:Script>
 

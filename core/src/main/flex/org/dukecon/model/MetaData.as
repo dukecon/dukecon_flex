@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-    [RemoteClass(alias="org.dukecon.model.MetaData")]
-    public class MetaData extends MetaDataBase {
+[RemoteClass(alias="org.dukecon.model.MetaData")]
+public class MetaData extends MetaDataBase {
 
-        public function MetaData(obj:Object = null) {
-            super(obj);
-        }
-
+    public function MetaData(obj:Object = null) {
+        super(obj);
     }
+
+}
 }

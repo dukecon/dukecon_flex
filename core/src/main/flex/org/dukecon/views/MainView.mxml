@@ -2,34 +2,56 @@
 <!--
   Created by christoferdutz on 19.05.15.
 -->
-<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:parsley="http://www.spicefactory.org/parsley"
         title="{resourceManager.getString('dukecon', 'main.title')}">
 
     <fx:Metadata>
         [ResourceBundle("dukecon")]
     </fx:Metadata>
 
+    <fx:Declarations>
+        <parsley:Configure/>
+    </fx:Declarations>
+
     <fx:Script>
     <![CDATA[
-        import org.dukecon.controller.ConferenceController;
-        import org.dukecon.controller.OAuthControllerSimple;
-        import org.dukecon.controller.UserPreferenceController;
+            import org.dukecon.controller.ConferenceController;
+            import org.dukecon.controller.OAuthControllerSimple;
+            import org.dukecon.controller.UserPreferenceController;
 
-        protected function onRefreshClicked(event:MouseEvent):void {
-            ConferenceController.instance.updateTalks();
-            if (OAuthControllerSimple.instance.isLoggedIn()) {
-                UserPreferenceController.instance.readUserPreferences()
+            [Inject]
+            public var conferenceController:ConferenceController;
+
+            [Inject]
+            public var userPreferenceController:UserPreferenceController;
+
+            [Inject]
+            [Bindable]
+            public var oauthController:OAuthControllerSimple;
+
+            [Init]
+            public function init():void {
+                    loginButton.visible = oauthController && (oauthController.oauthData == null);
+                    logoutButton.visible = oauthController && (oauthController.oauthData != null);
             }
-        }
 
-        protected function onLoginClicked(event:MouseEvent):void {
-            navigator.pushView(OAuthViewSimple);
-        }
+            protected function onRefreshClicked(event:MouseEvent):void {
+                    conferenceController.updateTalks();
+                    if (oauthController.isLoggedIn()) {
+                            userPreferenceController.readUserPreferences()
+                    }
+            }
 
-        protected function onLogoutClicked(event:MouseEvent):void {
-            OAuthControllerSimple.instance.logout();
-        }
-        ]]>
+            protected function onLoginClicked(event:MouseEvent):void {
+                    navigator.pushView(OAuthViewSimple);
+            }
+
+            protected function onLogoutClicked(event:MouseEvent):void {
+                    oauthController.logout();
+            }
+            ]]>
   </fx:Script>
 
     <s:VGroup id="content" width="100%" height="100%" horizontalAlign="center">
@@ -39,9 +61,9 @@
             <s:Button id="refreshButton" label="{resourceManager.getString('dukecon', 'main.refresh')}"
                       click="onRefreshClicked(event)"/>
             <s:Button id="loginButton" label="{resourceManager.getString('dukecon', 'main.login')}"
-                      click="onLoginClicked(event)" visible="{OAuthControllerSimple.instance.oauthData == null}"/>
+                      click="onLoginClicked(event)"/>
             <s:Button id="logoutButton" label="{resourceManager.getString('dukecon', 'main.logout')}"
-                      click="onLogoutClicked(event)" visible="{OAuthControllerSimple.instance.oauthData != null}"/>
+                      click="onLogoutClicked(event)"/>
         </s:VGroup>
     </s:VGroup>
 

@@ -4,33 +4,33 @@
 -->
 <s:DefaultGridHeaderRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                              xmlns:s="library://ns.adobe.com/flex/spark">
-  <s:states>
-    <s:State name="normal" />
-    <s:State name="hovered" />
-    <s:State name="down" />
-  </s:states>
+    <s:states>
+        <s:State name="normal"/>
+        <s:State name="hovered"/>
+        <s:State name="down"/>
+    </s:states>
 
-  <fx:Declarations>
-    <s:Label id="labelDisplay"
-             verticalCenter="1" left="0" right="0" top="0" bottom="0"
-             verticalAlign="middle"
-             textAlign="center"
-             maxDisplayedLines="1"
-             showTruncationTip="true" styleName="title" />
-  </fx:Declarations>
+    <fx:Declarations>
+        <s:Label id="labelDisplay"
+                 verticalCenter="1" left="0" right="0" top="0" bottom="0"
+                 verticalAlign="middle"
+                 textAlign="center"
+                 maxDisplayedLines="1"
+                 showTruncationTip="true" styleName="title"/>
+    </fx:Declarations>
 
-  <s:Rect top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10">
-    <s:fill>
-      <s:SolidColor color="0x1AA3B1"/>
-    </s:fill>
-  </s:Rect>
+    <s:Rect top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10">
+        <s:fill>
+            <s:SolidColor color="0x1AA3B1"/>
+        </s:fill>
+    </s:Rect>
 
-  <s:HGroup left="7" right="7" top="5" bottom="5" gap="2" verticalAlign="middle">
+    <s:HGroup left="7" right="7" top="5" bottom="5" gap="2" verticalAlign="middle">
 
-    <s:Group id="labelDisplayGroup" width="100%" />
+        <s:Group id="labelDisplayGroup" width="100%"/>
 
-    <s:Group id="sortIndicatorGroup" includeInLayout="false" />
+        <s:Group id="sortIndicatorGroup" includeInLayout="false"/>
 
-  </s:HGroup>
+    </s:HGroup>
 
 </s:DefaultGridHeaderRenderer>

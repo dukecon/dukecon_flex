@@ -4,15 +4,6 @@
 package org.dukecon.controller {
 public class TrackController {
 
-    private static var _instance:TrackController;
-
-    public static function get instance():TrackController {
-        if(!_instance) {
-            _instance = new TrackController(new SingletonEnforcer());
-        }
-        return _instance;
-    }
-
     [Embed(source="/tracks/software-architecture-and-methods.svg")]
     [Bindable]
     protected static var softwareArchitectureAndMethods:Class;
@@ -53,13 +44,13 @@ public class TrackController {
     [Bindable]
     protected static var idesAndTools:Class;
 
-    public function TrackController(enforcer:SingletonEnforcer) {
+    public function TrackController() {
     }
 
     public function getIconForTrack(trackName:String):Class {
-        if(trackName) {
+        if (trackName) {
             var trackCode:String = trackName.toLowerCase();
-            while(trackCode.indexOf(" ") != -1) {
+            while (trackCode.indexOf(" ") != -1) {
                 trackCode = trackCode.replace(" ", "-");
             }
             switch (trackCode) {
@@ -90,9 +81,9 @@ public class TrackController {
     }
 
     private function getColorForTrack(trackName:String):uint {
-        if(trackName) {
+        if (trackName) {
             var trackCode:String = trackName.toLowerCase();
-            while(trackCode.indexOf(" ") != -1) {
+            while (trackCode.indexOf(" ") != -1) {
                 trackCode = trackCode.replace(" ", "-");
             }
             switch (trackCode) {
@@ -134,5 +125,4 @@ public class TrackController {
 
 }
 }
-class SingletonEnforcer{}
 

@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-    [RemoteClass(alias="org.dukecon.model.Conference")]
-    public class Conference extends ConferenceBase {
+[RemoteClass(alias="org.dukecon.model.Conference")]
+public class Conference extends ConferenceBase {
 
-        public function Conference(obj:Object = null) {
-            super(obj);
-        }
-
+    public function Conference(obj:Object = null) {
+        super(obj);
     }
+
+}
 }

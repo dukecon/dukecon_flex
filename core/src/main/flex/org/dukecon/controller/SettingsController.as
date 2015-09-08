@@ -10,21 +10,13 @@ import org.dukecon.events.SettingsChangedEvent;
 [Event(type="org.dukecon.events.SettingsChangedEvent", name="settingsChanged")]
 public class SettingsController extends EventDispatcher {
 
-    private static var _instance:SettingsController;
-
-    public static function get instance():SettingsController {
-        if(!_instance) {
-            _instance = new SettingsController(new SingletonEnforcer());
-        }
-        return _instance;
-    }
-
     private var settings:SharedObject;
 
-    public function SettingsController(enforcer:SingletonEnforcer) {
+    public function SettingsController() {
         settings = SharedObject.getLocal("settings");
     }
 
+    [Bindable("settingsChanged")]
     public function get selectedLanguage():String {
         if (settings.data && settings.data.savedValue) {
             return settings.data.savedValue["language"];
@@ -33,7 +25,7 @@ public class SettingsController extends EventDispatcher {
     }
 
     public function set selectedLanguage(language:String):void {
-        if(!settings.data.savedValue) {
+        if (!settings.data.savedValue) {
             settings.data.savedValue = {};
         }
         settings.data.savedValue["language"] = language;
@@ -75,4 +67,3 @@ public class SettingsController extends EventDispatcher {
 
 }
 }
-class SingletonEnforcer{}

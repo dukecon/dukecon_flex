@@ -4,27 +4,27 @@
 -->
 <s:GridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
 
-  <fx:Script>
+    <fx:Script>
     <![CDATA[
-    [Bindable("dataChange")]
-    override public function get data():Object {
-      return super.data;
-    }
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
 
-    override public function set data(value:Object):void {
-      super.data = value;
-    }
-    ]]>
+        override public function set data(value:Object):void {
+            super.data = value;
+        }
+        ]]>
   </fx:Script>
 
-  <s:Rect top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10">
-    <s:fill>
-      <s:SolidColor color="0x1AA3B1"/>
-    </s:fill>
-  </s:Rect>
+    <s:Rect top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10">
+        <s:fill>
+            <s:SolidColor color="0x1AA3B1"/>
+        </s:fill>
+    </s:Rect>
 
-  <s:VGroup width="100%" height="350" verticalAlign="middle" horizontalAlign="center">
-    <s:Label text="{data.location}" rotationZ="-90" styleName="title"/>
-  </s:VGroup>
+    <s:VGroup width="100%" height="350" verticalAlign="middle" horizontalAlign="center">
+        <s:Label text="{data.location}" rotationZ="-90" styleName="title"/>
+    </s:VGroup>
 
 </s:GridItemRenderer>

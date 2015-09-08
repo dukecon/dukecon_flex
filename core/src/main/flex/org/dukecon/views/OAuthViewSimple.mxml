@@ -2,36 +2,40 @@
 <!--
   Created by christoferdutz on 31.08.15.
 -->
-<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
-        creationComplete="onCreationComplete(event)">
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:parsley="http://www.spicefactory.org/parsley">
+
+    <fx:Declarations>
+        <parsley:Configure/>
+    </fx:Declarations>
 
     <fx:Script><![CDATA[
-            import mx.events.FlexEvent;
+        import org.dukecon.controller.OAuthControllerSimple;
+        import org.dukecon.events.LoginChangedEvent;
 
-            import org.dukecon.controller.OAuthControllerSimple;
-            import org.dukecon.events.LoginChangedEvent;
+        [Inject]
+        public var oauthController:OAuthControllerSimple;
 
-            protected var oauthController:OAuthControllerSimple;
+        [Init]
+        public function init():void {
+            oauthController.addEventListener(LoginChangedEvent.USER_LOGGED_IN, onLoginSuccess);
+            oauthController.addEventListener(LoginChangedEvent.USER_LOGIN_FAILURE, onLoginFailure);
+        }
 
-            protected function onCreationComplete(event:FlexEvent):void {
-                    oauthController = OAuthControllerSimple.instance;
-                    oauthController.addEventListener(LoginChangedEvent.USER_LOGGED_IN, onLoginSuccess);
-                    oauthController.addEventListener(LoginChangedEvent.USER_LOGIN_FAILURE, onLoginFailure);
-            }
+        protected function onLoginClick(event:MouseEvent):void {
+            oauthController.login(usernameInput.text, passwordInput.text);
+        }
 
-            protected function onLoginClick(event:MouseEvent):void {
-                    oauthController.login(usernameInput.text, passwordInput.text);
-            }
+        protected function onLoginSuccess(event:LoginChangedEvent):void {
+            navigator.popView();
+        }
 
-            protected function onLoginSuccess(event:LoginChangedEvent):void {
-                    navigator.popView();
-            }
-
-            protected function onLoginFailure(event:LoginChangedEvent):void {
-                    usernameInput.text = "";
-                    passwordInput.text = "";
-            }
-            ]]>
+        protected function onLoginFailure(event:LoginChangedEvent):void {
+            usernameInput.text = "";
+            passwordInput.text = "";
+        }
+        ]]>
     </fx:Script>
 
     <s:VGroup width="100%" height="100%" horizontalAlign="center">

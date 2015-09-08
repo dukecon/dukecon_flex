@@ -30,15 +30,6 @@ import org.dukecon.model.TalkBase;
 [Event(type="org.dukecon.events.ConferenceDataChangedEvent", name="conferenceDataChanged")]
 public class ConferenceController extends EventDispatcher {
 
-    private static var _instance:ConferenceController;
-
-    public static function get instance():ConferenceController {
-        if(!_instance) {
-            _instance = new ConferenceController(new SingletonEnforcer());
-        }
-        return _instance;
-    }
-
     private var service:HTTPService;
 
     private var conn:SQLConnection;
@@ -46,13 +37,18 @@ public class ConferenceController extends EventDispatcher {
 
     private var trackRatings:SharedObject;
 
-    public function ConferenceController(enforcer:SingletonEnforcer) {
+    public var baseUrl:String;
 
+    public function ConferenceController() {
+    }
+
+    [Init]
+    public function init():void {
         service = new HTTPService();
         service.method = "GET";
         service.contentType = "application/json";
-        service.headers = { Accept:"application/json" };
-        service.url = "http://dev.dukecon.org/latest/rest/talks/";
+        service.headers = {Accept: "application/json"};
+        service.url = baseUrl + "/rest/talks/";
 
         // This file will be used for storing the data on the device.
         var db:File = File.applicationStorageDirectory.resolvePath("dukecon-conference.db");
@@ -66,17 +62,17 @@ public class ConferenceController extends EventDispatcher {
 
             trackRatings = SharedObject.getLocal("track-ratings");
 
-            if(initDb) {
+            if (initDb) {
                 TalkBase.createTable(conn);
                 SpeakerBase.createTable(conn);
                 MetaDataBase.createTable(conn);
                 ConferenceBase.createTable(conn);
             }
 
-            if(TalkBase.count(conn) == 0) {
+            if (TalkBase.count(conn) == 0) {
                 updateTalks();
             }
-        } catch(error:SQLError) {
+        } catch (error:SQLError) {
             trace("Error message:", error.message);
         }
     }
@@ -94,9 +90,9 @@ public class ConferenceController extends EventDispatcher {
         for each(var obj:Object in result as Array) {
             var talk:Talk = new Talk(obj);
             for each(var speakerObj:Object in talk.speakers) {
-                if(speakerObj) {
+                if (speakerObj) {
                     var speaker:Speaker = new Speaker(speakerObj);
-                    if(persistedSpeakers.indexOf(speaker.name + "-" + speaker.company) == -1) {
+                    if (persistedSpeakers.indexOf(speaker.name + "-" + speaker.company) == -1) {
                         speaker.persist(conn);
                         persistedSpeakers.push(speaker.name + "-" + speaker.company);
                     }
@@ -116,13 +112,13 @@ public class ConferenceController extends EventDispatcher {
 
         var sortField:SortField = new SortField();
         sortField.name = "start";
-        sortField.compareFunction = function(a:Object, b:Object):int {
+        sortField.compareFunction = function (a:Object, b:Object):int {
             var aTime:Number = (a.start as Date).getTime();
             var bTime:Number = (b.start as Date).getTime();
-            if(aTime < bTime) {
+            if (aTime < bTime) {
                 return -1;
             }
-            if(aTime > bTime) {
+            if (aTime > bTime) {
                 return 1;
             }
             return 0;
@@ -133,12 +129,12 @@ public class ConferenceController extends EventDispatcher {
 
         return talks;
     }
-    
+
     public function get days():ArrayCollection {
         var days:ArrayCollection = executeQuery("SELECT DISTINCT date(start) AS day FROM Talk");
         var result:ArrayCollection = new ArrayCollection();
         for each(var obj:Object in days) {
-            if(obj.day) {
+            if (obj.day) {
                 result.addItem(obj.day);
             }
         }
@@ -149,7 +145,7 @@ public class ConferenceController extends EventDispatcher {
         var locations:ArrayCollection = executeQuery("SELECT DISTINCT location FROM Talk");
         var result:ArrayCollection = new ArrayCollection();
         for each(var obj:Object in locations) {
-            if(obj.location) {
+            if (obj.location) {
                 result.addItem(obj.location);
             }
         }
@@ -160,14 +156,14 @@ public class ConferenceController extends EventDispatcher {
         var tracks:ArrayCollection = executeQuery("SELECT DISTINCT track FROM Talk");
         var result:ArrayCollection = new ArrayCollection();
         for each(var obj:Object in tracks) {
-            if(obj.track) {
+            if (obj.track) {
                 result.addItem(obj.track);
             }
         }
         var dataSortField:SortField = new SortField();
         dataSortField.numeric = false;
         var dataSort:Sort = new Sort();
-        dataSort.fields=[dataSortField];
+        dataSort.fields = [dataSortField];
         result.sort = dataSort;
         result.refresh();
         return result;
@@ -178,14 +174,14 @@ public class ConferenceController extends EventDispatcher {
                 "strftime('%H:%M', end)) AS slot FROM Talk WHERE date(start) = '" + day + "'");
         var result:ArrayCollection = new ArrayCollection();
         for each(var obj:Object in slots) {
-            if(obj.slot) {
+            if (obj.slot) {
                 result.addItem(obj.slot);
             }
         }
         var dataSortField:SortField = new SortField();
         dataSortField.numeric = false;
         var dataSort:Sort = new Sort();
-        dataSort.fields=[dataSortField];
+        dataSort.fields = [dataSortField];
         result.sort = dataSort;
         result.refresh();
         return result;
@@ -207,7 +203,7 @@ public class ConferenceController extends EventDispatcher {
         var result:ArrayCollection = new ArrayCollection();
         for each(var talk:Talk in talks) {
             for each(var speakerObj:Object in talk.speakers) {
-                if(speakerObj && speakerObj.name == speaker.name) {
+                if (speakerObj && speakerObj.name == speaker.name) {
                     result.addItem(talk);
                     break;
                 }
@@ -217,8 +213,8 @@ public class ConferenceController extends EventDispatcher {
     }
 
     public function setRating(talk:Talk, rating:Number):void {
-        if(!talk) return;
-        if(!trackRatings.data.savedValue) {
+        if (!talk) return;
+        if (!trackRatings.data.savedValue) {
             trackRatings.data.savedValue = {};
         }
         trackRatings.data.savedValue[talk.id] = rating;
@@ -226,7 +222,7 @@ public class ConferenceController extends EventDispatcher {
     }
 
     public function getRating(talk:Talk):Number {
-        if(talk && trackRatings.data && trackRatings.data.savedValue) {
+        if (talk && trackRatings.data && trackRatings.data.savedValue) {
             return trackRatings.data.savedValue[talk.id];
         }
         return -2;
@@ -290,12 +286,11 @@ public class ConferenceController extends EventDispatcher {
             for each(var obj:Object in sqlResult.data) {
                 result.addItem(obj);
             }
-        } catch(initError:SQLError) {
+        } catch (initError:SQLError) {
             throw new Error("Error selecting records from table '${jClass.as3Type.name}': " + initError.message);
         }
         return result;
     }
-    
+
 }
 }
-class SingletonEnforcer{}

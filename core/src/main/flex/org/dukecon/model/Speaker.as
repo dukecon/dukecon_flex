@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-    [RemoteClass(alias="org.dukecon.model.Speaker")]
-    public class Speaker extends SpeakerBase {
+[RemoteClass(alias="org.dukecon.model.Speaker")]
+public class Speaker extends SpeakerBase {
 
-        public function Speaker(obj:Object = null) {
-            super(obj);
-        }
-
+    public function Speaker(obj:Object = null) {
+        super(obj);
     }
+
+}
 }

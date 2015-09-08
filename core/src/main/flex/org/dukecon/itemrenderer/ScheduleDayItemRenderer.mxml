@@ -1,79 +1,83 @@
 <?xml version="1.0"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
+                xmlns:parsley="http://www.spicefactory.org/parsley"
                 height="136"
                 click="onItemClick(event)">
 
-  <fx:Declarations>
-    <s:DateTimeFormatter id="formatter"
-                         locale="{SettingsController.instance.selectedLanguage}"
-                         dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
-    <s:DateTimeFormatter id="dayFormatter"
-                         locale="{SettingsController.instance.selectedLanguage}"
-                         dateTimePattern="{resourceManager.getString('dukecon', 'datetime.dayOfWeek')}"/>
-  </fx:Declarations>
+    <fx:Declarations>
+        <parsley:Configure/>
+        <s:DateTimeFormatter id="formatter"
+                             locale="{settingsController.selectedLanguage}"
+                             dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
+        <s:DateTimeFormatter id="dayFormatter"
+                             locale="{settingsController.selectedLanguage}"
+                             dateTimePattern="{resourceManager.getString('dukecon', 'datetime.dayOfWeek')}"/>
+    </fx:Declarations>
 
-  <fx:Script>
-    <![CDATA[
-
-    import org.dukecon.controller.SettingsController;
-    import org.dukecon.events.ListEvent;
-
-    [Bindable]
-    protected var formattedData:String;
-
-    [Bindable]
-    protected var dayString:String;
-
-    [Bindable]
-    protected var date:Date;
-
-    [Bindable("dataChange")]
-    override public function get data():Object {
-      return super.data;
-    }
-
-    override public function set data(value:Object):void {
-      super.data = value;
-      var matches:Array = String(value).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
-      date = new Date(int(matches[1]), int(matches[2]), int(matches[3]));
-      formattedData = formatter.format(date);
-      dayString = dayFormatter.format(date);
-
-      itemLabel.width = this.parent.parent.width - 168;
-    }
-
-    protected function onItemClick(event:MouseEvent):void {
-      dispatchEvent(new ListEvent(String(data), ListEvent.ITEM_SELECTED));
-    }
-    ]]>
-  </fx:Script>
+    <fx:Script>
 
 
-  <s:Rect top="0" left="0" width="100%" bottom="0">
-    <s:fill>
-      <s:SolidColor id="backgroundColor" color="white"/>
-    </s:fill>
-    <s:stroke>
-      <s:SolidColorStroke color="black"/>
-    </s:stroke>
-  </s:Rect>
+        import org.dukecon.controller.SettingsController;
+        import org.dukecon.events.ListEvent;
 
-  <s:Rect top="8" left="8" width="120" bottom="8">
-    <s:fill>
-      <s:SolidColor color="white"/>
-    </s:fill>
-    <s:stroke>
-      <s:SolidColorStroke color="black"/>
-    </s:stroke>
-  </s:Rect>
+        [Bindable]
+        protected var formattedData:String;
 
-  <s:Label id="dayLabel" fontSize="60" top="42" left="22" text="{dayString}"/>
+        [Bindable]
+        protected var dayString:String;
 
-  <!--u:VectorImage id="icon" top="6" left="6" width="116" bottom="3"/-->
+        [Bindable]
+        protected var date:Date;
 
-  <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-    <s:Label id="itemLabel" text="{formattedData}" styleName="listTitle"/>
-  </s:HGroup>
+        [Inject]
+        [Bindable]
+        public var settingsController:SettingsController;
+
+        override protected function commitProperties():void {
+            super.commitProperties();
+
+            if (data) {
+                var matches:Array = String(data).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+                date = new Date(int(matches[1]), int(matches[2]), int(matches[3]));
+                formattedData = formatter.format(date);
+                dayString = dayFormatter.format(date);
+            }
+
+            itemLabel.width = this.parent.parent.width - 168;
+        }
+
+        protected function onItemClick(event:MouseEvent):void {
+            dispatchEvent(new ListEvent(String(data), ListEvent.ITEM_SELECTED));
+        }
+
+    </fx:Script>
+
+
+    <s:Rect top="0" left="0" width="100%" bottom="0">
+        <s:fill>
+            <s:SolidColor id="backgroundColor" color="white"/>
+        </s:fill>
+        <s:stroke>
+            <s:SolidColorStroke color="black"/>
+        </s:stroke>
+    </s:Rect>
+
+    <s:Rect top="8" left="8" width="120" bottom="8">
+        <s:fill>
+            <s:SolidColor color="white"/>
+        </s:fill>
+        <s:stroke>
+            <s:SolidColorStroke color="black"/>
+        </s:stroke>
+    </s:Rect>
+
+    <s:Label id="dayLabel" fontSize="60" top="42" left="22" text="{dayString}"/>
+
+    <!--u:VectorImage id="icon" top="6" left="6" width="116" bottom="3"/-->
+
+    <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
+        <s:Label id="itemLabel" text="{formattedData}" styleName="listTitle"/>
+    </s:HGroup>
 
 </s:ItemRenderer>

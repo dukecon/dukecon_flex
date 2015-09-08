@@ -26,8 +26,7 @@ public class ImageRadioButtonSkin extends RadioButtonSkin {
         super();
     }
 
-    override protected function createChildren():void
-    {
+    override protected function createChildren():void {
         super.createChildren();
         labelIcon = new Image();
         addChild(labelIcon);
@@ -35,7 +34,7 @@ public class ImageRadioButtonSkin extends RadioButtonSkin {
 
     override protected function commitProperties():void {
         super.commitProperties();
-        switch(RadioButton(hostComponent).value) {
+        switch (RadioButton(hostComponent).value) {
             case -1:
                 labelIcon.source = ratingBadImage;
                 break;
@@ -48,8 +47,7 @@ public class ImageRadioButtonSkin extends RadioButtonSkin {
         }
     }
 
-    override protected function measure():void
-    {
+    override protected function measure():void {
         measuredMinWidth = 130;
         measuredMinHeight = 64;
 

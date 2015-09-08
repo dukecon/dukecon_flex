@@ -2,7 +2,9 @@
 <!--
   Created by christoferdutz on 14.07.15.
 -->
-<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:parsley="http://www.spicefactory.org/parsley"
         title="{resourceManager.getString('dukecon', 'settings.title')}"
         creationComplete="onCreationComplete(event)">
 
@@ -11,6 +13,7 @@
     </fx:Metadata>
 
     <fx:Declarations>
+        <parsley:Configure/>
         <s:RadioButtonGroup id="languageGroup" change="onLanguageChange(event)"/>
     </fx:Declarations>
 
@@ -24,6 +27,9 @@
 
         import org.dukecon.controller.SettingsController;
 
+        [Inject]
+        public var settingsController:SettingsController;
+
         protected function onCreationComplete(event:FlexEvent):void {
             // Hide the settings action button.
             for each(var button:Button in navigator.actionContent) {
@@ -33,7 +39,7 @@
             }
 
             // Select the currently selected locale button.
-            if(resourceManager.localeChain[0] == "en_US") {
+            if (resourceManager.localeChain[0] == "en_US") {
                 englishButton.selected = true;
             } else {
                 germanButton.selected = true;
@@ -52,9 +58,8 @@
 
         protected function onLanguageChange(event:Event):void {
             resourceManager.localeChain = [languageGroup.selectedValue];
-            SettingsController.instance.selectedLanguage = String(languageGroup.selectedValue);
+            settingsController.selectedLanguage = String(languageGroup.selectedValue);
         }
-
         ]]>
     </fx:Script>
 

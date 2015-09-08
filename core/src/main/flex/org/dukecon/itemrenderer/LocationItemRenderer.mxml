@@ -2,64 +2,66 @@
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
                 xmlns:u="org.dukecon.utils.*"
+                xmlns:parsley="http://www.spicefactory.org/parsley"
                 height="136"
                 click="onItemClick(event)">
 
-  <fx:Script>
+    <fx:Declarations>
+        <parsley:Configure/>
+    </fx:Declarations>
+
+    <fx:Script>
     <![CDATA[
-    import org.dukecon.controller.LocationController;
-    import org.dukecon.events.ListEvent;
+        import org.dukecon.controller.LocationController;
+        import org.dukecon.events.ListEvent;
 
-    [Bindable]
-    protected var locationIcon:Class;
+        [Bindable]
+        protected var locationIcon:Class;
 
-    [Bindable("dataChange")]
-    override public function get data():Object {
-      return super.data;
-    }
+        [Inject]
+        public var locationController:LocationController;
 
-    override public function set data(value:Object):void {
-      super.data = value;
+        override protected function commitProperties():void {
+            super.commitProperties();
 
-      if (value) {
-        locationIcon = LocationController.instance.getIconForLocation(String(value));
-      } else {
-        locationIcon = null;
-      }
-      itemLabel.width = this.parent.parent.width - 168;
+            if (data) {
+                locationIcon = locationController.getIconForLocation(String(data));
+            } else {
+                locationIcon = null;
+            }
+            itemLabel.width = this.parent.parent.width - 168;
 
-      invalidateDisplayList();
-    }
+            invalidateDisplayList();
+        }
 
-    protected function onItemClick(event:MouseEvent):void {
-      dispatchEvent(new ListEvent(data, ListEvent.ITEM_SELECTED));
-    }
-
-    ]]>
+        protected function onItemClick(event:MouseEvent):void {
+            dispatchEvent(new ListEvent(data, ListEvent.ITEM_SELECTED));
+        }
+        ]]>
   </fx:Script>
 
-  <s:Rect top="0" left="0" width="100%" bottom="0">
-    <s:fill>
-      <s:SolidColor color="white"/>
-    </s:fill>
-    <s:stroke>
-      <s:SolidColorStroke color="black"/>
-    </s:stroke>
-  </s:Rect>
+    <s:Rect top="0" left="0" width="100%" bottom="0">
+        <s:fill>
+            <s:SolidColor color="white"/>
+        </s:fill>
+        <s:stroke>
+            <s:SolidColorStroke color="black"/>
+        </s:stroke>
+    </s:Rect>
 
-  <s:Rect top="8" left="8" width="120" bottom="8">
-    <s:fill>
-      <s:SolidColor color="white"/>
-    </s:fill>
-    <s:stroke>
-      <s:SolidColorStroke color="black"/>
-    </s:stroke>
-  </s:Rect>
+    <s:Rect top="8" left="8" width="120" bottom="8">
+        <s:fill>
+            <s:SolidColor color="white"/>
+        </s:fill>
+        <s:stroke>
+            <s:SolidColorStroke color="black"/>
+        </s:stroke>
+    </s:Rect>
 
-  <u:VectorImage source="{locationIcon}" top="10" left="10" width="110" bottom="10"/>
+    <u:VectorImage source="{locationIcon}" top="10" left="10" width="110" bottom="10"/>
 
-  <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-    <s:Label id="itemLabel" text="{String(data)}" styleName="listTitle"/>
-  </s:HGroup>
+    <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
+        <s:Label id="itemLabel" text="{String(data)}" styleName="listTitle"/>
+    </s:HGroup>
 
 </s:ItemRenderer>

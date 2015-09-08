@@ -2,29 +2,43 @@
 <s:TabbedViewNavigatorApplication
         xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
-        creationComplete="onCreationComplete(event)"
+        xmlns:parsley="http://www.spicefactory.org/parsley"
+        preinitialize="onPreinitialize(event)"
         applicationDPI="320" frameRate="60">
 
     <fx:Metadata>
         [ResourceBundle("dukecon")]
     </fx:Metadata>
 
-    <fx:Style source="DukeConStyle.css" />
+    <!--fx:Declarations>
+        <parsley:Configure/>
+    </fx:Declarations-->
+
+    <fx:Style source="DukeConStyle.css"/>
 
     <fx:Script>
         <![CDATA[
         import mx.events.FlexEvent;
 
-        import org.dukecon.controller.ConferenceController;
         import org.dukecon.controller.SettingsController;
         import org.dukecon.views.SettingsView;
+        import org.spicefactory.parsley.flex.FlexContextBuilder;
 
-        protected function onCreationComplete(event:FlexEvent):void {
-            ConferenceController.instance;
+        [Inject]
+        public var settingsController:SettingsController;
 
-            // Get the selected language from the settings.
-            var selectedLanguage:String = SettingsController.instance.selectedLanguage;
-            resourceManager.localeChain = [selectedLanguage];
+        protected function onPreinitialize(event:FlexEvent):void {
+            FlexContextBuilder.build(DukeConContext, this);
+        }
+
+        override protected function commitProperties():void {
+            super.commitProperties();
+
+            if (settingsController) {
+                // Get the selected language from the settings.
+                var selectedLanguage:String = settingsController.selectedLanguage;
+                resourceManager.localeChain = [selectedLanguage];
+            }
         }
 
         protected function onOpenSettingsClicked(event:MouseEvent):void {

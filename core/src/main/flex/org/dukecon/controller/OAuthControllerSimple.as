@@ -16,21 +16,12 @@ import org.dukecon.events.LoginChangedEvent;
 [Event(type="org.dukecon.events.ConferenceDataChangedEvent", name="conferenceDataChanged")]
 public class OAuthControllerSimple extends EventDispatcher {
 
-    private static var _instance:OAuthControllerSimple;
-
-    public static function get instance():OAuthControllerSimple {
-        if(!_instance) {
-            _instance = new OAuthControllerSimple(new SingletonEnforcer());
-        }
-        return _instance;
-    }
-
     private var service:HTTPService;
 
     [Bindable]
     public var oauthData:Object;
 
-    public function OAuthControllerSimple(enforcer:SingletonEnforcer) {
+    public function OAuthControllerSimple() {
         service = new HTTPService();
         service.method = "POST";
         service.contentType = "application/x-www-form-urlencoded";
@@ -43,8 +34,10 @@ public class OAuthControllerSimple extends EventDispatcher {
     }
 
     public function login(username:String, password:String):void {
-        var parameters:Object = {username: username, password: password,
-            client_id: "flex", client_secret: "40a116ed-d97e-4a0d-8400-877fa58cbf99"};
+        var parameters:Object = {
+            username: username, password: password,
+            client_id: "flex", client_secret: "40a116ed-d97e-4a0d-8400-877fa58cbf99"
+        };
         var token:AsyncToken = service.send(parameters);
         token.addResponder(new Responder(onResult, onFault));
         token.username = username;
@@ -68,5 +61,4 @@ public class OAuthControllerSimple extends EventDispatcher {
 
 }
 }
-class SingletonEnforcer{}
 
