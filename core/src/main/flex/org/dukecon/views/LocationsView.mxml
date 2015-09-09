@@ -22,6 +22,13 @@
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.events.ConferenceDataChangedEvent;
         import org.dukecon.events.ListEvent;
+        import org.spicefactory.lib.reflect.ClassInfo;
+        import org.spicefactory.parsley.core.context.Context;
+        import org.spicefactory.parsley.core.context.provider.Provider;
+        import org.spicefactory.parsley.core.messaging.MessageReceiverRegistry;
+        import org.spicefactory.parsley.core.scope.ScopeName;
+        import org.spicefactory.parsley.messaging.receiver.DefaultMessageHandler;
+        import org.spicefactory.parsley.messaging.receiver.MessageReceiverInfo;
 
         [Bindable]
         protected var listData:ArrayCollection;
@@ -29,15 +36,24 @@
         [Inject]
         public var conferenceController:ConferenceController;
 
+        [Inject]
+        public var context:Context;
+
         [Init]
         public function init():void {
-            conferenceController.addEventListener(
-                    ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, onConferenceDataChanged);
             listData = conferenceController.locations;
             list.addEventListener(ListEvent.ITEM_SELECTED, onLocationSelected)
+
+            var registry:MessageReceiverRegistry = context.scopeManager.getScope(ScopeName.GLOBAL).messageReceivers;
+            var info:MessageReceiverInfo = new MessageReceiverInfo();
+            info.type = ClassInfo.forClass(ConferenceDataChangedEvent);
+            var handler:DefaultMessageHandler = new DefaultMessageHandler(info);
+            handler.init(Provider.forInstance(this), ClassInfo.forInstance(this).getMethod("onConferenceDataChanged"));
+            registry.addTarget(handler);
         }
 
-        protected function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
+        [MessageHandler]
+        public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
             listData = conferenceController.locations;
         }
 

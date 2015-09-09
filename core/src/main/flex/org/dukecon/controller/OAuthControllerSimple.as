@@ -13,7 +13,10 @@ import mx.rpc.http.HTTPService;
 
 import org.dukecon.events.LoginChangedEvent;
 
-[Event(type="org.dukecon.events.ConferenceDataChangedEvent", name="conferenceDataChanged")]
+[Event(type="org.dukecon.events.LoginChangedEvent", name="userLoggedIn")]
+[Event(type="org.dukecon.events.LoginChangedEvent", name="userLoggedOut")]
+[Event(type="org.dukecon.events.LoginChangedEvent", name="userLoginFailure")]
+[ManagedEvents("userLoggedIn,userLoggedOut,userLoginFailure")]
 public class OAuthControllerSimple extends EventDispatcher {
 
     private var service:HTTPService;

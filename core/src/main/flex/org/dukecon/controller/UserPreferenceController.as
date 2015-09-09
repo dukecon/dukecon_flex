@@ -17,13 +17,13 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 import mx.rpc.http.HTTPService;
 
-import org.dukecon.events.ConferenceDataChangedEvent;
 import org.dukecon.events.UserPreferenceDataChangedEvent;
 import org.dukecon.model.Talk;
 import org.dukecon.model.UserPreference;
 import org.dukecon.model.UserPreferenceBase;
 
 [Event(type="org.dukecon.events.UserPreferenceDataChangedEvent", name="userPreferenceDataChanged")]
+[ManagedEvents("userPreferenceDataChanged")]
 public class UserPreferenceController extends EventDispatcher {
 
     private var getService:HTTPService;
@@ -125,7 +125,8 @@ public class UserPreferenceController extends EventDispatcher {
                     trace("Done replaying uncommitted deletions.");
                 }
 
-                dispatchEvent(new ConferenceDataChangedEvent(UserPreferenceDataChangedEvent.USER_PREFERENCE_DATA_CHANGED));
+                dispatchEvent(new UserPreferenceDataChangedEvent(
+                        UserPreferenceDataChangedEvent.USER_PREFERENCE_DATA_CHANGED));
             }, onFault));
         }
     }
@@ -217,7 +218,8 @@ public class UserPreferenceController extends EventDispatcher {
 
     public function isTalkSelected(talk:Talk):Boolean {
         if (!talk) return false;
-        var userPreferences:ArrayCollection = executeQuery("SELECT DISTINCT talkId FROM UserPreference WHERE talkId = '" + talk.id + "'");
+        var userPreferences:ArrayCollection =
+                executeQuery("SELECT DISTINCT talkId FROM UserPreference WHERE talkId = '" + talk.id + "'");
         return userPreferences && (userPreferences.length > 0);
     }
 

@@ -28,6 +28,7 @@ import org.dukecon.model.Talk;
 import org.dukecon.model.TalkBase;
 
 [Event(type="org.dukecon.events.ConferenceDataChangedEvent", name="conferenceDataChanged")]
+[ManagedEvents("conferenceDataChanged")]
 public class ConferenceController extends EventDispatcher {
 
     private var service:HTTPService;

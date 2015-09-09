@@ -19,16 +19,16 @@
 
     <fx:Script>
         <![CDATA[
-            import mx.collections.ArrayCollection;
-            import mx.core.UIComponent;
-            import mx.events.FlexEvent;
+        import mx.collections.ArrayCollection;
+        import mx.core.UIComponent;
+        import mx.events.FlexEvent;
 
-            import org.dukecon.controller.ConferenceController;
-            import org.dukecon.controller.SpeakerController;
-            import org.dukecon.events.ListEvent;
-            import org.dukecon.model.Speaker;
+        import org.dukecon.controller.ConferenceController;
+        import org.dukecon.controller.SpeakerController;
+        import org.dukecon.events.ListEvent;
+        import org.dukecon.model.Speaker;
 
-            [Bindable]
+        [Bindable]
             protected var speaker:Speaker;
 
             [Bindable]

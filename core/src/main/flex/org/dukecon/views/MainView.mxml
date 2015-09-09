@@ -17,41 +17,41 @@
 
     <fx:Script>
     <![CDATA[
-            import org.dukecon.controller.ConferenceController;
-            import org.dukecon.controller.OAuthControllerSimple;
-            import org.dukecon.controller.UserPreferenceController;
+        import org.dukecon.controller.ConferenceController;
+        import org.dukecon.controller.OAuthControllerSimple;
+        import org.dukecon.controller.UserPreferenceController;
 
-            [Inject]
-            public var conferenceController:ConferenceController;
+        [Inject]
+        public var conferenceController:ConferenceController;
 
-            [Inject]
-            public var userPreferenceController:UserPreferenceController;
+        [Inject]
+        public var userPreferenceController:UserPreferenceController;
 
-            [Inject]
-            [Bindable]
-            public var oauthController:OAuthControllerSimple;
+        [Inject]
+        [Bindable]
+        public var oauthController:OAuthControllerSimple;
 
-            [Init]
-            public function init():void {
-                    loginButton.visible = oauthController && (oauthController.oauthData == null);
-                    logoutButton.visible = oauthController && (oauthController.oauthData != null);
+        [Init]
+        public function init():void {
+            loginButton.visible = oauthController && (oauthController.oauthData == null);
+            logoutButton.visible = oauthController && (oauthController.oauthData != null);
+        }
+
+        protected function onRefreshClicked(event:MouseEvent):void {
+            conferenceController.updateTalks();
+            if (oauthController.isLoggedIn()) {
+                userPreferenceController.readUserPreferences()
             }
+        }
 
-            protected function onRefreshClicked(event:MouseEvent):void {
-                    conferenceController.updateTalks();
-                    if (oauthController.isLoggedIn()) {
-                            userPreferenceController.readUserPreferences()
-                    }
-            }
+        protected function onLoginClicked(event:MouseEvent):void {
+            navigator.pushView(OAuthViewSimple);
+        }
 
-            protected function onLoginClicked(event:MouseEvent):void {
-                    navigator.pushView(OAuthViewSimple);
-            }
-
-            protected function onLogoutClicked(event:MouseEvent):void {
-                    oauthController.logout();
-            }
-            ]]>
+        protected function onLogoutClicked(event:MouseEvent):void {
+            oauthController.logout();
+        }
+        ]]>
   </fx:Script>
 
     <s:VGroup id="content" width="100%" height="100%" horizontalAlign="center">

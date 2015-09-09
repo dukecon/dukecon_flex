@@ -181,6 +181,10 @@
                             <value>"${base-url}"</value>
                         </property>
                     </defines>
+                    <keepAs3Metadatas>
+                        <name>ManagedEvents</name>
+                        <name>MessageHandler</name>
+                    </keepAs3Metadatas>
                 </configuration>
 
                 <dependencies>

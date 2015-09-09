@@ -8,6 +8,7 @@ import flash.net.SharedObjectFlushStatus;
 import org.dukecon.events.SettingsChangedEvent;
 
 [Event(type="org.dukecon.events.SettingsChangedEvent", name="settingsChanged")]
+[ManagedEvents("settingsChanged")]
 public class SettingsController extends EventDispatcher {
 
     private var settings:SharedObject;
