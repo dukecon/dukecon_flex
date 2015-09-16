@@ -13,8 +13,6 @@
         <controller:TrackController/>
         <controller:SettingsController/>
         <controller:UserPreferenceController baseUrl="{baseUrl}"/>
-
-        <controller:OAuthControllerSimple/>
     </fx:Declarations>
 
     <fx:Script>

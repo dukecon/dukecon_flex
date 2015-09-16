@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 13.09.15.
+-->
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark">
+    <fx:Script><![CDATA[
+        import org.jboss.keycloak.flex.event.SocialLoginRequestEvent;
+
+        [Bindable]
+        protected var socialProviderName:String;
+
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
+
+        override public function set data(value:Object):void {
+            super.data = value;
+            socialProviderName = data.name;
+        }
+
+        protected function onButtonClick(event:MouseEvent):void {
+            dispatchEvent(new SocialLoginRequestEvent(
+                    SocialLoginRequestEvent.SOCIAL_PROVIDER_LOGIN_REQUEST,
+                    data.name, data.url));
+        }
+        ]]></fx:Script>
+
+    <s:Button width="100%" label="{socialProviderName}" click="onButtonClick(event)"/>
+</s:ItemRenderer>

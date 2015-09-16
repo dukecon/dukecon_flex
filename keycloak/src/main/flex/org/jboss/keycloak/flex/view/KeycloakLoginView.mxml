@@ -1,0 +1,111 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 13.09.15.
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark" creationComplete="onCreationComplete(event)">
+
+    <fx:Script><![CDATA[
+        import mx.collections.ArrayCollection;
+        import mx.events.FlexEvent;
+
+        import org.jboss.keycloak.flex.event.KeycloakEvent;
+
+        import org.jboss.keycloak.flex.event.KeycloakLoginRequestEvent;
+
+        import org.jboss.keycloak.flex.event.SocialLoginRequestEvent;
+
+        [Bindable]
+        protected var socialProviders:ArrayCollection;
+
+        [Bindable]
+        protected var feedbackMessage:String;
+
+        protected var keycloakLoginCallback:Function;
+        protected var socialLoginCallback:Function;
+
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
+
+        override public function set data(value:Object):void {
+            super.data = value;
+
+            if (!(value is KeycloakEvent)) {
+                throw new Error("Data has to be of type KeycloakEvent");
+            }
+            var keycloakEvent:KeycloakEvent = KeycloakEvent(value);
+            socialProviders = new ArrayCollection();
+            if (keycloakEvent.socialProviders) {
+                for (var providerName:String in keycloakEvent.socialProviders) {
+                    if (keycloakEvent.socialProviders.hasOwnProperty(providerName)) {
+                        var url:String = keycloakEvent.socialProviders[providerName];
+                        var provider:Object = {name: providerName, url: url};
+                        socialProviders.addItem(provider);
+                    }
+                }
+            }
+
+            feedbackMessage = keycloakEvent.feedbackMessage;
+
+            keycloakLoginCallback = keycloakEvent.keycloakLoginCallback;
+            socialLoginCallback = keycloakEvent.socialLoginCallback;
+        }
+
+        protected function onCreationComplete(event:FlexEvent):void {
+            socialProviderList.addEventListener(
+                    SocialLoginRequestEvent.SOCIAL_PROVIDER_LOGIN_REQUEST,
+                    onSocialProviderLoginClick, true);
+        }
+
+        protected function onLoginClick(event:MouseEvent):void {
+            if (keycloakLoginCallback != null) {
+                keycloakLoginCallback(new KeycloakLoginRequestEvent(KeycloakLoginRequestEvent.LOGIN_REQUEST,
+                        username.text, password.text));
+                navigator.popView();
+            }
+        }
+
+        protected function onCancelClick(event:MouseEvent):void {
+            username.text = "";
+            password.text = "";
+            navigator.popView();
+        }
+
+        protected function onSocialProviderLoginClick(event:SocialLoginRequestEvent):void {
+            if (socialLoginCallback != null) {
+                socialLoginCallback(event);
+            }
+        }
+        ]]></fx:Script>
+
+    <s:VGroup width="100%" height="100%" padding="10">
+
+        <!-- Login using the Keycloak server -->
+        <s:Form width="100%" skinClass="spark.skins.spark.StackedFormSkin">
+            <s:FormItem skinClass="spark.skins.spark.StackedFormItemSkin"
+                        visible="{feedbackMessage != null}" includeInLayout="{feedbackMessage != null}">
+                <s:Label text="{feedbackMessage}" color="red"/>
+            </s:FormItem>
+            <s:FormItem label="Username:" skinClass="spark.skins.spark.StackedFormItemSkin">
+                <s:TextInput id="username"/>
+            </s:FormItem>
+            <s:FormItem label="Password:" skinClass="spark.skins.spark.StackedFormItemSkin">
+                <s:TextInput id="password" displayAsPassword="true"/>
+            </s:FormItem>
+            <s:FormItem skinClass="spark.skins.spark.StackedFormItemSkin">
+                <s:HGroup width="100%">
+                    <s:Button id="login" label="Login" click="onLoginClick(event)"/>
+                    <s:Button id="cancel" label="Cancel" click="onCancelClick(event)"/>
+                </s:HGroup>
+            </s:FormItem>
+        </s:Form>
+
+        <!-- Login using one of the other providers -->
+        <s:List id="socialProviderList" width="100%" minHeight="10" dataProvider="{socialProviders}"
+                itemRenderer="org.jboss.keycloak.flex.view.itemrenderer.SocialProviderItemRenderer"/>
+
+    </s:VGroup>
+
+</s:View>

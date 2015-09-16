@@ -18,8 +18,8 @@
     <fx:Script>
     <![CDATA[
         import org.dukecon.controller.ConferenceController;
-        import org.dukecon.controller.OAuthControllerSimple;
         import org.dukecon.controller.UserPreferenceController;
+        import org.dukecon.events.LoginChangedEvent;
 
         [Inject]
         public var conferenceController:ConferenceController;
@@ -27,30 +27,33 @@
         [Inject]
         public var userPreferenceController:UserPreferenceController;
 
-        [Inject]
-        [Bindable]
-        public var oauthController:OAuthControllerSimple;
-
         [Init]
         public function init():void {
-            loginButton.visible = oauthController && (oauthController.oauthData == null);
-            logoutButton.visible = oauthController && (oauthController.oauthData != null);
+//            loginButton.visible = authController && (authController.accessToken == null);
+//            logoutButton.visible = authController && (authController.accessToken != null);
+        }
+
+        [MessageHandler]
+        public function onLoginChanged(event:LoginChangedEvent):void {
+//            loginButton.visible = authController && (authController.accessToken == null);
+//            logoutButton.visible = authController && (authController.accessToken != null);
         }
 
         protected function onRefreshClicked(event:MouseEvent):void {
-            conferenceController.updateTalks();
-            if (oauthController.isLoggedIn()) {
-                userPreferenceController.readUserPreferences()
-            }
+//            conferenceController.updateTalks();
+//            if (authController.loggedIn) {
+                userPreferenceController.readUserPreferences(navigator);
+//            }
         }
 
-        protected function onLoginClicked(event:MouseEvent):void {
-            navigator.pushView(OAuthViewSimple);
-        }
+/*        protected function onLoginClicked(event:MouseEvent):void {
+            authController.login(navigator);
+        }*/
 
         protected function onLogoutClicked(event:MouseEvent):void {
-            oauthController.logout();
+//            navigator.pushView(AuthView, "logout");
         }
+
         ]]>
   </fx:Script>
 
@@ -60,10 +63,10 @@
         <s:VGroup height="100%" verticalAlign="middle">
             <s:Button id="refreshButton" label="{resourceManager.getString('dukecon', 'main.refresh')}"
                       click="onRefreshClicked(event)"/>
-            <s:Button id="loginButton" label="{resourceManager.getString('dukecon', 'main.login')}"
+            <!--s:Button id="loginButton" label="{resourceManager.getString('dukecon', 'main.login')}"
                       click="onLoginClicked(event)"/>
             <s:Button id="logoutButton" label="{resourceManager.getString('dukecon', 'main.logout')}"
-                      click="onLogoutClicked(event)"/>
+                      click="onLogoutClicked(event)"/-->
         </s:VGroup>
     </s:VGroup>
 

@@ -12,23 +12,27 @@ import flash.filesystem.File;
 import mx.collections.ArrayCollection;
 import mx.messaging.messages.HTTPRequestMessage;
 import mx.rpc.AsyncToken;
-import mx.rpc.Responder;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
-import mx.rpc.http.HTTPService;
 
 import org.dukecon.events.UserPreferenceDataChangedEvent;
 import org.dukecon.model.Talk;
 import org.dukecon.model.UserPreference;
 import org.dukecon.model.UserPreferenceBase;
+import org.jboss.keycloak.flex.KeycloakRestService;
+import org.jboss.keycloak.flex.event.KeycloakEvent;
+import org.jboss.keycloak.flex.view.KeycloakLoginView;
+
+import spark.components.ViewNavigator;
 
 [Event(type="org.dukecon.events.UserPreferenceDataChangedEvent", name="userPreferenceDataChanged")]
 [ManagedEvents("userPreferenceDataChanged")]
 public class UserPreferenceController extends EventDispatcher {
 
-    private var getService:HTTPService;
-    private var addService:HTTPService;
-    private var removeService:HTTPService;
+    private var cookieStores:Object;
+    private var getService:KeycloakRestService;
+//    private var addService:HTTPService;
+//    private var removeService:HTTPService;
 
     private var conn:SQLConnection;
     private var db:File;
@@ -36,31 +40,26 @@ public class UserPreferenceController extends EventDispatcher {
     private var uncommittedAdditions:ArrayCollection = new ArrayCollection();
     private var uncommittedDeletes:ArrayCollection = new ArrayCollection();
 
-    [Inject]
-    public var oauthController:OAuthControllerSimple;
-
     public var baseUrl:String;
 
     public function UserPreferenceController() {
+        cookieStores = {};
     }
 
     [Init]
     public function init():void {
-        getService = new HTTPService();
-        getService.contentType = "application/json";
-        getService.method = HTTPRequestMessage.GET_METHOD;
-        getService.url = baseUrl + "/rest/noauthpreferences";
+        getService = new KeycloakRestService();
 
-        addService = new HTTPService();
-        addService.contentType = "application/json";
-        addService.method = HTTPRequestMessage.POST_METHOD;
-        addService.url = baseUrl + "/rest/noauthpreferences?_method=PUT";
+        /*        addService = new HTTPService();
+         addService.contentType = "application/json";
+         addService.method = HTTPRequestMessage.POST_METHOD;
+         addService.url = baseUrl + "/rest/preferences?_method=PUT";
 
-        removeService = new HTTPService();
-        removeService.contentType = "application/json";
-        removeService.method = HTTPRequestMessage.POST_METHOD;
-        removeService.url = baseUrl + "/rest/noauthpreferences?_method=DELETE";
-
+         removeService = new HTTPService();
+         removeService.contentType = "application/json";
+         removeService.method = HTTPRequestMessage.POST_METHOD;
+         removeService.url = baseUrl + "/rest/preferences?_method=DELETE";
+         */
         // This file will be used for storing the data on the device.
         var db:File = File.applicationStorageDirectory.resolvePath("dukecon-user-preferences.db");
         // This file will be located in
@@ -78,57 +77,54 @@ public class UserPreferenceController extends EventDispatcher {
         }
     }
 
-    public function readUserPreferences():void {
-        if (oauthController.oauthData) {
-            trace("Get");
-            getService.headers = {
-                Accept: "application/json",
-                Authorization: "Bearer " + oauthController.oauthData.access_token
-            };
-            var token:AsyncToken = getService.send();
-            token.addResponder(new Responder(function (event:ResultEvent):void {
-                var result:Object = JSON.parse(String(event.result));
+    public function readUserPreferences(navigator:ViewNavigator):void {
+        var token:AsyncToken = getService.send(baseUrl + "/rest/preferences", HTTPRequestMessage.GET_METHOD,
+                cookieStores);
+        token.addEventListener(KeycloakEvent.SHOW_LOGIN_SCREEN, function (event:KeycloakEvent):void {
+            navigator.pushView(KeycloakLoginView, event);
+        });
+        token.addEventListener(ResultEvent.RESULT, function (event:ResultEvent):void {
+            var result:Object = event.result;
 
-                // Flush the table and add each user preference returned by the server.
-                UserPreferenceBase.clearTable(conn);
-                var selectedTalkIds:ArrayCollection = new ArrayCollection();
-                for each(var obj:Object in result as Array) {
-                    var userPreference:UserPreference = new UserPreference(obj);
-                    userPreference.persist(conn);
-                    selectedTalkIds.addItem(userPreference.talkId);
-                }
-                trace("Got: " + result.length + " preferences.");
+            // Flush the table and add each user preference returned by the server.
+            UserPreferenceBase.clearTable(conn);
+            var selectedTalkIds:ArrayCollection = new ArrayCollection();
+            for each(var obj:Object in result as Array) {
+                var userPreference:UserPreference = new UserPreference(obj);
+                userPreference.persist(conn);
+                selectedTalkIds.addItem(userPreference.talkId);
+            }
+            trace("Got: " + result.length + " preferences.");
 
-                // If there are outstanding creations or deletions, replay them now.
-                if (uncommittedAdditions.length > 0) {
-                    trace("Replaying uncommitted additions:");
-                    for each(var addition:UserPreference in uncommittedAdditions) {
-                        // Only re-send the addition if the talk was not
-                        // selected, as it could have been added by another
-                        // client.
-                        if (!selectedTalkIds.contains(addition.talkId)) {
-                            addUserPreference(addition);
-                        }
+            // If there are outstanding creations or deletions, replay them now.
+            if (uncommittedAdditions.length > 0) {
+                trace("Replaying uncommitted additions:");
+                for each(var addition:UserPreference in uncommittedAdditions) {
+                    // Only re-send the addition if the talk was not
+                    // selected, as it could have been added by another
+                    // client.
+                    if (!selectedTalkIds.contains(addition.talkId)) {
+                        addUserPreference(addition);
                     }
-                    trace("Done replaying uncommitted additions.");
                 }
-                if (uncommittedDeletes.length > 0) {
-                    trace("Replaying uncommitted deletions:");
-                    for each(var deletion:UserPreference in uncommittedDeletes) {
-                        // Only re-send the deletion if the talk was still
-                        // selected, as it could have been removed by another
-                        // client.
-                        if (selectedTalkIds.contains(addition.talkId)) {
-                            deleteUserPreference(deletion);
-                        }
+                trace("Done replaying uncommitted additions.");
+            }
+            if (uncommittedDeletes.length > 0) {
+                trace("Replaying uncommitted deletions:");
+                for each(var deletion:UserPreference in uncommittedDeletes) {
+                    // Only re-send the deletion if the talk was still
+                    // selected, as it could have been removed by another
+                    // client.
+                    if (selectedTalkIds.contains(addition.talkId)) {
+                        deleteUserPreference(deletion);
                     }
-                    trace("Done replaying uncommitted deletions.");
                 }
+                trace("Done replaying uncommitted deletions.");
+            }
 
-                dispatchEvent(new UserPreferenceDataChangedEvent(
-                        UserPreferenceDataChangedEvent.USER_PREFERENCE_DATA_CHANGED));
-            }, onFault));
-        }
+            dispatchEvent(new UserPreferenceDataChangedEvent(
+                    UserPreferenceDataChangedEvent.USER_PREFERENCE_DATA_CHANGED));
+        });
     }
 
     public function addUserPreference(userPreference:UserPreference):void {
@@ -138,23 +134,24 @@ public class UserPreferenceController extends EventDispatcher {
             uncommittedAdditions.addItem(userPreference);
         }
 
-        if (oauthController.oauthData) {
-            trace("Add: " + userPreference.talkId);
-            addService.headers = {
-                Accept: "application/json",
-                Authorization: "Bearer " + oauthController.oauthData.access_token
-            };
-            var jsonString:String = JSON.stringify(userPreference);
-            var token:AsyncToken = addService.send(jsonString);
-            token.userPreference = userPreference;
-            token.addResponder(new Responder(function (event:ResultEvent):void {
-                var userPreference:UserPreference = UserPreference(event.token.userPreference);
-                uncommittedAdditions.removeItem(userPreference);
-                trace("Added: " + userPreference.talkId);
-            }, onFault));
-        } else {
-            trace("Added locally: " + userPreference.talkId);
-        }
+        /*        if (authController.accessToken) {
+         trace("Add: " + userPreference.talkId);
+         addService.headers = {
+         Accept: "application/json",
+         Authorization: "Bearer " + authController.accessToken
+         };
+         var jsonString:String = JSON.stringify(userPreference);
+         var token:AsyncToken = addService.send(jsonString);
+         token.userPreference = userPreference;
+         token.addResponder(new Responder(function (event:ResultEvent):void {
+         var userPreference:UserPreference = UserPreference(event.token.userPreference);
+         uncommittedAdditions.removeItem(userPreference);
+         trace("Added: " + userPreference.talkId);
+         }, onFault));
+         } else {
+         trace("Added locally: " + userPreference.talkId);
+         }
+         */
     }
 
     public function deleteUserPreference(userPreference:UserPreference):void {
@@ -169,23 +166,24 @@ public class UserPreferenceController extends EventDispatcher {
             uncommittedDeletes.addItem(userPreference);
         }
 
-        if (oauthController.oauthData) {
-            trace("Remove: " + userPreference.talkId);
-            removeService.headers = {
-                Accept: "application/json",
-                Authorization: "Bearer " + oauthController.oauthData.access_token
-            };
-            var jsonString:String = JSON.stringify(userPreference);
-            var token:AsyncToken = removeService.send(jsonString);
-            token.userPreference = userPreference;
-            token.addResponder(new Responder(function (event:ResultEvent):void {
-                var userPreference:UserPreference = UserPreference(event.token.userPreference);
-                uncommittedDeletes.removeItem(userPreference);
-                trace("Removed: " + userPreference.talkId);
-            }, onFault));
-        } else {
-            trace("Removed locally: " + userPreference.talkId);
-        }
+        /*        if (authController.accessToken) {
+         trace("Remove: " + userPreference.talkId);
+         removeService.headers = {
+         Accept: "application/json",
+         Authorization: "Bearer " + authController.accessToken
+         };
+         var jsonString:String = JSON.stringify(userPreference);
+         var token:AsyncToken = removeService.send(jsonString);
+         token.userPreference = userPreference;
+         token.addResponder(new Responder(function (event:ResultEvent):void {
+         var userPreference:UserPreference = UserPreference(event.token.userPreference);
+         uncommittedDeletes.removeItem(userPreference);
+         trace("Removed: " + userPreference.talkId);
+         }, onFault));
+         } else {
+         trace("Removed locally: " + userPreference.talkId);
+         }
+         */
     }
 
     protected function onFault(fault:FaultEvent):void {

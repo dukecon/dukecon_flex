@@ -35,6 +35,8 @@
 
     <modules>
         <module>core</module>
+        <module>keycloak</module>
+        <!--module>oauth2</module-->
     </modules>
 
     <build>

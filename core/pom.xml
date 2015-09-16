@@ -301,9 +301,9 @@
 
         <!-- Library for OAuth2 support -->
         <dependency>
-            <groupId>com.adobe.protocols.oauth</groupId>
-            <artifactId>actionscript-oauth2</artifactId>
-            <version>1.0.0</version>
+            <groupId>org.dukecon</groupId>
+            <artifactId>dukecon-flex-keycloak</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
             <type>swc</type>
         </dependency>
 
