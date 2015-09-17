@@ -24,6 +24,7 @@
                     SocialLoginRequestEvent.SOCIAL_PROVIDER_LOGIN_REQUEST,
                     data.name, data.url));
         }
+
         ]]></fx:Script>
 
     <s:Button width="100%" label="{socialProviderName}" click="onButtonClick(event)"/>

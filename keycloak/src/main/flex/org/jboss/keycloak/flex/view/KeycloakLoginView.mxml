@@ -9,7 +9,7 @@
         import mx.collections.ArrayCollection;
         import mx.events.FlexEvent;
 
-        import org.jboss.keycloak.flex.event.KeycloakEvent;
+        import org.jboss.keycloak.flex.event.KeycloakLoginEvent;
 
         import org.jboss.keycloak.flex.event.KeycloakLoginRequestEvent;
 
@@ -32,10 +32,10 @@
         override public function set data(value:Object):void {
             super.data = value;
 
-            if (!(value is KeycloakEvent)) {
-                throw new Error("Data has to be of type KeycloakEvent");
+            if (!(value is KeycloakLoginEvent)) {
+                throw new Error("Data has to be of type KeycloakLoginEvent");
             }
-            var keycloakEvent:KeycloakEvent = KeycloakEvent(value);
+            var keycloakEvent:KeycloakLoginEvent = KeycloakLoginEvent(value);
             socialProviders = new ArrayCollection();
             if (keycloakEvent.socialProviders) {
                 for (var providerName:String in keycloakEvent.socialProviders) {
@@ -78,6 +78,7 @@
                 socialLoginCallback(event);
             }
         }
+
         ]]></fx:Script>
 
     <s:VGroup width="100%" height="100%" padding="10">

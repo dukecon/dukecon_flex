@@ -4,19 +4,18 @@
 package org.jboss.keycloak.flex.event {
 import flash.events.Event;
 
-public class KeycloakEvent extends Event {
+public class KeycloakLoginEvent extends Event {
 
     public static const SHOW_LOGIN_SCREEN:String = "showLoginScreen";
-    public static const SHOW_LOGIN_ERROR:String = "showLoginError";
 
     private var _socialProviders:Object;
     private var _feedbackMessage:String;
     private var _keycloakLoginCallback:Function;
     private var _socialLoginCallback:Function;
 
-    public function KeycloakEvent(type:String, socialProviders:Object, feedbackMessage:String,
-                                  keycloakLoginCallback:Function, socialLoginCallback:Function,
-                                  bubbles:Boolean = true, cancelable:Boolean = false) {
+    public function KeycloakLoginEvent(type:String, socialProviders:Object, feedbackMessage:String,
+                                       keycloakLoginCallback:Function, socialLoginCallback:Function,
+                                       bubbles:Boolean = true, cancelable:Boolean = false) {
         super(type, bubbles, cancelable);
         this._socialProviders = socialProviders;
         this._feedbackMessage = feedbackMessage;

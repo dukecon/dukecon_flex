@@ -104,8 +104,8 @@ public class ConferenceController extends EventDispatcher {
         dispatchEvent(new ConferenceDataChangedEvent(ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED));
     }
 
-    protected function onFault(foult:FaultEvent):void {
-        trace("Something went wrong:" + foult.message);
+    protected function onFault(fault:FaultEvent):void {
+        trace("Something went wrong:" + fault.message);
     }
 
     public function get talks():ArrayCollection {

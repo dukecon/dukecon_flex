@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 17.09.15.
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:comp="org.jboss.keycloak.flex.view.component.*"
+        creationComplete="onCreationComplete(event)">
+
+    <fx:Script>
+        <![CDATA[
+        import mx.events.FlexEvent;
+
+        import org.jboss.keycloak.flex.event.BrowserEvent;
+        import org.jboss.keycloak.flex.event.SocialLoginEvent;
+        import org.jboss.keycloak.flex.util.KeycloakToken;
+
+        [Bindable]
+        protected var url:String;
+
+        protected var socialLoginCallback:Function;
+
+        protected function onCreationComplete(event:FlexEvent):void {
+            browser.addEventListener(BrowserEvent.LOCATION_CHANGED, onBrowserLocationChanged)
+        }
+
+        [Bindable("locationChanged")]
+        override public function get data():Object {
+            return super.data;
+        }
+
+        override public function set data(value:Object):void {
+            super.data = value;
+
+            if (!(value is SocialLoginEvent)) {
+                throw new Error("Data has to be of type SocialLoginEvent");
+            }
+            var loginEvent:SocialLoginEvent = SocialLoginEvent(value);
+
+            url = loginEvent.url;
+
+            socialLoginCallback = loginEvent.socialLoginCallback;
+        }
+
+        override protected function commitProperties():void {
+            super.commitProperties();
+            // Only update this, if it has changed.
+            if (browser.url != url) {
+                browser.url = url;
+            }
+        }
+
+        protected function onBrowserLocationChanged(event:BrowserEvent):void {
+            // If we were directed back to the Keycloak server, we'll take over again.
+            if(KeycloakToken.getHostName(event.newUrl) == SocialLoginEvent(data).keycloakHost) {
+                browser.close();
+                navigator.popView();
+                socialLoginCallback(event.newUrl);
+            }
+        }
+
+        ]]>
+    </fx:Script>
+
+    <comp:StageViewWrapper id="browser" width="100%" height="100%"/>
+
+</s:View>

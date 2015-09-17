@@ -2,9 +2,12 @@
  * Created by christoferdutz on 15.09.15.
  */
 package org.jboss.keycloak.flex {
+import flash.events.ErrorEvent;
 import flash.events.Event;
 import flash.events.EventDispatcher;
 import flash.events.HTTPStatusEvent;
+import flash.events.IOErrorEvent;
+import flash.events.SecurityErrorEvent;
 import flash.net.URLLoader;
 import flash.net.URLRequest;
 import flash.net.URLRequestHeader;
@@ -17,8 +20,9 @@ import mx.utils.StringUtil;
 
 import org.jboss.keycloak.flex.adapter.DefaultKeycloakAdapter;
 import org.jboss.keycloak.flex.adapter.KeycloakAdapter;
-import org.jboss.keycloak.flex.event.KeycloakEvent;
+import org.jboss.keycloak.flex.event.KeycloakLoginEvent;
 import org.jboss.keycloak.flex.event.KeycloakLoginRequestEvent;
+import org.jboss.keycloak.flex.event.SocialLoginEvent;
 import org.jboss.keycloak.flex.event.SocialLoginRequestEvent;
 import org.jboss.keycloak.flex.util.CookieStorage;
 import org.jboss.keycloak.flex.util.KeycloakToken;
@@ -27,8 +31,9 @@ public class KeycloakRestService extends EventDispatcher {
 
     protected static const STATE_CALL_REST_SERVICE:int = 10;
     protected static const STATE_CONTACT_KEYCLOAK_SERVER:int = 20;
-    protected static const STATE_LOGIN_AT_REST_SERVICE:int = 30;
-    protected static const STATE_CALL_REST_SERVICE_AFTER_LOGIN:int = 40;
+    protected static const STATE_LOGIN_USING_SOCIAL_PROVIDER:int = 30;
+    protected static const STATE_LOGIN_AT_REST_SERVICE:int = 40;
+    protected static const STATE_CALL_REST_SERVICE_AFTER_LOGIN:int = 50;
 
     public function KeycloakRestService() {
         super();
@@ -79,11 +84,12 @@ public class KeycloakRestService extends EventDispatcher {
                 {
                     // A login page was returned.
                     if (token.status == 200) {
+                        token.keycloakHost = KeycloakToken.getHostName(token.currentUrl);
                         var response:XML = keycloakAdapter.parseResponse(loader.data);
                         var manualLoginUrl:String = keycloakAdapter.getFormLoginUrlXPath(response);
                         var socialProviders:Object = keycloakAdapter.getSocialProviders(response);
                         var feedbackMessage:String = keycloakAdapter.getFeedbackMessage(response);
-                        var keycloakEvent:KeycloakEvent = new KeycloakEvent(KeycloakEvent.SHOW_LOGIN_SCREEN,
+                        var keycloakEvent:KeycloakLoginEvent = new KeycloakLoginEvent(KeycloakLoginEvent.SHOW_LOGIN_SCREEN,
                                 socialProviders,
                                 feedbackMessage,
                                 function (event:KeycloakLoginRequestEvent):void {
@@ -98,8 +104,17 @@ public class KeycloakRestService extends EventDispatcher {
                                     loader.load(request);
                                 },
                                 function (event:SocialLoginRequestEvent):void {
-                                    // TODO: Implement this ...
-                                    trace("Got social login " + event);
+                                    state = STATE_LOGIN_USING_SOCIAL_PROVIDER;
+                                    // If this is a relative url, we have to add the protocol and host part
+                                    // of the currently active page.
+                                    if (event.providerUrl.charAt(0) == '/') {
+                                        var currentHost:String = token.currentUrl.substr(0, token.currentUrl.indexOf("/", token.currentUrl.indexOf("//") + 2));
+                                        token.currentUrl = currentHost + event.providerUrl;
+                                    } else {
+                                        token.currentUrl = event.providerUrl;
+                                    }
+                                    request = createUrlRequest(token, URLRequestMethod.GET);
+                                    loader.load(request);
                                 });
                         token.dispatchEvent(keycloakEvent);
                     }
@@ -114,6 +129,23 @@ public class KeycloakRestService extends EventDispatcher {
 
                     else {
                         trace("In State: STATE_CONTACT_KEYCLOAK_SERVER got return code: " + token.status);
+                    }
+                    break;
+                }
+                case STATE_LOGIN_USING_SOCIAL_PROVIDER:
+                {
+                    if ((token.status == 302) || (token.status == 307)) {
+                        token.dispatchEvent(new SocialLoginEvent(SocialLoginEvent.SHOW_SOCIAL_LOGIN_SCREEN,
+                                token.keycloakHost, token.redirectUrl, function (redirectUrl:String):void {
+                                    state = STATE_CONTACT_KEYCLOAK_SERVER;
+                                    token.currentUrl = redirectUrl;
+                                    request = createUrlRequest(token, URLRequestMethod.GET);
+                                    loader.load(request);
+                                }));
+                    }
+
+                    else {
+                        trace("In State: STATE_LOGIN_USING_SOCIAL_PROVIDER got return code: " + token.status);
                     }
                     break;
                 }
@@ -150,6 +182,15 @@ public class KeycloakRestService extends EventDispatcher {
                     break;
                 }
             }
+        });
+        loader.addEventListener(IOErrorEvent.IO_ERROR, function (event:IOErrorEvent):void {
+            trace(event);
+        });
+        loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, function (event:SecurityErrorEvent):void {
+            trace(event);
+        });
+        loader.addEventListener(ErrorEvent.ERROR, function (event:ErrorEvent):void {
+            trace(event);
         });
         loader.load(request);
 
@@ -188,7 +229,7 @@ public class KeycloakRestService extends EventDispatcher {
                 }
             }
             // The header was a redirect ... so we have to save that.
-            else if ((header.name == "Location") && (event.status == 302)) {
+            else if ((header.name == "Location") && ((event.status == 302) || (event.status == 307))) {
                 token.redirectUrl = header.value;
             }
         }

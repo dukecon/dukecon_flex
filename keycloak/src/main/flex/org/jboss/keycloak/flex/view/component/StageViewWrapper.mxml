@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 17.09.15.
+-->
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark"
+         creationComplete="onCreationComplete(event)" resize="onResize(event)">
+
+    <fx:Metadata>
+        [Event(name="locationChanged", type="org.jboss.keycloak.flex.event.BrowserEvent")]
+    </fx:Metadata>
+
+    <fx:Script>
+        <![CDATA[
+        import mx.events.FlexEvent;
+        import mx.events.ResizeEvent;
+
+        import org.jboss.keycloak.flex.event.BrowserEvent;
+
+        private var currentUrl:String;
+        private var stageWebView:StageWebView;
+
+        [Bindable("locationChanged")]
+        public function get url():String {
+            return stageWebView ? stageWebView.location : null;
+        }
+
+        public function set url(url:String):void {
+            if (currentUrl == url) {
+                return;
+            }
+
+            if (stageWebView) {
+                stageWebView.loadURL(url);
+            } else {
+                currentUrl = url;
+            }
+        }
+
+        public function close():void {
+            stageWebView.stage = null;
+            stageWebView.viewPort = null;
+            stageWebView.dispose();
+            stageWebView = null;
+        }
+
+        protected function onCreationComplete(event:FlexEvent):void {
+            stageWebView = new StageWebView();
+            stageWebView.stage = stage;
+            var viewPort:Rectangle = new Rectangle(0, 0, width, height);
+            stageWebView.viewPort = viewPort;
+            stageWebView.addEventListener(LocationChangeEvent.LOCATION_CHANGING, onBrowserLocationChanging);
+            if (currentUrl) {
+                stageWebView.loadURL(currentUrl);
+                currentUrl = null;
+            }
+        }
+
+        protected function onResize(event:ResizeEvent):void {
+            if (stageWebView) {
+                var viewPort:Rectangle = new Rectangle(0, 0, width, height);
+                stageWebView.viewPort = viewPort;
+            }
+        }
+
+        protected function onBrowserLocationChanging(event:LocationChangeEvent):void {
+            event.preventDefault();
+
+            var oldUrl:String = currentUrl;
+            currentUrl = event.location;
+
+            // Prevent the browser from following the url.
+            if(currentUrl.indexOf("http://keycloak.dukecon.org") == 0) {
+
+            } else {
+                stageWebView.loadURL(currentUrl);
+            }
+
+            dispatchEvent(new BrowserEvent(BrowserEvent.LOCATION_CHANGED, oldUrl, currentUrl));
+        }
+
+        ]]>
+    </fx:Script>
+
+</s:Group>

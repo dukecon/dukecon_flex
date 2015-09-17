@@ -19,9 +19,7 @@ import org.dukecon.events.UserPreferenceDataChangedEvent;
 import org.dukecon.model.Talk;
 import org.dukecon.model.UserPreference;
 import org.dukecon.model.UserPreferenceBase;
-import org.jboss.keycloak.flex.KeycloakRestService;
-import org.jboss.keycloak.flex.event.KeycloakEvent;
-import org.jboss.keycloak.flex.view.KeycloakLoginView;
+import org.jboss.keycloak.flex.MobileKeycloakRestService;
 
 import spark.components.ViewNavigator;
 
@@ -30,7 +28,7 @@ import spark.components.ViewNavigator;
 public class UserPreferenceController extends EventDispatcher {
 
     private var cookieStores:Object;
-    private var getService:KeycloakRestService;
+    private var getService:MobileKeycloakRestService;
 //    private var addService:HTTPService;
 //    private var removeService:HTTPService;
 
@@ -48,7 +46,7 @@ public class UserPreferenceController extends EventDispatcher {
 
     [Init]
     public function init():void {
-        getService = new KeycloakRestService();
+        getService = new MobileKeycloakRestService();
 
         /*        addService = new HTTPService();
          addService.contentType = "application/json";
@@ -78,11 +76,8 @@ public class UserPreferenceController extends EventDispatcher {
     }
 
     public function readUserPreferences(navigator:ViewNavigator):void {
-        var token:AsyncToken = getService.send(baseUrl + "/rest/preferences", HTTPRequestMessage.GET_METHOD,
+        var token:AsyncToken = getService.send(navigator, baseUrl + "/rest/preferences", HTTPRequestMessage.GET_METHOD,
                 cookieStores);
-        token.addEventListener(KeycloakEvent.SHOW_LOGIN_SCREEN, function (event:KeycloakEvent):void {
-            navigator.pushView(KeycloakLoginView, event);
-        });
         token.addEventListener(ResultEvent.RESULT, function (event:ResultEvent):void {
             var result:Object = event.result;
 

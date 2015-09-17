@@ -11,7 +11,8 @@ public class SocialLoginRequestEvent extends Event {
     private var _providerName:String;
     private var _providerUrl:String;
 
-    public function SocialLoginRequestEvent(type:String, providerName:String, providerUrl:String, bubbles:Boolean = true, cancelable:Boolean = false) {
+    public function SocialLoginRequestEvent(type:String, providerName:String, providerUrl:String,
+                                            bubbles:Boolean = true, cancelable:Boolean = false) {
         super(type, bubbles, cancelable);
         this._providerName = providerName;
         this._providerUrl = providerUrl;

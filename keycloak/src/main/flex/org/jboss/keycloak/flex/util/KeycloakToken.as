@@ -6,28 +6,29 @@ import mx.rpc.AsyncToken;
 
 public class KeycloakToken extends AsyncToken {
 
-    private var cookieStores:Object;
+    private var _cookieStores:Object;
     private var _contentType:String = null;
     private var _status:int = -1;
     private var _currentUrl:String = null;
     private var _redirectUrl:String = null;
+    private var _keycloakHost:String = null;
 
     public function KeycloakToken(cookieStores:Object = null) {
         super();
         if(cookieStores) {
-            this.cookieStores = cookieStores;
+            this._cookieStores = cookieStores;
         } else {
-            this.cookieStores = {};
+            this._cookieStores = {};
         }
     }
 
     public function getCookieStorageForUrl(url:String):CookieStorage {
         var host:String = getHostName(url);
 
-        if(!cookieStores.hasOwnProperty(host)) {
-            cookieStores[host] = new CookieStorage();
+        if(!_cookieStores.hasOwnProperty(host)) {
+            _cookieStores[host] = new CookieStorage();
         }
-        return cookieStores[host];
+        return _cookieStores[host];
     }
 
     public function get contentType():String {
@@ -62,7 +63,15 @@ public class KeycloakToken extends AsyncToken {
         _redirectUrl = value;
     }
 
-    protected static function getHostName(url:String):String {
+    public function get keycloakHost():String {
+        return _keycloakHost;
+    }
+
+    public function set keycloakHost(value:String):void {
+        _keycloakHost = value;
+    }
+
+    public static function getHostName(url:String):String {
         var host:String = url.substring(url.indexOf("//") + 2);
         if(host.indexOf(":") != -1) {
             return host.substring(0, host.indexOf(":"));
