@@ -7,7 +7,6 @@ import mx.rpc.events.ResultEvent;
 
 import org.jboss.keycloak.flex.event.KeycloakLoginEvent;
 import org.jboss.keycloak.flex.event.SocialLoginEvent;
-import org.jboss.keycloak.flex.event.SocialLoginRequestEvent;
 import org.jboss.keycloak.flex.view.KeycloakLoginView;
 import org.jboss.keycloak.flex.view.SocialLoginView;
 

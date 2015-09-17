@@ -48,6 +48,7 @@
             stageWebView.stage = stage;
             var viewPort:Rectangle = new Rectangle(0, 0, width, height);
             stageWebView.viewPort = viewPort;
+            stageWebView.addEventListener(LocationChangeEvent.LOCATION_CHANGE, onBrowserLocationChange);
             stageWebView.addEventListener(LocationChangeEvent.LOCATION_CHANGING, onBrowserLocationChanging);
             if (currentUrl) {
                 stageWebView.loadURL(currentUrl);
@@ -62,22 +63,21 @@
             }
         }
 
-        protected function onBrowserLocationChanging(event:LocationChangeEvent):void {
-            event.preventDefault();
-
-            var oldUrl:String = currentUrl;
-            currentUrl = event.location;
-
-            // Prevent the browser from following the url.
-            if(currentUrl.indexOf("http://keycloak.dukecon.org") == 0) {
-
-            } else {
-                stageWebView.loadURL(currentUrl);
+        protected function onBrowserLocationChange(event:LocationChangeEvent):void {
+            trace(event);
+            if(event.location.indexOf("http://keycloak.dukecon.org") == 0) {
+                event.preventDefault();
+                dispatchEvent(new BrowserEvent(BrowserEvent.LOCATION_CHANGED, null, event.location));
             }
-
-            dispatchEvent(new BrowserEvent(BrowserEvent.LOCATION_CHANGED, oldUrl, currentUrl));
         }
 
+        protected function onBrowserLocationChanging(event:LocationChangeEvent):void {
+            // Prevent the browser from following the url.
+            if (event.location.indexOf("http://keycloak.dukecon.org") == 0) {
+                event.preventDefault();
+                dispatchEvent(new BrowserEvent(BrowserEvent.LOCATION_CHANGED, null, event.location));
+            }
+        }
         ]]>
     </fx:Script>
 
