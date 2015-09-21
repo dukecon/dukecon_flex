@@ -2,10 +2,15 @@
  * Created by christoferdutz on 15.09.15.
  */
 package org.jboss.keycloak.flex.util {
+import flash.net.URLLoader;
+
 import mx.rpc.AsyncToken;
 
 public class KeycloakToken extends AsyncToken {
 
+    private var _state:int = -1;
+    private var _loader:URLLoader = null;
+    private var _initialMethod:String = null;
     private var _cookieStores:Object;
     private var _contentType:String = null;
     private var _status:int = -1;
@@ -29,6 +34,30 @@ public class KeycloakToken extends AsyncToken {
             _cookieStores[host] = new CookieStorage();
         }
         return _cookieStores[host];
+    }
+
+    public function get state():int {
+        return _state;
+    }
+
+    public function set state(value:int):void {
+        _state = value;
+    }
+
+    public function get loader():URLLoader {
+        return _loader;
+    }
+
+    public function set loader(value:URLLoader):void {
+        _loader = value;
+    }
+
+    public function get initialMethod():String {
+        return _initialMethod;
+    }
+
+    public function set initialMethod(value:String):void {
+        _initialMethod = value;
     }
 
     public function get contentType():String {

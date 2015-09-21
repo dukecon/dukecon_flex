@@ -76,7 +76,8 @@ public class UserPreferenceController extends EventDispatcher {
     }
 
     public function readUserPreferences(navigator:ViewNavigator):void {
-        var token:AsyncToken = getService.send(navigator, baseUrl + "/rest/preferences", HTTPRequestMessage.GET_METHOD,
+        getService.navigator = navigator;
+        var token:AsyncToken = getService.send(baseUrl + "/rest/preferences", HTTPRequestMessage.GET_METHOD,
                 cookieStores);
         token.addEventListener(ResultEvent.RESULT, function (event:ResultEvent):void {
             var result:Object = event.result;

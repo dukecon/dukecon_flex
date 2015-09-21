@@ -84,7 +84,8 @@ public class ConferenceController extends EventDispatcher {
     }
 
     protected function onResult(event:ResultEvent):void {
-        var result:Object = JSON.parse(String(event.result));
+        var resultData:String = event.result.toString();
+        var result:Object = JSON.parse(resultData);
         TalkBase.clearTable(conn);
         SpeakerBase.clearTable(conn);
         var persistedSpeakers:Array = [];

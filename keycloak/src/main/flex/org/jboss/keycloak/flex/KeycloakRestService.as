@@ -35,153 +35,29 @@ public class KeycloakRestService extends EventDispatcher {
     protected static const STATE_LOGIN_AT_REST_SERVICE:int = 40;
     protected static const STATE_CALL_REST_SERVICE_AFTER_LOGIN:int = 50;
 
-    public function KeycloakRestService() {
+    protected var keycloakAdapter:KeycloakAdapter;
+
+    public function KeycloakRestService(keycloakAdapter:KeycloakAdapter = null) {
         super();
+        if(keycloakAdapter) {
+            this.keycloakAdapter = keycloakAdapter;
+        } else {
+            this.keycloakAdapter = new DefaultKeycloakAdapter();
+        }
     }
 
     public function send(url:String, method:String, cookieStores:Object = null):AsyncToken {
         var token:KeycloakToken = new KeycloakToken(cookieStores);
-
-        var keycloakAdapter:KeycloakAdapter = new DefaultKeycloakAdapter();
-
-        var state:int = STATE_CALL_REST_SERVICE;
+        token.state = STATE_CALL_REST_SERVICE;
         token.currentUrl = url;
-        var request:URLRequest = createUrlRequest(token, method);
+        token.initialMethod = method;
 
         var loader:URLLoader = new URLLoader();
-        loader.addEventListener(HTTPStatusEvent.HTTP_RESPONSE_STATUS, function (e:HTTPStatusEvent):void {
-            processHTTPStatusEvent(token, e);
+        loader.addEventListener(HTTPStatusEvent.HTTP_RESPONSE_STATUS, function (event:HTTPStatusEvent):void {
+            onHTTPStatusEvent(token, event);
         });
         loader.addEventListener(Event.COMPLETE, function (event:Event):void {
-            switch (state) {
-                case STATE_CALL_REST_SERVICE:
-                {
-                    // The requested response is returned immediately.
-                    if (token.status == 200) {
-                        if (token.contentType == "application/json") {
-                            token.dispatchEvent(ResultEvent.createEvent(JSON.parse(loader.data), token));
-                        }
-
-                        else {
-                            trace("In State: STATE_CALL_REST_SERVICE got content type: " + token.contentType);
-                        }
-                    }
-                    // We got a redirect (assuming we are redirected to the Keycloak server.
-
-                    else if (token.status == 302) {
-                        state = STATE_CONTACT_KEYCLOAK_SERVER;
-                        token.currentUrl = token.redirectUrl;
-                        request = createUrlRequest(token, URLRequestMethod.GET);
-                        loader.load(request);
-                    }
-
-                    else {
-                        trace("In State: STATE_CALL_REST_SERVICE got return code: " + token.status);
-                    }
-                    break;
-                }
-                case STATE_CONTACT_KEYCLOAK_SERVER:
-                {
-                    // A login page was returned.
-                    if (token.status == 200) {
-                        token.keycloakHost = KeycloakToken.getHostName(token.currentUrl);
-                        var response:XML = keycloakAdapter.parseResponse(loader.data);
-                        var manualLoginUrl:String = keycloakAdapter.getFormLoginUrlXPath(response);
-                        var socialProviders:Object = keycloakAdapter.getSocialProviders(response);
-                        var feedbackMessage:String = keycloakAdapter.getFeedbackMessage(response);
-                        var keycloakEvent:KeycloakLoginEvent = new KeycloakLoginEvent(KeycloakLoginEvent.SHOW_LOGIN_SCREEN,
-                                socialProviders,
-                                feedbackMessage,
-                                function (event:KeycloakLoginRequestEvent):void {
-                                    token.currentUrl = manualLoginUrl;
-                                    request = createUrlRequest(token, URLRequestMethod.POST);
-                                    var formData:URLVariables = new URLVariables();
-                                    formData.username = event.username;
-                                    formData.password = event.password;
-                                    formData.rememberMe = "on";
-                                    request.contentType = "application/x-www-form-urlencoded";
-                                    request.data = formData;
-                                    loader.load(request);
-                                },
-                                function (event:SocialLoginRequestEvent):void {
-                                    state = STATE_LOGIN_USING_SOCIAL_PROVIDER;
-                                    // If this is a relative url, we have to add the protocol and host part
-                                    // of the currently active page.
-                                    if (event.providerUrl.charAt(0) == '/') {
-                                        var currentHost:String = token.currentUrl.substr(0, token.currentUrl.indexOf("/", token.currentUrl.indexOf("//") + 2));
-                                        token.currentUrl = currentHost + event.providerUrl;
-                                    } else {
-                                        token.currentUrl = event.providerUrl;
-                                    }
-                                    request = createUrlRequest(token, URLRequestMethod.GET);
-                                    loader.load(request);
-                                });
-                        token.dispatchEvent(keycloakEvent);
-                    }
-                    // The redirect probably takes us back to login at the rest service as
-                    // a valid Keycloak session seems to be active.
-                    else if (token.status == 302) {
-                        state = STATE_LOGIN_AT_REST_SERVICE;
-                        token.currentUrl = token.redirectUrl;
-                        request = createUrlRequest(token, URLRequestMethod.GET);
-                        loader.load(request);
-                    }
-
-                    else {
-                        trace("In State: STATE_CONTACT_KEYCLOAK_SERVER got return code: " + token.status);
-                    }
-                    break;
-                }
-                case STATE_LOGIN_USING_SOCIAL_PROVIDER:
-                {
-                    if ((token.status == 302) || (token.status == 307)) {
-                        token.dispatchEvent(new SocialLoginEvent(SocialLoginEvent.SHOW_SOCIAL_LOGIN_SCREEN,
-                                token.keycloakHost, token.redirectUrl, function (redirectUrl:String):void {
-                                    state = STATE_CONTACT_KEYCLOAK_SERVER;
-                                    token.currentUrl = redirectUrl;
-                                    request = createUrlRequest(token, URLRequestMethod.GET);
-                                    loader.load(request);
-                                }));
-                    }
-
-                    else {
-                        trace("In State: STATE_LOGIN_USING_SOCIAL_PROVIDER got return code: " + token.status);
-                    }
-                    break;
-                }
-                case STATE_LOGIN_AT_REST_SERVICE:
-                {
-                    if (token.status == 302) {
-                        state = STATE_CALL_REST_SERVICE_AFTER_LOGIN;
-                        token.currentUrl = token.redirectUrl;
-                        request = createUrlRequest(token, method);
-                        loader.load(request);
-                    }
-
-                    else {
-                        trace("In State: STATE_LOGIN_AT_REST_SERVICE got return code: " + token.status);
-                    }
-                    break;
-                }
-                case STATE_CALL_REST_SERVICE_AFTER_LOGIN:
-                {
-                    // The request seems to have succeeded, so we can interpret the response.
-                    if (token.status == 200) {
-                        if (token.contentType == "application/json") {
-                            token.dispatchEvent(ResultEvent.createEvent(JSON.parse(loader.data), token));
-                        }
-
-                        else {
-                            trace("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got content type: " + token.contentType);
-                        }
-                    }
-
-                    else {
-                        trace("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got return code: " + token.status);
-                    }
-                    break;
-                }
-            }
+            onHTTPCompleteEvent(token, event);
         });
         loader.addEventListener(IOErrorEvent.IO_ERROR, function (event:IOErrorEvent):void {
             trace(event);
@@ -192,12 +68,15 @@ public class KeycloakRestService extends EventDispatcher {
         loader.addEventListener(ErrorEvent.ERROR, function (event:ErrorEvent):void {
             trace(event);
         });
+        token.loader = loader;
+
+        var request:URLRequest = createUrlRequest(token, method);
         loader.load(request);
 
         return token;
     }
 
-    protected static function processHTTPStatusEvent(token:KeycloakToken, event:HTTPStatusEvent):void {
+    protected static function onHTTPStatusEvent(token:KeycloakToken, event:HTTPStatusEvent):void {
         // Save the status so we can access this in the complete event-handler.
         token.status = event.status;
 
@@ -235,6 +114,147 @@ public class KeycloakRestService extends EventDispatcher {
         }
     }
 
+    protected function onHTTPCompleteEvent(token:KeycloakToken, event:Event):void {
+        var request:URLRequest;
+        switch (token.state) {
+            case STATE_CALL_REST_SERVICE:
+            {
+                // The requested response is returned immediately.
+                if (token.status == 200) {
+                    if (token.contentType == "application/json") {
+                        token.dispatchEvent(ResultEvent.createEvent(JSON.parse(token.loader.data), token));
+                    }
+
+                    else {
+                        trace("In State: STATE_CALL_REST_SERVICE got content type: " + token.contentType);
+                    }
+                }
+                // We got a redirect (assuming we are redirected to the Keycloak server.
+
+                else if (token.status == 302) {
+                    token.state = STATE_CONTACT_KEYCLOAK_SERVER;
+                    token.currentUrl = token.redirectUrl;
+                    request = createUrlRequest(token, URLRequestMethod.GET);
+                    token.loader.load(request);
+                }
+
+                else {
+                    trace("In State: STATE_CALL_REST_SERVICE got return code: " + token.status);
+                }
+                break;
+            }
+            case STATE_CONTACT_KEYCLOAK_SERVER:
+            {
+                // A login page was returned.
+                if (token.status == 200) {
+                    token.keycloakHost = KeycloakToken.getHostName(token.currentUrl);
+                    var response:XML = keycloakAdapter.parseResponse(token.loader.data);
+                    var manualLoginUrl:String = keycloakAdapter.getFormLoginUrlXPath(response);
+                    var socialProviders:Object = keycloakAdapter.getSocialProviders(response);
+                    var feedbackMessage:String = keycloakAdapter.getFeedbackMessage(response);
+                    var keycloakEvent:KeycloakLoginEvent = new KeycloakLoginEvent(KeycloakLoginEvent.SHOW_LOGIN_SCREEN,
+                            socialProviders,
+                            feedbackMessage,
+                            function (event:KeycloakLoginRequestEvent):void {
+                                token.currentUrl = manualLoginUrl;
+                                request = createUrlRequest(token, URLRequestMethod.POST);
+                                var formData:URLVariables = new URLVariables();
+                                formData.username = event.username;
+                                formData.password = event.password;
+                                formData.rememberMe = "on";
+                                request.contentType = "application/x-www-form-urlencoded";
+                                request.data = formData;
+                                token.loader.load(request);
+                            },
+                            function (event:SocialLoginRequestEvent):void {
+                                token.state = STATE_LOGIN_USING_SOCIAL_PROVIDER;
+                                // If this is a relative url, we have to add the protocol and host part
+                                // of the currently active page.
+                                if (event.providerUrl.charAt(0) == '/') {
+                                    var currentHost:String = token.currentUrl.substr(0, token.currentUrl.indexOf("/", token.currentUrl.indexOf("//") + 2));
+                                    token.currentUrl = currentHost + event.providerUrl;
+                                } else {
+                                    token.currentUrl = event.providerUrl;
+                                }
+                                request = createUrlRequest(token, URLRequestMethod.GET);
+                                token.loader.load(request);
+                            });
+                    handleKeycloakLogin(keycloakEvent);
+                }
+                // The redirect probably takes us back to login at the rest service as
+                // a valid Keycloak session seems to be active.
+                else if (token.status == 302) {
+                    token.state = STATE_LOGIN_AT_REST_SERVICE;
+                    token.currentUrl = token.redirectUrl;
+                    request = createUrlRequest(token, URLRequestMethod.GET);
+                    token.loader.load(request);
+                }
+
+                else {
+                    trace("In State: STATE_CONTACT_KEYCLOAK_SERVER got return code: " + token.status);
+                }
+                break;
+            }
+            case STATE_LOGIN_USING_SOCIAL_PROVIDER:
+            {
+                if ((token.status == 302) || (token.status == 307)) {
+                    handleSocialLogin(new SocialLoginEvent(SocialLoginEvent.SHOW_SOCIAL_LOGIN_SCREEN,
+                            token.keycloakHost, token.redirectUrl, function (redirectUrl:String):void {
+                                token.state = STATE_CONTACT_KEYCLOAK_SERVER;
+                                token.currentUrl = redirectUrl;
+                                request = createUrlRequest(token, URLRequestMethod.GET);
+                                token.loader.load(request);
+                            }));
+                }
+
+                else {
+                    trace("In State: STATE_LOGIN_USING_SOCIAL_PROVIDER got return code: " + token.status);
+                }
+                break;
+            }
+            case STATE_LOGIN_AT_REST_SERVICE:
+            {
+                if (token.status == 302) {
+                    token.state = STATE_CALL_REST_SERVICE_AFTER_LOGIN;
+                    token.currentUrl = token.redirectUrl;
+                    request = createUrlRequest(token, token.initialMethod);
+                    token.loader.load(request);
+                }
+
+                else {
+                    trace("In State: STATE_LOGIN_AT_REST_SERVICE got return code: " + token.status);
+                }
+                break;
+            }
+            case STATE_CALL_REST_SERVICE_AFTER_LOGIN:
+            {
+                // The request seems to have succeeded, so we can interpret the response.
+                if (token.status == 200) {
+                    if (token.contentType == "application/json") {
+                        token.dispatchEvent(ResultEvent.createEvent(JSON.parse(token.loader.data), token));
+                    }
+
+                    else {
+                        trace("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got content type: " + token.contentType);
+                    }
+                }
+
+                else {
+                    trace("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got return code: " + token.status);
+                }
+                break;
+            }
+        }
+    }
+
+    protected function handleKeycloakLogin(event:KeycloakLoginEvent):void {
+        throw new Error("This method must be implemented in sub-type.");
+    }
+
+    protected function handleSocialLogin(event:SocialLoginEvent):void {
+        throw new Error("This method must be implemented in sub-type.");
+    }
+
     protected static function createUrlRequest(token:KeycloakToken, method:String):URLRequest {
         var request:URLRequest = new URLRequest(token.currentUrl);
         request.method = method;
@@ -264,6 +284,8 @@ public class KeycloakRestService extends EventDispatcher {
         }
         return request;
     }
+
+
 
 
 }
