@@ -29,6 +29,9 @@ public class MobileKeycloakRestService extends KeycloakRestService {
     }
 
     override protected function handleSocialLogin(event:SocialLoginEvent):void {
+        // Pop the keycloak view from the stack first.
+        _navigator.popView();
+        // Add the social login view.
         _navigator.pushView(SocialLoginView, event);
     }
 
