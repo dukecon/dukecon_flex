@@ -4,78 +4,62 @@
 package org.dukecon.controller {
 public class TrackController {
 
-    [Embed(source="/tracks/software-architecture-and-methods.svg")]
+    [Embed(source="/tracks/track_architecture.jpg")]
     [Bindable]
-    protected static var softwareArchitectureAndMethods:Class;
+    protected static var track_architecture:Class;
 
-    [Embed(source="/tracks/cloud-and-big-data.svg")]
+    [Embed(source="/tracks/track_enterprise-java-cloud.jpg")]
     [Bindable]
-    protected static var cloudAndBigData:Class;
+    protected static var track_enterprise_java_cloud:Class;
 
-    [Embed(source="/tracks/core-java.svg")]
+    [Embed(source="/tracks/track_frontend-mobile.jpg")]
     [Bindable]
-    protected static var coreJava:Class;
+    protected static var track_frontend_mobile:Class;
 
-    [Embed(source="/tracks/enterprise-java.svg")]
+    [Embed(source="/tracks/track_ide-tools.jpg")]
     [Bindable]
-    protected static var enterpriseJava:Class;
+    protected static var track_ide_tools:Class;
 
-    [Embed(source="/tracks/frontend.svg")]
+    [Embed(source="/tracks/track_internet-of-things.jpg")]
     [Bindable]
-    protected static var frontend:Class;
+    protected static var track_internet_of_things:Class;
 
-    [Embed(source="/tracks/internet-of-things.svg")]
+    [Embed(source="/tracks/track_jvm-languages.jpg")]
     [Bindable]
-    protected static var internetOfThings:Class;
+    protected static var track_jvm_languages:Class;
 
-    [Embed(source="/tracks/mobile.svg")]
+    [Embed(source="/tracks/track_microservices.jpg")]
     [Bindable]
-    protected static var mobile:Class;
+    protected static var track_microservices:Class;
 
-    [Embed(source="/tracks/security.svg")]
+    [Embed(source="/tracks/track_newcomer.jpg")]
     [Bindable]
-    protected static var secutiry:Class;
-
-    [Embed(source="/tracks/jvm-languages.svg")]
-    [Bindable]
-    protected static var jvmLanguages:Class;
-
-    [Embed(source="/tracks/ides-and-tools.svg")]
-    [Bindable]
-    protected static var idesAndTools:Class;
+    protected static var track_newcomer:Class;
 
     public function TrackController() {
     }
 
     public function getIconForTrack(trackName:String):Class {
         if (trackName) {
-            var trackCode:String = trackName.toLowerCase();
-            while (trackCode.indexOf(" ") != -1) {
-                trackCode = trackCode.replace(" ", "-");
+            switch (trackName) {
+                case "Core Java & JVM basierte Sprachen":
+                    return track_jvm_languages;
+                case "Container & Microservices":
+                    return track_microservices;
+                case "Architektur & Sicherheit":
+                    return track_architecture;
+                case "Internet der Dinge":
+                    return track_internet_of_things;
+                case "Newcomer":
+                    return track_newcomer;
+                case "IDEs & Tools":
+                    return track_ide_tools;
+                case "Enterprise Java & Cloud":
+                    return track_enterprise_java_cloud;
+                case "Frontend & Mobile":
+                    return track_frontend_mobile;
             }
-            switch (trackCode) {
-                case "software-architecture-and-methods":
-                    return softwareArchitectureAndMethods;
-                case "cloud-and-big-data":
-                    return cloudAndBigData;
-                case "core-java":
-                    return coreJava;
-                case "enterprise-java":
-                    return enterpriseJava;
-                case "frontend":
-                    return frontend;
-                case "internet-of-things":
-                    return internetOfThings;
-                case "mobile":
-                    return mobile;
-                case "security":
-                    return secutiry;
-                case "jvm-languages":
-                    return jvmLanguages;
-                case "ides-and-tools":
-                    return idesAndTools;
-            }
-            trace("Couldn't find icon for: " + trackCode);
+            trace("Couldn't find icon for: " + trackName);
         }
         return null;
     }
@@ -87,38 +71,16 @@ public class TrackController {
                 trackCode = trackCode.replace(" ", "-");
             }
             switch (trackCode) {
-                case "software-architecture-and-methods":
-                    return 0xc8f0fa;
-                case "cloud-and-big-data":
-                    return 0xffffff;
-                case "core-java":
-                    return 0x8c96dc;
-                case "enterprise-java":
-                    return 0xfafa78;
-                case "frontend":
-                    return 0x9acd32;
-                case "internet-of-things":
-                    return 0x666666;
-                case "mobile":
-                    return 0xff66cc;
-                case "security":
-                    return 0xfe4401;
-                case "jvm-languages":
-                    return 0x166afa;
-                case "ides-and-tools":
-                    return 0xd2aabc;
+                case "Core Java & JVM basierte Sprachen":
+                case "Container & Microservices":
+                case "Architektur & Sicherheit":
+                case "Internet der Dinge":
+                case "Newcomer":
+                case "IDEs & Tools":
+                case "Enterprise Java & Cloud":
+                case "Frontend & Mobile":
             }
             trace("Couldn't find color for: " + trackCode);
-        }
-        return null;
-    }
-
-    public function getDayLabel(day:String):String {
-        switch (day) {
-            case "2015-03-24":
-                return "Dienstag";
-            case "2015-03-25":
-                return "Mittwoch";
         }
         return null;
     }

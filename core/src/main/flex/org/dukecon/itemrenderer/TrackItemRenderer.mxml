@@ -46,16 +46,7 @@
         </s:stroke>
     </s:Rect>
 
-    <s:Rect top="8" left="8" width="120" bottom="8">
-        <s:fill>
-            <s:SolidColor color="white"/>
-        </s:fill>
-        <s:stroke>
-            <s:SolidColorStroke color="black"/>
-        </s:stroke>
-    </s:Rect>
-
-    <u:VectorImage source="{trackIcon}" top="10" left="10" width="110" bottom="10"/>
+    <u:VectorImage source="{trackIcon}" top="8" left="8" width="120" bottom="8"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
         <s:Label text="{String(data)}" styleName="listTitle"/>

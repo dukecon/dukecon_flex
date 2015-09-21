@@ -89,6 +89,8 @@ public class ConferenceController extends EventDispatcher {
         TalkBase.clearTable(conn);
         SpeakerBase.clearTable(conn);
         var persistedSpeakers:Array = [];
+        var persistedTracks:Array = [];
+
         for each(var obj:Object in result as Array) {
             var talk:Talk = new Talk(obj);
             for each(var speakerObj:Object in talk.speakers) {
@@ -100,8 +102,12 @@ public class ConferenceController extends EventDispatcher {
                     }
                 }
             }
+            if(persistedTracks.indexOf(talk.track) == -1) {
+                persistedTracks.push(talk.track);
+            }
             talk.persist(conn);
         }
+        trace("Tracks: " + persistedTracks.join(", "));
         dispatchEvent(new ConferenceDataChangedEvent(ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED));
     }
 

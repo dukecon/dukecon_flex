@@ -5,7 +5,6 @@
 <s:GridItemRenderer
         xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
-        xmlns:u="org.dukecon.utils.*"
         xmlns:parsley="http://www.spicefactory.org/parsley">
 
     <fx:Metadata>
@@ -14,10 +13,15 @@
 
     <fx:Declarations>
         <parsley:Configure/>
+        <s:DateTimeFormatter id="timeFormatter"
+                             locale="{settingsController.selectedLanguage}"
+                             dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>
     </fx:Declarations>
 
     <fx:Script>
     <![CDATA[
+        import org.dukecon.controller.LocationController;
+        import org.dukecon.controller.SettingsController;
         import org.dukecon.controller.TrackController;
         import org.dukecon.controller.UserPreferenceController;
         import org.dukecon.events.ListEvent;
@@ -38,19 +42,58 @@
         public var trackController:TrackController;
 
         [Inject]
+        public var locationController:LocationController;
+
+        [Inject]
         public var userPreferenceController:UserPreferenceController;
+
+        [Inject]
+        [Bindable]
+        public var settingsController:SettingsController;
+
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
+
+        override public function set data(value:Object):void {
+            super.data = value;
+            talk = Talk(data[column.dataField]);
+        }
 
         override protected function commitProperties():void {
             super.commitProperties();
 
-            talk = Talk(data[column.dataField]);
             if (talk) {
-                icon.source = trackController.getIconForTrack(talk.track);
-                icon.setActualSize(60, 60);
-                languageImage.visible = talk.language == "english";
+                var speakers:String = "";
+                for each(var speaker:Object in talk.speakers) {
+                    if (speakers != "") {
+                        speakers += ", ";
+                    }
+                    speakers += speaker.name;
+                    if (speaker.company) {
+                        speakers += " (" + speaker.company + ")";
+                    }
+                }
+                speakersLabel.text = speakers;
+                timeIcon.visible = true;
+                timeLabel.text = timeFormatter.format(talk.start) + " - " + timeFormatter.format(talk.end);
+                locationIcon.source = locationController.getIconForLocation(talk.location);
+                locationLabel.text = talk.location;
+                trackIcon.source = trackController.getIconForTrack(talk.track);
+                trackLabel.text = talk.track;
+                languageIcon.visible = talk.language == "Englisch";
+                languageLabel.text = talk.language;
             } else {
-                icon.source = null;
-                languageImage.visible = false;
+                speakersLabel.text = "";
+                timeIcon.visible = false;
+                timeLabel.text = "";
+                locationIcon.source = null;
+                locationLabel.text = "";
+                trackIcon.source = null;
+                trackLabel.text = "";
+                languageIcon.visible = false;
+                languageLabel.text = "";
             }
 
             updateSelectionIcon();
@@ -88,35 +131,29 @@
         </s:stroke>
     </s:Rect>
 
-    <s:Rect top="4" left="4" right="4" height="120" radiusX="10" radiusY="10" visible="{talk != null}">
-        <s:fill>
-            <s:SolidColor color="0x1AA3B1"/>
-        </s:fill>
-    </s:Rect>
-
-    <s:Rect top="20" right="100" width="64" height="64" visible="{talk != null}">
-        <s:fill>
-            <s:SolidColor color="0xffffff"/>
-        </s:fill>
-        <s:stroke>
-            <s:SolidColorStroke color="black"/>
-        </s:stroke>
-    </s:Rect>
-
-    <u:VectorImage id="icon" top="22" right="100" width="64" height="64"/>
+    <s:VGroup top="20" left="20" right="20" bottom="20" gap="20" click="onMoreClicked(event)">
+        <s:Label text="{talk.title}" width="480" styleName="talkTitle"/>
+        <s:Label id="speakersLabel" width="480" styleName="talkSpeakers"/>
+        <s:VGroup width="100%" gap="10">
+            <s:HGroup width="100%" gap="20" verticalAlign="middle">
+                <s:Image id="timeIcon" source="@Embed('/clock.png')" width="32" height="32"/>
+                <s:Label id="timeLabel" styleName="talkTime"/>
+            </s:HGroup>
+            <s:HGroup width="100%" gap="20" verticalAlign="middle">
+                <s:Image id="locationIcon" width="32" height="32"/>
+                <s:Label id="locationLabel" styleName="talkLocation"/>
+            </s:HGroup>
+            <s:HGroup width="100%" gap="20" verticalAlign="middle">
+                <s:Image id="trackIcon" width="32" height="32"/>
+                <s:Label id="trackLabel" styleName="talkTrack"/>
+            </s:HGroup>
+            <s:HGroup width="100%" gap="20" verticalAlign="middle">
+                <s:Image id="languageIcon" source="@Embed('/english-small.png')" width="32" height="32"/>
+                <s:Label id="languageLabel" styleName="talkLanguage"/>
+            </s:HGroup>
+        </s:VGroup>
+    </s:VGroup>
 
     <s:Image id="favoriteImage" top="20" right="20" click="toggleSelection(event)"/>
-
-    <s:Label text="{talk.title}" styleName="title" top="20" left="20" width="420" height="100"/>
-
-    <s:Label text="{talk.abstractText}" styleName="content" top="130" left="20" width="{column.width - 40}"
-             height="166" visible="{talk != null}"/>
-
-    <s:Label text="{resourceManager.getString('dukecon', 'talks.more')}" styleName="link" bottom="10" left="20"
-             visible="{talk != null}"
-             click="onMoreClicked(event)"/>
-
-    <s:Image id="languageImage" bottom="10" right="20" width="48" height="36" source="@Embed('/english-small.png')"
-             visible="false"/>
 
 </s:GridItemRenderer>
