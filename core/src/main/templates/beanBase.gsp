@@ -74,8 +74,26 @@ package ${jClass.as3Type.packageName} {
                 } else {
                     this.${jProperty.name} = isoToDate(obj.${jProperty.name});
                 }<%
+                } else if("mx.collections.ListCollectionView".equals(jProperty.as3Type.qualifiedName)) { %>
+                if(obj.${jProperty.name}) {
+                    this.${jProperty.name} = [];
+                    for each(var ${jProperty.name}Obj:Object in obj.${jProperty.name}) {
+                        var ${jProperty.name}El:* = ${jProperty.name}Obj;
+                        this.${jProperty.name}.push(${jProperty.name}El);
+                    }
+                }<%
+                } else if("org.granite.collections.IMap".equals(jProperty.as3Type.qualifiedName)) { %>
+                if(obj.${jProperty.name}) {
+                    this.${jProperty.name} = {};
+                    for each(var ${jProperty.name}Obj:Object in obj.${jProperty.name}) {
+                        var ${jProperty.name}El:* = ${jProperty.name}Obj;
+                        this.${jProperty.name}[${jProperty.name}Obj] = ${jProperty.name}Obj;
+                    }
+                }<%
                 } else { %>
-                this.${jProperty.name} = obj.${jProperty.name};<%
+                if(obj.${jProperty.name}) {
+                    this.${jProperty.name} = new ${jProperty.as3Type.name}(obj.${jProperty.name});
+                }<%
                 }
             }%>
             }

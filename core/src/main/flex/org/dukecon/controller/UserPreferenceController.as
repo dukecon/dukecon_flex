@@ -17,8 +17,8 @@ import mx.rpc.events.ResultEvent;
 
 import org.dukecon.events.UserPreferenceDataChangedEvent;
 import org.dukecon.model.Talk;
-import org.dukecon.model.UserPreference;
-import org.dukecon.model.UserPreferenceBase;
+import org.dukecon.model.user.UserPreference;
+import org.dukecon.model.user.UserPreferenceBase;
 import org.jboss.keycloak.flex.MobileKeycloakRestService;
 
 import spark.components.ViewNavigator;

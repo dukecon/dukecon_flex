@@ -51,7 +51,7 @@
                 for each(var talk:Talk in talksForDay) {
                     var start:String = timeFormatter.format(talk.start);
                     var end:String = timeFormatter.format(talk.end);
-                    key = talk.location + "-" + start + " - " + end;
+                    key = talk.room.id + "-" + start + " - " + end;
                     talkIndex[key] = talk;
                 }
                 var timeSlots:ArrayCollection = conferenceController.getTimeSlotsForDay(String(data));

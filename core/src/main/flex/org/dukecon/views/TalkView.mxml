@@ -67,8 +67,8 @@
                 talk = Talk(data);
                 updateSelectionIcon();
                 if (talk) {
-                    language = talk.language;
-                    trackIcon = trackController.getIconForTrack(talk.track);
+                    language = talk.language.id;
+                    trackIcon = trackController.getIconForTrack(talk.track.id);
                 } else {
                     language = null;
                     trackIcon = null;
@@ -152,7 +152,7 @@
             </s:HGroup>
             <s:HGroup>
                 <s:Label text="{resourceManager.getString('dukecon', 'talks.room')}:" fontWeight="bold"/>
-                <s:Label text="{talk.location}" styleName="content"/>
+                <s:Label text="{talk.room.id}" styleName="content"/>
             </s:HGroup>
             <s:HGroup>
                 <s:Label text="{resourceManager.getString('dukecon', 'talks.track')}:" fontWeight="bold"/>

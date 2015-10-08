@@ -30,7 +30,7 @@
 
             talk = Talk(data);
             if (data) {
-                trackIcon = trackController.getIconForTrack(talk.track);
+                trackIcon = trackController.getIconForTrack(talk.track.id);
             } else {
                 trackIcon = null;
             }

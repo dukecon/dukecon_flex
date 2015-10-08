@@ -78,12 +78,12 @@
                 speakersLabel.text = speakers;
                 timeIcon.visible = true;
                 timeLabel.text = timeFormatter.format(talk.start) + " - " + timeFormatter.format(talk.end);
-                locationIcon.source = locationController.getIconForLocation(talk.location);
-                locationLabel.text = talk.location;
-                trackIcon.source = trackController.getIconForTrack(talk.track);
-                trackLabel.text = talk.track;
-                languageIcon.visible = talk.language == "Englisch";
-                languageLabel.text = talk.language;
+                locationIcon.source = locationController.getIconForLocation(talk.room.id);
+                locationLabel.text = talk.room.id;
+                trackIcon.source = trackController.getIconForTrack(talk.track.id);
+                trackLabel.text = talk.track.id;
+                languageIcon.visible = talk.language.id == "en";
+                languageLabel.text = talk.language.id;
             } else {
                 speakersLabel.text = "";
                 timeIcon.visible = false;

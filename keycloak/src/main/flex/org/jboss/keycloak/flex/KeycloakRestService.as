@@ -13,9 +13,11 @@ import flash.net.URLRequest;
 import flash.net.URLRequestHeader;
 import flash.net.URLRequestMethod;
 import flash.net.URLVariables;
+import flash.utils.ByteArray;
 
 import mx.rpc.AsyncToken;
 import mx.rpc.events.ResultEvent;
+import mx.utils.Base64Decoder;
 import mx.utils.StringUtil;
 
 import org.jboss.keycloak.flex.adapter.DefaultKeycloakAdapter;
@@ -100,6 +102,35 @@ public class KeycloakRestService extends EventDispatcher {
                     var cookieValue:String = StringUtil.trim(parts[1]);
                     if (cookieValue.length > 0) {
                         cookieStorage.setCookie(cookieName, cookieValue);
+                        if ("KEYCLOAK_IDENTITY" == cookieName) {
+                            // Here the user id is encoded in the keycloak servers
+                            // cookie stores KEYCLOAK_IDENTITY cookie. Decode with http://jwt.io/
+                            // JavaScript implementation at https://github.com/auth0/jwt-decode
+                            var tokenParts:Array = cookieValue.split(".");
+                            var decoder:Base64Decoder = new Base64Decoder();
+                            var encodedToken:String = tokenParts[1];
+                            switch (encodedToken.length % 4) {
+                                case 0:
+                                    break;
+                                case 2:
+                                    encodedToken += "==";
+                                    break;
+                                case 3:
+                                    encodedToken += "=";
+                                    break;
+                                default:
+                                    throw new Error("Illegal base64url string!");
+                            }
+                            decoder.decode(encodedToken);
+                            try {
+                                var decodedByteArray:ByteArray = decoder.toByteArray();
+                            } catch(e:Error) {
+                                trace(e);
+                            }
+                            var decodedToken:String = decodedByteArray.toString();
+                            var keycloakToken:Object = JSON.parse(decodedToken.substr(1, decodedToken.length - 1));
+                            trace(keycloakToken);
+                        }
                     }
                     // Setting an empty value is a delete-request.
                     else {
@@ -165,6 +196,7 @@ public class KeycloakRestService extends EventDispatcher {
                                 request.contentType = "application/x-www-form-urlencoded";
                                 request.data = formData;
                                 token.loader.load(request);
+                                token.selectedProvider = "keycloak"
                             },
                             function (event:SocialLoginRequestEvent):void {
                                 token.state = STATE_LOGIN_USING_SOCIAL_PROVIDER;
@@ -178,6 +210,9 @@ public class KeycloakRestService extends EventDispatcher {
                                 }
                                 request = createUrlRequest(token, URLRequestMethod.GET);
                                 token.loader.load(request);
+                                var provider:String = token.currentUrl.substr(token.currentUrl.indexOf("/broker/") + 8);
+                                provider = provider.substr(0, provider.indexOf("/"));
+                                token.selectedProvider = provider;
                             });
                     handleKeycloakLogin(keycloakEvent);
                 }

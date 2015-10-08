@@ -34,6 +34,23 @@ public class SettingsController extends EventDispatcher {
         dispatchEvent(new SettingsChangedEvent(SettingsChangedEvent.SETTINGS_CHANGED));
     }
 
+    [Bindable("settingsChanged")]
+    public function get serverAccount():String {
+        if(settings.data && settings.data.savedValue) {
+            return settings.data.savedValue["serverAccount"];
+        }
+        return null;
+    }
+
+    public function set serverAccount(serverAccount:String):void {
+        if (!settings.data.savedValue) {
+            settings.data.savedValue = {};
+        }
+        settings.data.savedValue["serverAccount"] = serverAccount;
+        flushSharedObject(settings);
+        dispatchEvent(new SettingsChangedEvent(SettingsChangedEvent.SETTINGS_CHANGED));
+    }
+
     protected function flushSharedObject(so:SharedObject):void {
         var flushStatus:String = null;
         try {

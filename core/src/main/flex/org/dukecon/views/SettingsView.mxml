@@ -22,7 +22,8 @@
     </s:navigationContent>
 
     <fx:Script>
-        <![CDATA[
+
+
         import mx.events.FlexEvent;
 
         import org.dukecon.controller.SettingsController;
@@ -37,6 +38,11 @@
                     button.visible = false;
                 }
             }
+        }
+
+
+        override protected function commitProperties():void {
+            super.commitProperties();
 
             // Select the currently selected locale button.
             if (resourceManager.localeChain[0] == "en_US") {
@@ -44,6 +50,17 @@
             } else {
                 germanButton.selected = true;
             }
+
+            // Hide the button that currently should not be displayed.
+            if (settingsController.serverAccount) {
+                bindButton.visible = false;
+                unbindButton.visible = true;
+            } else {
+                bindButton.visible = true;
+                unbindButton.visible = false;
+            }
+            bindButton.includeInLayout = bindButton.visible;
+            unbindButton.includeInLayout = unbindButton.visible;
         }
 
         protected function onBackClicked(event:MouseEvent):void {
@@ -60,13 +77,27 @@
             resourceManager.localeChain = [languageGroup.selectedValue];
             settingsController.selectedLanguage = String(languageGroup.selectedValue);
         }
-        ]]>
+
+        protected function onBindClicked(event:MouseEvent):void {
+
+        }
+
+        protected function onUnbindClicked(event:MouseEvent):void {
+            settingsController.serverAccount = null;
+        }
+
     </fx:Script>
 
     <s:Form width="100%">
         <s:FormItem label="{resourceManager.getString('dukecon', 'settings.language')}:" width="300">
             <s:RadioButton id="englishButton" groupName="languageGroup" label="English" value="en_US"/>
             <s:RadioButton id="germanButton" groupName="languageGroup" label="Deutsch" value="de_DE"/>
+        </s:FormItem>
+        <s:FormItem label="{resourceManager.getString('dukecon', 'settings.server-account')}:" width="300">
+            <s:Button id="bindButton" label="{resourceManager.getString('dukecon', 'settings.server-account.bind')}"
+                      click="onBindClicked(event)" width="100%"/>
+            <s:Button id="unbindButton" label="{resourceManager.getString('dukecon', 'settings.server-account.unbind')}"
+                      click="onUnbindClicked(event)" width="100%"/>
         </s:FormItem>
     </s:Form>
 

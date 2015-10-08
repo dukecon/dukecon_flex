@@ -49,7 +49,7 @@ public class ConferenceController extends EventDispatcher {
         service.method = "GET";
         service.contentType = "application/json";
         service.headers = {Accept: "application/json"};
-        service.url = baseUrl + "/rest/talks/";
+        service.url = baseUrl + "/rest/talks/v2/";
 
         // This file will be used for storing the data on the device.
         var db:File = File.applicationStorageDirectory.resolvePath("dukecon-conference.db");
