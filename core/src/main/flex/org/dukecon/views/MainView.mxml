@@ -42,18 +42,17 @@
         protected function onRefreshClicked(event:MouseEvent):void {
             conferenceController.updateTalks();
 //            if (authController.loggedIn) {
-                userPreferenceController.readUserPreferences(navigator);
+            userPreferenceController.readUserPreferences(navigator);
 //            }
         }
 
-/*        protected function onLoginClicked(event:MouseEvent):void {
-            authController.login(navigator);
-        }
+        /*        protected function onLoginClicked(event:MouseEvent):void {
+         authController.login(navigator);
+         }
 
-        protected function onLogoutClicked(event:MouseEvent):void {
-            navigator.pushView(AuthView, "logout");
-        }*/
-
+         protected function onLogoutClicked(event:MouseEvent):void {
+         navigator.pushView(AuthView, "logout");
+         }*/
         ]]>
   </fx:Script>
 

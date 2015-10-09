@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-    [RemoteClass(alias="org.dukecon.model.Track")]
-    public class Track extends TrackBase {
+[RemoteClass(alias="org.dukecon.model.Track")]
+public class Track extends TrackBase {
 
-        public function Track(obj:Object = null) {
-            super(obj);
-        }
-
+    public function Track(obj:Object = null) {
+        super(obj);
     }
+
+}
 }

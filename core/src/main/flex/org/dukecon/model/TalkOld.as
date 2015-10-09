@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-    [RemoteClass(alias="org.dukecon.model.TalkOld")]
-    public class TalkOld extends TalkOldBase {
+[RemoteClass(alias="org.dukecon.model.TalkOld")]
+public class TalkOld extends TalkOldBase {
 
-        public function TalkOld(obj:Object = null) {
-            super(obj);
-        }
-
+    public function TalkOld(obj:Object = null) {
+        super(obj);
     }
+
+}
 }

@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-    [RemoteClass(alias="org.dukecon.model.TalkType")]
-    public class TalkType extends TalkTypeBase {
+[RemoteClass(alias="org.dukecon.model.TalkType")]
+public class TalkType extends TalkTypeBase {
 
-        public function TalkType(obj:Object = null) {
-            super(obj);
-        }
-
+    public function TalkType(obj:Object = null) {
+        super(obj);
     }
+
+}
 }

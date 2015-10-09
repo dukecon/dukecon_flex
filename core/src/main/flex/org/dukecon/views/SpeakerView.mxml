@@ -29,35 +29,35 @@
         import org.dukecon.model.Speaker;
 
         [Bindable]
-            protected var speaker:Speaker;
+        protected var speaker:Speaker;
 
-            [Bindable]
-            protected var speakerPortrait:Class;
+        [Bindable]
+        protected var speakerPortrait:Class;
 
-            [Bindable]
-            protected var talks:ArrayCollection;
+        [Bindable]
+        protected var talks:ArrayCollection;
 
-            [Inject]
-            public var conferenceController:ConferenceController;
+        [Inject]
+        public var conferenceController:ConferenceController;
 
-            [Inject]
-            public var speakerController:SpeakerController;
+        [Inject]
+        public var speakerController:SpeakerController;
 
-            protected function onCreationComplete(event:FlexEvent):void {
-                    talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
-            }
+        protected function onCreationComplete(event:FlexEvent):void {
+            talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
+        }
 
-            override protected function commitProperties():void {
-                    super.commitProperties();
-                    speaker = Speaker(data);
-                    speakerPortrait = speakerController.getIconForSpeaker(speaker.name);
-                    talks = conferenceController.getTalksForSpeaker(speaker);
-            }
+        override protected function commitProperties():void {
+            super.commitProperties();
+            speaker = Speaker(data);
+            speakerPortrait = speakerController.getIconForSpeaker(speaker.name);
+            talks = conferenceController.getTalksForSpeaker(speaker);
+        }
 
-            protected function onTalkSelected(event:ListEvent):void {
-                    navigator.pushView(TalkView, event.data);
-            }
-            ]]>
+        protected function onTalkSelected(event:ListEvent):void {
+            navigator.pushView(TalkView, event.data);
+        }
+        ]]>
     </fx:Script>
 
     <s:navigationContent>

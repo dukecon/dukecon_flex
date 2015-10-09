@@ -14,9 +14,13 @@
     <![CDATA[
         import org.dukecon.controller.TrackController;
         import org.dukecon.events.ListEvent;
+        import org.dukecon.model.Track;
 
         [Bindable]
         protected var trackIcon:Class;
+
+        [Bindable]
+        protected var track:Track;
 
         [Inject]
         public var trackController:TrackController;
@@ -24,11 +28,13 @@
         override protected function commitProperties():void {
             super.commitProperties();
 
-            if (data) {
-                trackIcon = trackController.getIconForTrack(String(data));
+            track = Track(data);
+            if (track) {
+                trackIcon = trackController.getIconForTrack(track.id);
             } else {
                 trackIcon = null;
             }
+            itemLabel.width = this.parent.parent.width - 168;
         }
 
         protected function onItemClick(event:MouseEvent):void {
@@ -49,7 +55,7 @@
     <u:VectorImage source="{trackIcon}" top="8" left="8" width="120" bottom="8"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label text="{String(data)}" styleName="listTitle"/>
+        <s:Label id="itemLabel" text="{track.names['de']}" styleName="listTitle"/>
     </s:HGroup>
 
 </s:ItemRenderer>

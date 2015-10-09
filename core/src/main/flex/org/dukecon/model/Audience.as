@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-    [RemoteClass(alias="org.dukecon.model.Audience")]
-    public class Audience extends AudienceBase {
+[RemoteClass(alias="org.dukecon.model.Audience")]
+public class Audience extends AudienceBase {
 
-        public function Audience(obj:Object = null) {
-            super(obj);
-        }
-
+    public function Audience(obj:Object = null) {
+        super(obj);
     }
+
+}
 }

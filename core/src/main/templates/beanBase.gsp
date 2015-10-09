@@ -68,26 +68,33 @@ package ${jClass.as3Type.packageName} {
 
         public function ${jClass.as3Type.name}Base(obj:Object = null) {
             if(obj) {<% for (jProperty in jClass.properties) {
-                if((jProperty.member.declaredAnnotations != null) && (jProperty.member.declaredAnnotations.length > 0)) {%>
+                if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonFormat)) {%>
                 if(obj.${jProperty.name} is Date) {
                     this.${jProperty.name} = obj.${jProperty.name} as Date;
                 } else {
                     this.${jProperty.name} = isoToDate(obj.${jProperty.name});
                 }<%
+                } else if(jProperty.name == "order") { %>
+                this.order = obj._order;
+                <%
+                } else if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonIdentityReference) &&
+                        jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonProperty)) { %>
+                this.${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()} = obj.${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()};
+                <%
                 } else if("mx.collections.ListCollectionView".equals(jProperty.as3Type.qualifiedName)) { %>
                 if(obj.${jProperty.name}) {
                     this.${jProperty.name} = [];
                     for each(var ${jProperty.name}Obj:Object in obj.${jProperty.name}) {
-                        var ${jProperty.name}El:* = ${jProperty.name}Obj;
+                        var ${jProperty.name}El:${jProperty.genericTypes[0].name} = new ${jProperty.genericTypes[0].name}(${jProperty.name}Obj);
                         this.${jProperty.name}.push(${jProperty.name}El);
                     }
                 }<%
                 } else if("org.granite.collections.IMap".equals(jProperty.as3Type.qualifiedName)) { %>
                 if(obj.${jProperty.name}) {
                     this.${jProperty.name} = {};
-                    for each(var ${jProperty.name}Obj:Object in obj.${jProperty.name}) {
-                        var ${jProperty.name}El:* = ${jProperty.name}Obj;
-                        this.${jProperty.name}[${jProperty.name}Obj] = ${jProperty.name}Obj;
+                    for(var ${jProperty.name}Key:String in obj.${jProperty.name}) {
+                        var ${jProperty.name}Value:String = obj.${jProperty.name}[${jProperty.name}Key];
+                        this.${jProperty.name}[${jProperty.name}Key] = ${jProperty.name}Value;
                     }
                 }<%
                 } else { %>
@@ -113,8 +120,11 @@ package ${jClass.as3Type.packageName} {
     // Write Private Fields.
 
     for (jProperty in jClass.properties) {
-        if((jProperty.member.declaredAnnotations != null) && (jProperty.member.declaredAnnotations.length > 0)) { %>
+        if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonFormat)) { %>
         private var _${jProperty.name}:Date;<%
+        } else if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonIdentityReference) &&
+            jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonProperty)) { %>
+        private var _${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()}:String;<%
         } else if(jProperty.as3Type.name == "ListCollectionView") { %>
         private var _${jProperty.name}:Array;<%
         } else if(jProperty.as3Type.name == "IMap") { %>
@@ -131,9 +141,14 @@ package ${jClass.as3Type.packageName} {
         if (jProperty.readable || jProperty.writable) {%>
 <%
             if (jProperty.writable) {
-                if((jProperty.member.declaredAnnotations != null) && (jProperty.member.declaredAnnotations.length > 0)) {%>
+                if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonFormat)) {%>
         public function set ${jProperty.name}(value:Date):void {
             _${jProperty.name} = value;
+        }<%
+                } else if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonIdentityReference) &&
+                        jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonProperty)) {%>
+        public function set ${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()}(value:String):void {
+            _${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()} = value;
         }<%
                 } else if(jProperty.as3Type.name == "ListCollectionView") {%>
         public function set ${jProperty.name}(value:Array):void {
@@ -150,9 +165,14 @@ package ${jClass.as3Type.packageName} {
                 }
             }
             if (jProperty.readable) {
-                if((jProperty.member.declaredAnnotations != null) && (jProperty.member.declaredAnnotations.length > 0)) {%>
+                if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonFormat)) {%>
         public function get ${jProperty.name}():Date {
             return _${jProperty.name};
+        }<%
+            } else if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonIdentityReference) &&
+                    jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonProperty)) {%>
+        public function get ${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()}():String {
+            return _${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()};
         }<%
             } else if(jProperty.as3Type.name == "ListCollectionView") {%>
         public function get ${jProperty.name}():Array {
@@ -197,7 +217,8 @@ package ${jClass.as3Type.packageName} {
             createTableStatement.text = "CREATE TABLE IF NOT EXISTS ${jClass.as3Type.name} (<%
             boolean firstEntryWritten = false;
             for (jProperty in jClass.properties) { if(firstEntryWritten) {%>, <% } else { firstEntryWritten = true; }
-    if((jProperty.member.declaredAnnotations != null) && (jProperty.member.declaredAnnotations.length > 0)) {%>${jProperty.name} DATE<%} else {%>${jProperty.name} TEXT<%}}%>)";
+    if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonFormat)) {%>${jProperty.name} DATE<%} else if(jProperty.name == "order") {%>_order TEXT<%} else if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonIdentityReference) &&
+        jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonProperty)) {%>${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()} TEXT<%} else {%>${jProperty.name} TEXT<%}}%>)";
             try {
                 createTableStatement.execute();
             } catch(initError:SQLError) {
@@ -234,7 +255,7 @@ package ${jClass.as3Type.packageName} {
             var result:ArrayCollection = new ArrayCollection();
             var selectStatement:SQLStatement = new SQLStatement();
             selectStatement.sqlConnection = conn;
-            selectStatement.text = "SELECT <%firstEntryWritten = false; for (jProperty in jClass.properties) { if(firstEntryWritten) {%>, <% } else { firstEntryWritten = true; } %>${jProperty.name}<% } %> FROM ${jClass.as3Type.name}";
+            selectStatement.text = "SELECT * FROM ${jClass.as3Type.name}";
             if(whereClause) {
                 selectStatement.text += " WHERE " + whereClause;
             }
@@ -251,17 +272,53 @@ package ${jClass.as3Type.packageName} {
             return result;
         }
 
+        public static function selectById(conn:SQLConnection, id:String):${jClass.as3Type.name} {
+            var selectStatement:SQLStatement = new SQLStatement();
+            selectStatement.sqlConnection = conn;
+            selectStatement.text = "SELECT * FROM ${jClass.as3Type.name} WHERE id = '" + id + "'";
+            try {
+                selectStatement.execute();
+                var sqlResult:SQLResult = selectStatement.getResult();
+                for each(var obj:Object in sqlResult.data) {
+                    var item:${jClass.as3Type.name} = new ${jClass.as3Type.name}(obj);
+                    return item;
+                }
+            } catch(initError:SQLError) {
+                throw new Error("Error selecting records from table '${jClass.as3Type.name}': " + initError.message);
+            }
+            return null;
+        }
+
         public function persist(conn:SQLConnection):void {
             var insertStatement:SQLStatement = new SQLStatement();
             insertStatement.sqlConnection = conn;
             insertStatement.text = "INSERT INTO ${jClass.as3Type.name} (<%
             firstEntryWritten = false;
-            for (jProperty in jClass.properties) { if(firstEntryWritten) {%>, <% } else { firstEntryWritten = true; }%>${jProperty.name}<%}%>) VALUES (<%
+            for (jProperty in jClass.properties) { if(firstEntryWritten) {%>,<% } else { firstEntryWritten = true; }
+    if(jProperty.name == "order") {%> _order<%}
+    else if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonIdentityReference) &&
+        jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonProperty)) {
+        %> ${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()}<%
+    } else {
+        %> ${jProperty.name}<%}
+    }%>) VALUES (<%
             firstEntryWritten = false;
-            for (jProperty in jClass.properties) { if(firstEntryWritten) {%>, <% } else { firstEntryWritten = true; }%>:${jProperty.name}<%}%>)";
+            for (jProperty in jClass.properties) { if(firstEntryWritten) {%>, <% } else { firstEntryWritten = true; }
+    if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonIdentityReference) &&
+            jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonProperty)) {
+        %>:${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()}<%
+    } else {
+        %>:${jProperty.name}<%}
+    }%>)";
             <%for (jProperty in jClass.properties) {
-                %>insertStatement.parameters[":${jProperty.name}"] = ${jProperty.name};
-            <% } %>try {
+                if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonIdentityReference) &&
+                        jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonProperty)) { %>
+            insertStatement.parameters[":${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()}"] = ${jProperty.getAnnotation(com.fasterxml.jackson.annotation.JsonProperty).value()};<%
+                } else { %>
+            insertStatement.parameters[":${jProperty.name}"] = ${jProperty.name};<%
+                }
+            } %>
+            try {
                 insertStatement.execute();
             } catch(initError:SQLError) {
                 throw new Error("Error inserting record into table '${jClass.as3Type.name}': " + initError.message);

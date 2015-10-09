@@ -39,48 +39,27 @@ public class TrackController {
     public function TrackController() {
     }
 
-    public function getIconForTrack(trackName:String):Class {
-        if (trackName) {
-            switch (trackName) {
-                case "Core Java & JVM basierte Sprachen":
+    public function getIconForTrack(id:String):Class {
+        if (id) {
+            switch (id) {
+                case "1":
                     return track_jvm_languages;
-                case "Container & Microservices":
+                case "2":
                     return track_microservices;
-                case "Architektur & Sicherheit":
+                case "3":
                     return track_architecture;
-                case "Internet der Dinge":
+                case "4":
                     return track_internet_of_things;
-                case "Newcomer":
+                case "5":
                     return track_newcomer;
-                case "IDEs & Tools":
+                case "6":
                     return track_ide_tools;
-                case "Enterprise Java & Cloud":
+                case "7":
                     return track_enterprise_java_cloud;
-                case "Frontend & Mobile":
+                case "8":
                     return track_frontend_mobile;
             }
-            trace("Couldn't find icon for: " + trackName);
-        }
-        return null;
-    }
-
-    private function getColorForTrack(trackName:String):uint {
-        if (trackName) {
-            var trackCode:String = trackName.toLowerCase();
-            while (trackCode.indexOf(" ") != -1) {
-                trackCode = trackCode.replace(" ", "-");
-            }
-            switch (trackCode) {
-                case "Core Java & JVM basierte Sprachen":
-                case "Container & Microservices":
-                case "Architektur & Sicherheit":
-                case "Internet der Dinge":
-                case "Newcomer":
-                case "IDEs & Tools":
-                case "Enterprise Java & Cloud":
-                case "Frontend & Mobile":
-            }
-            trace("Couldn't find color for: " + trackCode);
+            trace("Couldn't find icon for: " + id);
         }
         return null;
     }

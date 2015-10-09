@@ -7,12 +7,12 @@
 
 package org.dukecon.model.user {
 
-    [RemoteClass(alias="org.dukecon.model.user.UserFilters")]
-    public class UserFilters extends UserFiltersBase {
+[RemoteClass(alias="org.dukecon.model.user.UserFilters")]
+public class UserFilters extends UserFiltersBase {
 
-        public function UserFilters(obj:Object = null) {
-            super(obj);
-        }
-
+    public function UserFilters(obj:Object = null) {
+        super(obj);
     }
+
+}
 }

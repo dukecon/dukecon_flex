@@ -23,6 +23,7 @@
 
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.events.ListEvent;
+        import org.dukecon.model.Room;
         import org.dukecon.model.Talk;
 
         [Bindable]
@@ -51,17 +52,17 @@
                 for each(var talk:Talk in talksForDay) {
                     var start:String = timeFormatter.format(talk.start);
                     var end:String = timeFormatter.format(talk.end);
-                    key = talk.room.id + "-" + start + " - " + end;
+                    key = talk.roomId + "-" + start + " - " + end;
                     talkIndex[key] = talk;
                 }
                 var timeSlots:ArrayCollection = conferenceController.getTimeSlotsForDay(String(data));
-                var locations:ArrayCollection = conferenceController.locations;
+                var rooms:ArrayCollection = conferenceController.rooms;
                 var gridData:Array = [];
-                for each(var location:String in locations) {
+                for each(var room:Room in rooms) {
                     var item:Object = {};
-                    item.location = location;
+                    item.room = room;
                     for each(var timeSlot:String in timeSlots) {
-                        key = location + "-" + timeSlot;
+                        key = room.id + "-" + timeSlot;
                         item[timeSlot] = talkIndex[key];
                     }
                     gridData.push(item);
@@ -104,7 +105,7 @@
         <s:columns>
             <s:ArrayList>
                 <s:GridColumn dataField="location" headerText="" width="40"
-                              itemRenderer="org.dukecon.itemrenderer.header.LocationItemRenderer"/>
+                              itemRenderer="org.dukecon.itemrenderer.header.RoomItemRenderer"/>
                 <s:GridColumn dataField="10:00 - 10:40" width="600"
                               itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
                               headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>

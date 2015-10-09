@@ -39,7 +39,6 @@
         protected function onOpenSettingsClicked(event:MouseEvent):void {
             tabbedNavigator.activeView.navigator.pushView(SettingsView);
         }
-
         ]]>
     </fx:Script>
 

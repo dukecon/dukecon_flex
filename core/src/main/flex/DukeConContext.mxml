@@ -17,9 +17,7 @@
 
     <fx:Script>
         <![CDATA[
-
         public static const baseUrl:String = CONFIG::baseUrl;
-
         ]]>
     </fx:Script>
 

@@ -20,12 +20,20 @@ import mx.rpc.events.ResultEvent;
 import mx.rpc.http.HTTPService;
 
 import org.dukecon.events.ConferenceDataChangedEvent;
-import org.dukecon.model.ConferenceBase;
-import org.dukecon.model.MetaDataBase;
+import org.dukecon.model.Audience;
+import org.dukecon.model.AudienceBase;
+import org.dukecon.model.Language;
+import org.dukecon.model.LanguageBase;
+import org.dukecon.model.Room;
+import org.dukecon.model.RoomBase;
 import org.dukecon.model.Speaker;
 import org.dukecon.model.SpeakerBase;
 import org.dukecon.model.Talk;
 import org.dukecon.model.TalkBase;
+import org.dukecon.model.TalkType;
+import org.dukecon.model.TalkTypeBase;
+import org.dukecon.model.Track;
+import org.dukecon.model.TrackBase;
 
 [Event(type="org.dukecon.events.ConferenceDataChangedEvent", name="conferenceDataChanged")]
 [ManagedEvents("conferenceDataChanged")]
@@ -49,7 +57,7 @@ public class ConferenceController extends EventDispatcher {
         service.method = "GET";
         service.contentType = "application/json";
         service.headers = {Accept: "application/json"};
-        service.url = baseUrl + "/rest/talks/v2/";
+        service.url = baseUrl + "/rest/conference/";
 
         // This file will be used for storing the data on the device.
         var db:File = File.applicationStorageDirectory.resolvePath("dukecon-conference.db");
@@ -64,10 +72,13 @@ public class ConferenceController extends EventDispatcher {
             trackRatings = SharedObject.getLocal("track-ratings");
 
             if (initDb) {
-                TalkBase.createTable(conn);
+                AudienceBase.createTable(conn);
+                LanguageBase.createTable(conn);
+                TalkTypeBase.createTable(conn);
+                TrackBase.createTable(conn);
+                RoomBase.createTable(conn);
                 SpeakerBase.createTable(conn);
-                MetaDataBase.createTable(conn);
-                ConferenceBase.createTable(conn);
+                TalkBase.createTable(conn);
             }
 
             if (TalkBase.count(conn) == 0) {
@@ -86,32 +97,85 @@ public class ConferenceController extends EventDispatcher {
     protected function onResult(event:ResultEvent):void {
         var resultData:String = event.result.toString();
         var result:Object = JSON.parse(resultData);
-        TalkBase.clearTable(conn);
-        SpeakerBase.clearTable(conn);
-        var persistedSpeakers:Array = [];
-        var persistedTracks:Array = [];
 
-        for each(var obj:Object in result as Array) {
-            var talk:Talk = new Talk(obj);
-            for each(var speakerObj:Object in talk.speakers) {
-                if (speakerObj) {
-                    var speaker:Speaker = new Speaker(speakerObj);
-                    if (persistedSpeakers.indexOf(speaker.name + "-" + speaker.company) == -1) {
-                        speaker.persist(conn);
-                        persistedSpeakers.push(speaker.name + "-" + speaker.company);
-                    }
-                }
+        TalkBase.clearTable(conn);
+
+        var obj:Object;
+
+        AudienceBase.clearTable(conn);
+        var persistedAudienceIds:Array = [];
+        for each(obj in result.metaData.audiences as Array) {
+            var audience:Audience = new Audience(obj);
+            if (persistedAudienceIds.indexOf(audience.id) == -1) {
+                audience.persist(conn);
+                persistedAudienceIds.push(audience.id);
             }
-            if(persistedTracks.indexOf(talk.track) == -1) {
-                persistedTracks.push(talk.track);
-            }
-            talk.persist(conn);
         }
-        trace("Tracks: " + persistedTracks.join(", "));
+
+        LanguageBase.clearTable(conn);
+        var persistedLanguageIds:Array = [];
+        for each(obj in result.metaData.languages as Array) {
+            var language:Language = new Language(obj);
+            if (persistedLanguageIds.indexOf(language.id) == -1) {
+                language.persist(conn);
+                persistedLanguageIds.push(language.id);
+            }
+        }
+
+        TalkTypeBase.clearTable(conn);
+        var persistedTalkTypeIds:Array = [];
+        for each(obj in result.metaData.talkTypes as Array) {
+            var talkType:TalkType = new TalkType(obj);
+            if (persistedTalkTypeIds.indexOf(talkType.id) == -1) {
+                talkType.persist(conn);
+                persistedTalkTypeIds.push(talkType.id);
+            }
+        }
+
+        TrackBase.createTable(conn);
+        var persistedTrackIds:Array = [];
+        for each(obj in result.metaData.tracks as Array) {
+            var track:Track = new Track(obj);
+            if (persistedTrackIds.indexOf(track.id) == -1) {
+                track.persist(conn);
+                persistedTrackIds.push(track.id);
+            }
+        }
+
+        RoomBase.clearTable(conn);
+        var persistedRoomIds:Array = [];
+        for each(obj in result.metaData.rooms as Array) {
+            var room:Room = new Room(obj);
+            if (persistedRoomIds.indexOf(room.id) == -1) {
+                room.persist(conn);
+                persistedRoomIds.push(room.id);
+            }
+        }
+
+        SpeakerBase.clearTable(conn);
+        var persistedSpeakerIds:Array = [];
+        for each(obj in result.speakers as Array) {
+            var speaker:Speaker = new Speaker(obj);
+            if (persistedSpeakerIds.indexOf(speaker.id) == -1) {
+                speaker.persist(conn);
+                persistedSpeakerIds.push(speaker.id);
+            }
+        }
+
+        TalkBase.clearTable(conn);
+        var persistedTalkIds:Array = [];
+        for each(obj in result.talks as Array) {
+            var talk:Talk = new Talk(obj);
+            if (persistedTalkIds.indexOf(talk.id) == -1) {
+                talk.persist(conn);
+                persistedTalkIds.push(talk.id);
+            }
+        }
+
         dispatchEvent(new ConferenceDataChangedEvent(ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED));
     }
 
-    protected function onFault(fault:FaultEvent):void {
+    protected static function onFault(fault:FaultEvent):void {
         trace("Something went wrong:" + fault.message);
     }
 
@@ -149,32 +213,70 @@ public class ConferenceController extends EventDispatcher {
         return result;
     }
 
-    public function get locations():ArrayCollection {
-        var locations:ArrayCollection = executeQuery("SELECT DISTINCT location FROM Talk");
-        var result:ArrayCollection = new ArrayCollection();
-        for each(var obj:Object in locations) {
-            if (obj.location) {
-                result.addItem(obj.location);
-            }
-        }
-        return result;
+    public function get languages():ArrayCollection {
+        var languages:ArrayCollection = LanguageBase.select(conn);
+        var dataSortField:SortField = new SortField();
+        dataSortField.name = "order";
+        dataSortField.numeric = true;
+        var dataSort:Sort = new Sort();
+        dataSort.fields = [dataSortField];
+        languages.sort = dataSort;
+        languages.refresh();
+        return languages;
+    }
+
+    public function getLanguage(id:String):Language {
+        return LanguageBase.selectById(conn, id);
+    }
+
+    public function get rooms():ArrayCollection {
+        var rooms:ArrayCollection = RoomBase.select(conn);
+        var dataSortField:SortField = new SortField();
+        dataSortField.name = "order";
+        dataSortField.numeric = true;
+        var dataSort:Sort = new Sort();
+        dataSort.fields = [dataSortField];
+        rooms.sort = dataSort;
+        rooms.refresh();
+        return rooms;
+    }
+
+    public function getRoom(id:String):Room {
+        return RoomBase.selectById(conn, id);
     }
 
     public function get tracks():ArrayCollection {
-        var tracks:ArrayCollection = executeQuery("SELECT DISTINCT track FROM Talk");
-        var result:ArrayCollection = new ArrayCollection();
-        for each(var obj:Object in tracks) {
-            if (obj.track) {
-                result.addItem(obj.track);
-            }
-        }
+        var tracks:ArrayCollection = TrackBase.select(conn);
         var dataSortField:SortField = new SortField();
-        dataSortField.numeric = false;
+        dataSortField.name = "order";
+        dataSortField.numeric = true;
         var dataSort:Sort = new Sort();
         dataSort.fields = [dataSortField];
-        result.sort = dataSort;
-        result.refresh();
-        return result;
+        tracks.sort = dataSort;
+        tracks.refresh();
+        return tracks;
+    }
+
+    public function getTrack(id:String):Track {
+        return TrackBase.selectById(conn, id);
+    }
+
+    public function get speakers():ArrayCollection {
+        var speakers:ArrayCollection = SpeakerBase.select(conn);
+
+        var sortField:SortField = new SortField();
+        sortField.name = "name";
+        sortField.numeric = false;
+        var sort:Sort = new Sort();
+        sort.fields = [sortField];
+        speakers.sort = sort;
+        speakers.refresh();
+
+        return speakers;
+    }
+
+    public function getSpeaker(id:String):Speaker {
+        return SpeakerBase.selectById(conn, id);
     }
 
     public function getTimeSlotsForDay(day:String):ArrayCollection {
@@ -199,19 +301,19 @@ public class ConferenceController extends EventDispatcher {
         return TalkBase.select(conn, "date(start) = '" + day + "'");
     }
 
-    public function getTalksForTrack(track:String):ArrayCollection {
-        return TalkBase.select(conn, "track = '" + track + "'");
+    public function getTalksForTrack(track:Track):ArrayCollection {
+        return TalkBase.select(conn, "trackId = '" + track.id + "'");
     }
 
-    public function getTalksForLocation(location:String):ArrayCollection {
-        return TalkBase.select(conn, "location = '" + location + "'");
+    public function getTalksForRoom(room:Room):ArrayCollection {
+        return TalkBase.select(conn, "roomId = '" + room.id + "'");
     }
 
     public function getTalksForSpeaker(speaker:Speaker):ArrayCollection {
         var result:ArrayCollection = new ArrayCollection();
         for each(var talk:Talk in talks) {
-            for each(var speakerObj:Object in talk.speakers) {
-                if (speakerObj && speakerObj.name == speaker.name) {
+            for each(var speakerId:Object in talk.speakerIds.split(",")) {
+                if(speakerId == speaker.id) {
                     result.addItem(talk);
                     break;
                 }
@@ -234,20 +336,6 @@ public class ConferenceController extends EventDispatcher {
             return trackRatings.data.savedValue[talk.id];
         }
         return -2;
-    }
-
-    public function get speakers():ArrayCollection {
-        var speakers:ArrayCollection = SpeakerBase.select(conn);
-
-        var sortField:SortField = new SortField();
-        sortField.name = "name";
-        sortField.numeric = false;
-        var sort:Sort = new Sort();
-        sort.fields = [sortField];
-        speakers.sort = sort;
-        speakers.refresh();
-
-        return speakers;
     }
 
     protected function flushSharedObject(so:SharedObject):void {
@@ -294,8 +382,8 @@ public class ConferenceController extends EventDispatcher {
             for each(var obj:Object in sqlResult.data) {
                 result.addItem(obj);
             }
-        } catch (initError:SQLError) {
-            throw new Error("Error selecting records from table '${jClass.as3Type.name}': " + initError.message);
+        } catch (error:SQLError) {
+            throw new Error("Error selecting records from table 'Talks': " + error.message);
         }
         return result;
     }

@@ -25,46 +25,47 @@
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.controller.LocationController;
         import org.dukecon.events.ListEvent;
+        import org.dukecon.model.Room;
 
         [Bindable]
-            protected var location:String;
+        protected var location:Room;
 
-            [Bindable]
-            protected var locationIcon:Class;
+        [Bindable]
+        protected var locationIcon:Class;
 
-            [Bindable]
-            protected var talks:ArrayCollection;
+        [Bindable]
+        protected var talks:ArrayCollection;
 
-            [Inject]
-            public var conferenceController:ConferenceController;
+        [Inject]
+        public var conferenceController:ConferenceController;
 
-            [Inject]
-            public var locationController:LocationController;
+        [Inject]
+        public var locationController:LocationController;
 
-            protected function onCreationComplete(event:FlexEvent):void {
-                    talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
-            }
+        protected function onCreationComplete(event:FlexEvent):void {
+            talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
+        }
 
-            [Bindable("dataChange")]
-            override public function get data():Object {
-                    return super.data;
-            }
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
 
-            override public function set data(value:Object):void {
-                    super.data = value;
-                    location = String(value);
-            }
+        override public function set data(value:Object):void {
+            super.data = value;
+            location = Room(value);
+        }
 
-            override protected function commitProperties():void {
-                    super.commitProperties();
-                    locationIcon = locationController.getIconForLocation(location);
-                    talks = conferenceController.getTalksForLocation(location);
-            }
+        override protected function commitProperties():void {
+            super.commitProperties();
+            locationIcon = locationController.getIconForLocation(location.id);
+            talks = conferenceController.getTalksForRoom(location);
+        }
 
-            protected function onTalkSelected(event:ListEvent):void {
-                    navigator.pushView(TalkView, event.data);
-            }
-            ]]>
+        protected function onTalkSelected(event:ListEvent):void {
+            navigator.pushView(TalkView, event.data);
+        }
+        ]]>
     </fx:Script>
 
     <s:navigationContent>
@@ -80,7 +81,7 @@
                     </s:fill>
                 </s:Rect>
 
-                <s:Label text="{location}" top="22" left="20" width="440" styleName="title"/>
+                <s:Label text="{location.name}" top="22" left="20" width="440" styleName="title"/>
 
                 <s:Rect top="20" right="20" width="120" height="120">
                     <s:fill>

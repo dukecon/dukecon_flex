@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-    [RemoteClass(alias="org.dukecon.model.Language")]
-    public class Language extends LanguageBase {
+[RemoteClass(alias="org.dukecon.model.Language")]
+public class Language extends LanguageBase {
 
-        public function Language(obj:Object = null) {
-            super(obj);
-        }
-
+    public function Language(obj:Object = null) {
+        super(obj);
     }
+
+}
 }

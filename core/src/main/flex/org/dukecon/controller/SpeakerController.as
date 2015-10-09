@@ -41,9 +41,9 @@ public class SpeakerController {
     public function SpeakerController() {
     }
 
-    public function getIconForSpeaker(speakerName:String):Class {
+    public function getIconForSpeaker(id:String):Class {
         var b:ByteArray = new ByteArray();
-        b.writeMultiByte(speakerName, "UTF-8");
+        b.writeMultiByte(id, "UTF-8");
         var hash:String = SHA256.computeDigest(b);
         var imageIndex:int = parseInt(hash, 16) % icons.length;
         return icons[imageIndex];

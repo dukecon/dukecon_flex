@@ -14,9 +14,13 @@
     <![CDATA[
         import org.dukecon.controller.LocationController;
         import org.dukecon.events.ListEvent;
+        import org.dukecon.model.Room;
 
         [Bindable]
         protected var locationIcon:Class;
+
+        [Bindable]
+        protected var room:Room;
 
         [Inject]
         public var locationController:LocationController;
@@ -24,8 +28,9 @@
         override protected function commitProperties():void {
             super.commitProperties();
 
-            if (data) {
-                locationIcon = locationController.getIconForLocation(String(data));
+            room = Room(data);
+            if (room) {
+                locationIcon = locationController.getIconForLocation(room.id);
             } else {
                 locationIcon = null;
             }
@@ -61,7 +66,7 @@
     <u:VectorImage source="{locationIcon}" top="10" left="10" width="110" bottom="10"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="itemLabel" text="{String(data)}" styleName="listTitle"/>
+        <s:Label id="itemLabel" text="{room.name}" styleName="listTitle"/>
     </s:HGroup>
 
 </s:ItemRenderer>

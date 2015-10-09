@@ -41,7 +41,7 @@
 
         [Init]
         public function init():void {
-            listData = conferenceController.locations;
+            listData = conferenceController.rooms;
             list.addEventListener(ListEvent.ITEM_SELECTED, onLocationSelected)
 
             var registry:MessageReceiverRegistry = context.scopeManager.getScope(ScopeName.GLOBAL).messageReceivers;
@@ -54,7 +54,7 @@
 
         [MessageHandler]
         public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
-            listData = conferenceController.locations;
+            listData = conferenceController.rooms;
         }
 
         protected function onLocationSelected(event:ListEvent):void {

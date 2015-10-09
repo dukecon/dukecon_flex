@@ -36,7 +36,7 @@ public class SettingsController extends EventDispatcher {
 
     [Bindable("settingsChanged")]
     public function get serverAccount():String {
-        if(settings.data && settings.data.savedValue) {
+        if (settings.data && settings.data.savedValue) {
             return settings.data.savedValue["serverAccount"];
         }
         return null;

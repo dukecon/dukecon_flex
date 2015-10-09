@@ -20,12 +20,16 @@
 
     <fx:Script>
     <![CDATA[
+        import org.dukecon.controller.ConferenceController;
         import org.dukecon.controller.LocationController;
         import org.dukecon.controller.SettingsController;
         import org.dukecon.controller.TrackController;
         import org.dukecon.controller.UserPreferenceController;
         import org.dukecon.events.ListEvent;
+        import org.dukecon.model.Language;
+        import org.dukecon.model.Room;
         import org.dukecon.model.Talk;
+        import org.dukecon.model.Track;
 
         [Embed(source="/star-unselected.png")]
         [Bindable]
@@ -37,6 +41,9 @@
 
         [Bindable]
         protected var talk:Talk;
+
+        [Inject]
+        public var conferenceController:ConferenceController;
 
         [Inject]
         public var trackController:TrackController;
@@ -58,15 +65,20 @@
 
         override public function set data(value:Object):void {
             super.data = value;
-            talk = Talk(data[column.dataField]);
+            if (value) {
+                talk = Talk(data[column.dataField]);
+            }
         }
 
         override protected function commitProperties():void {
             super.commitProperties();
 
             if (talk) {
+                var room:Room = conferenceController.getRoom(talk.roomId);
+                var track:Track = conferenceController.getTrack(talk.trackId);
+                var language:Language = conferenceController.getLanguage(talk.languageId);
                 var speakers:String = "";
-                for each(var speaker:Object in talk.speakers) {
+                for each(var speaker:Object in talk.speakerIds) {
                     if (speakers != "") {
                         speakers += ", ";
                     }
@@ -75,15 +87,31 @@
                         speakers += " (" + speaker.company + ")";
                     }
                 }
+
                 speakersLabel.text = speakers;
                 timeIcon.visible = true;
                 timeLabel.text = timeFormatter.format(talk.start) + " - " + timeFormatter.format(talk.end);
-                locationIcon.source = locationController.getIconForLocation(talk.room.id);
-                locationLabel.text = talk.room.id;
-                trackIcon.source = trackController.getIconForTrack(talk.track.id);
-                trackLabel.text = talk.track.id;
-                languageIcon.visible = talk.language.id == "en";
-                languageLabel.text = talk.language.id;
+                if(room) {
+                    locationIcon.source = locationController.getIconForLocation(room.id);
+                    locationLabel.text = room.name;
+                } else {
+                    locationIcon.source = null;
+                    locationLabel.text = "";
+                }
+                if(track) {
+                    trackIcon.source = trackController.getIconForTrack(track.id);
+                    trackLabel.text = track.names['de'];
+                } else {
+                    trackIcon.source = null;
+                    trackLabel.text = "";
+                }
+                if(language) {
+                    languageIcon.visible = language.id == "en";
+                    languageLabel.text = language.names['de'];
+                } else {
+                    languageIcon.visible = false;
+                    languageLabel.text = "";
+                }
             } else {
                 speakersLabel.text = "";
                 timeIcon.visible = false;

@@ -25,12 +25,12 @@ public class LocationController {
     public function LocationController() {
     }
 
-    public function getIconForLocation(name:String):Class {
+    public function getIconForLocation(id:String):Class {
         /*var b:ByteArray = new ByteArray();
          b.writeMultiByte(name, "UTF-8");
          var hash:String = SHA256.computeDigest(b);
          var intHash:Number = parseInt(hash, 16);*/
-        var imageIndex:int = (Math.random() * icons.length) % icons.length;
+        var imageIndex:int = Number(id) % icons.length;
         return icons[imageIndex];
     }
 
