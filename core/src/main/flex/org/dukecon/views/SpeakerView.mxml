@@ -47,16 +47,36 @@
             talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
         }
 
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
+
+        override public function set data(value:Object):void {
+            super.data = value;
+            speaker = Speaker(data);
+            update();
+        }
+
         override protected function commitProperties():void {
             super.commitProperties();
-            speaker = Speaker(data);
-            speakerPortrait = speakerController.getIconForSpeaker(speaker.name);
-            events = conferenceController.getEventsForSpeaker(speaker);
+            update();
+        }
+
+        protected function update():void {
+            if(speaker && speakerController && conferenceController) {
+                speakerPortrait = speakerController.getIconForSpeaker(speaker.name);
+                events = conferenceController.getEventsForSpeaker(speaker);
+            } else {
+                speakerPortrait = null;
+                events = null;
+            }
         }
 
         protected function onTalkSelected(event:ListEvent):void {
             navigator.pushView(EventView, event.data);
         }
+
         ]]>
     </fx:Script>
 

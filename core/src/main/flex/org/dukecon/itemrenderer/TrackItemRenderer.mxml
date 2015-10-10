@@ -18,6 +18,8 @@
 
         [Bindable]
         protected var trackIcon:Class;
+        [Bindable]
+        protected var trackName:String;
 
         [Bindable]
         protected var track:Track;
@@ -25,14 +27,29 @@
         [Inject]
         public var trackController:TrackController;
 
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
+
+        override public function set data(value:Object):void {
+            super.data = value;
+            track = Track(data);
+            update();
+        }
+
         override protected function commitProperties():void {
             super.commitProperties();
+            update();
+        }
 
-            track = Track(data);
-            if (track) {
+        protected function update():void {
+            if (track && trackController) {
                 trackIcon = trackController.getIconForTrack(track.id);
+                trackName = track.names[resourceManager.localeChain[0]];
             } else {
                 trackIcon = null;
+                trackName = null;
             }
             itemLabel.width = this.parent.parent.width - 168;
         }
@@ -40,6 +57,7 @@
         protected function onItemClick(event:MouseEvent):void {
             dispatchEvent(new ListEvent(data, ListEvent.ITEM_SELECTED));
         }
+
         ]]>
   </fx:Script>
 
@@ -55,7 +73,7 @@
     <u:VectorImage source="{trackIcon}" top="8" left="8" width="120" bottom="8"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="itemLabel" text="{track.names[resourceManager.localeChain[0]]}" styleName="listTitle"/>
+        <s:Label id="itemLabel" text="{trackName}" styleName="listTitle"/>
     </s:HGroup>
 
 </s:ItemRenderer>

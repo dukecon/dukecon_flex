@@ -27,6 +27,9 @@
         import org.dukecon.model.Event;
 
         [Bindable]
+        protected var dateString:String;
+
+        [Bindable]
         protected var formattedDate:String;
 
         [Bindable]
@@ -46,17 +49,23 @@
 
         override public function set data(value:Object):void {
             super.data = value;
+            dateString = String(value);
+            update();
         }
 
         override protected function commitProperties():void {
             super.commitProperties();
-            if (data) {
+            update();
+        }
+
+        protected function update():void {
+            if (dateString && conferenceController) {
                 var key:String;
-                var matches:Array = String(data).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+                var matches:Array = dateString.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
                 var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
                 formattedDate = formatter.format(date);
 
-                var talksForDay:ArrayCollection = conferenceController.getEventsForDay(String(data));
+                var talksForDay:ArrayCollection = conferenceController.getEventsForDay(dateString);
                 var talkIndex:Object = {};
                 for each(var event:org.dukecon.model.Event in talksForDay) {
                     var start:String = timeFormatter.format(event.start);
@@ -64,7 +73,7 @@
                     key = event.locationId + "-" + start + " - " + end;
                     talkIndex[key] = event;
                 }
-                var timeSlots:ArrayCollection = conferenceController.getTimeSlotsForDay(String(data));
+                var timeSlots:ArrayCollection = conferenceController.getTimeSlotsForDay(dateString);
                 var locations:ArrayCollection = conferenceController.locations;
                 var gridData:Array = [];
                 for each(var location:Location in locations) {
@@ -77,31 +86,16 @@
                     gridData.push(item);
                 }
                 dataProvider = new ArrayCollection(gridData);
+            } else {
+                formattedDate = null;
+                dataProvider = null;
             }
-
-            updateGrid();
         }
 
         protected function onTalkSelected(event:ListEvent):void {
             navigator.pushView(EventView, event.data);
         }
 
-        protected function updateGrid():void {
-            /*var columns:Array = [];
-             if(data != null) {
-             var column:MobileGridColumn = new MobileGridColumn();
-             column.dataField = "location";
-             column.headerText = "";
-             columns.push(column);
-             var timeSlots:ArrayCollection = ConferenceController.instance.getTimeSlotsForDay(String(data));
-             for each(var timeSlot:String in timeSlots) {
-             column = new MobileGridColumn();
-             column.dataField = timeSlot;
-             columns.push(column);
-             }
-             }*/
-            //dgm.columns = columns;
-        }
         ]]>
   </fx:Script>
 

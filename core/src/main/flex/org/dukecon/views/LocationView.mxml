@@ -32,6 +32,7 @@
 
         [Bindable]
         protected var locationIcon:Class;
+        [Bindable]
         protected var locationName:String;
 
         [Bindable]
@@ -55,18 +56,30 @@
         override public function set data(value:Object):void {
             super.data = value;
             location = Location(value);
-            locationName = location.names[resourceManager.localeChain[0]];
+            update();
         }
 
         override protected function commitProperties():void {
             super.commitProperties();
-            locationIcon = locationController.getIconForLocation(location.id);
-            talks = conferenceController.getEventsForLocation(location);
+            update();
+        }
+
+        protected function update():void {
+            if(location && locationController && conferenceController) {
+                locationName = location.names[resourceManager.localeChain[0]];
+                locationIcon = locationController.getIconForLocation(location.id);
+                talks = conferenceController.getEventsForLocation(location);
+            } else {
+                locationName = null;
+                locationIcon = null;
+                talks = null;
+            }
         }
 
         protected function onTalkSelected(event:ListEvent):void {
             navigator.pushView(EventView, event.data);
         }
+
         ]]>
     </fx:Script>
 

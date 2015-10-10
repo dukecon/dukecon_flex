@@ -9,6 +9,9 @@
         import org.dukecon.model.Location;
 
         [Bindable]
+        protected var location:Location;
+
+        [Bindable]
         protected var locationName:String;
 
         [Bindable("dataChange")]
@@ -18,8 +21,23 @@
 
         override public function set data(value:Object):void {
             super.data = value;
-            locationName = Location(value.location).names[resourceManager.localeChain[0]];
+            location = Location(value['location']);
+            update();
         }
+
+        override protected function commitProperties():void {
+            super.commitProperties();
+            update();
+        }
+
+        protected function update():void {
+            if(location) {
+                locationName = location.names[resourceManager.localeChain[0]];
+            } else {
+                locationName = null;
+            }
+        }
+
         ]]>
   </fx:Script>
 

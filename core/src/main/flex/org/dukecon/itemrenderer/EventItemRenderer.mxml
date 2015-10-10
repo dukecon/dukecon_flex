@@ -33,26 +33,29 @@
 
         override public function set data(value:Object):void {
             super.data = value;
-
             event = org.dukecon.model.Event(data);
+            update();
+        }
+
+        override protected function commitProperties():void {
+            super.commitProperties();
+            update();
+        }
+
+        protected function update():void {
             if (event) {
                 trackIcon = trackController.getIconForTrack(event.trackId);
             } else {
                 trackIcon = null;
             }
-        }
-
-        override protected function commitProperties():void {
-            super.commitProperties();
-
             itemLabel.width = this.parent.parent.width - 168;
-
             invalidateDisplayList();
         }
 
         protected function onItemClick(evnt:MouseEvent):void {
             dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
         }
+
         ]]>
   </fx:Script>
 

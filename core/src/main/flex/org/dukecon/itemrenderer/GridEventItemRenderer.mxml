@@ -59,7 +59,7 @@
         protected var languageIcon:Class;
 
         [Bindable]
-        protected var speakers:String;
+        protected var speakerNames:String;
 
         [Inject]
         public var conferenceController:ConferenceController;
@@ -87,14 +87,16 @@
 
         override public function set data(value:Object):void {
             super.data = value;
-            if (value) {
-                event = org.dukecon.model.Event(data[column.dataField]);
-            }
+            event = org.dukecon.model.Event(data[column.dataField]);
+            update();
         }
 
         override protected function commitProperties():void {
             super.commitProperties();
+            update();
+        }
 
+        protected function update():void {
             if (event) {
                 timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
                 locationName = conferenceController.getLocation(event.locationId).names[resourceManager.localeChain[0]];
@@ -109,15 +111,15 @@
                 var languageId:String = event.languageId ? event.languageId : "de";
                 languageName = conferenceController.getLanguage(languageId).names[resourceManager.localeChain[0]];
                 languageIcon = languageController.getIconForLanguage(event.languageId);
-                speakers = "";
+                speakerNames = "";
                 for each(var speakerId:String in event.speakerIds.split(",")) {
                     var speaker:Speaker = conferenceController.getSpeaker(speakerId);
-                    if (speakers != "") {
-                        speakers += ", ";
+                    if (speakerNames != "") {
+                        speakerNames += ", ";
                     }
-                    speakers += speaker.name;
+                    speakerNames += speaker.name;
                     if (speaker.company) {
-                        speakers += " (" + speaker.company + ")";
+                        speakerNames += " (" + speaker.company + ")";
                     }
                 }
             } else {
@@ -128,6 +130,7 @@
                 trackIcon = null;
                 languageName = null;
                 languageIcon = null;
+                speakerNames = null;
             }
 
             updateSelectionIcon();
@@ -153,6 +156,7 @@
         protected function onMoreClicked(evnt:MouseEvent):void {
             dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
         }
+
         ]]>
   </fx:Script>
 
@@ -167,7 +171,7 @@
 
     <s:VGroup top="20" left="20" right="20" bottom="20" gap="20" click="onMoreClicked(event)">
         <s:Label text="{event.title}" width="480" height="100" styleName="talkTitle"/>
-        <s:Label id="speakersLabel" width="480" styleName="talkSpeakers"/>
+        <s:Label id="speakersLabel" text="{speakerNames}" width="480" styleName="talkSpeakers"/>
         <s:VGroup width="100%" gap="10">
             <s:HGroup width="100%" gap="20" verticalAlign="middle">
                 <s:Image source="@Embed('/clock.png')" visible="{event != null}" width="32" height="32"/>

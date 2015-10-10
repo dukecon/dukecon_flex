@@ -30,6 +30,7 @@
         import org.dukecon.controller.TrackController;
         import org.dukecon.controller.UserPreferenceController;
         import org.dukecon.model.Event;
+        import org.dukecon.model.Speaker;
 
         [Embed(source="/star-unselected.png")]
         [Bindable]
@@ -80,7 +81,6 @@
             update();
         }
 
-
         override protected function commitProperties():void {
             super.commitProperties();
             update();
@@ -98,12 +98,16 @@
                 }
                 speakers = "";
                 if (event.speakerIds) {
-                    for each(var speaker:Object in event.speakerIds) {
-                        if (speaker) {
+                    for each(var speakerId:String in event.speakerIds.split(",")) {
+                        var speaker:Speaker = conferenceController.getSpeaker(speakerId);
+                        if(speaker) {
                             if (speakers.length > 0) {
-                                speakers += " | ";
+                                speakers += ", ";
                             }
-                            speakers += speaker.name + ", " + speaker.company;
+                            speakers += speaker.name;
+                            if(speaker.company) {
+                                speakers += " (" + speaker.company + ")";
+                            }
                         }
                     }
                 }
@@ -115,6 +119,12 @@
                 } else {
                     trackName = null;
                 }
+            } else {
+                trackIcon = null;
+                trackName = null;
+                languageIcon = null;
+                speakers = null;
+                locationName = null;
             }
         }
 
@@ -138,6 +148,7 @@
         protected function onRatingChanged(evnt:ItemClickEvent):void {
             conferenceController.setRating(event, Number(ratingGroup.selectedValue))
         }
+
         ]]>
     </fx:Script>
 
