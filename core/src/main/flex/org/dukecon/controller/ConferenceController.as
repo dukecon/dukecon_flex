@@ -230,15 +230,15 @@ public class ConferenceController extends EventDispatcher {
     }
 
     public function get locations():ArrayCollection {
-        var rooms:ArrayCollection = LocationBase.select(conn);
+        var locations:ArrayCollection = LocationBase.select(conn);
         var dataSortField:SortField = new SortField();
         dataSortField.name = "order";
         dataSortField.numeric = true;
         var dataSort:Sort = new Sort();
         dataSort.fields = [dataSortField];
-        rooms.sort = dataSort;
-        rooms.refresh();
-        return rooms;
+        locations.sort = dataSort;
+        locations.refresh();
+        return locations;
     }
 
     public function getLocation(id:String):Location {

@@ -75,7 +75,7 @@ package ${jClass.as3Type.packageName} {
                     this.${jProperty.name} = isoToDate(obj.${jProperty.name});
                 }<%
                 } else if(jProperty.name == "order") { %>
-                this.order = obj._order;
+                this.order = obj.order ? obj.order : obj._order;
                 <%
                 } else if(jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonIdentityReference) &&
                         jProperty.isAnnotationPresent(com.fasterxml.jackson.annotation.JsonProperty)) { %>

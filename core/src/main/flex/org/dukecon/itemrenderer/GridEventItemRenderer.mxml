@@ -99,8 +99,13 @@
                 timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
                 locationName = conferenceController.getLocation(event.locationId).names[resourceManager.localeChain[0]];
                 locationIcon = locationController.getIconForLocation(event.locationId);
-                trackName = conferenceController.getTrack(event.trackId).names[resourceManager.localeChain[0]];
-                trackIcon = trackController.getIconForTrack(event.trackId);
+                if(event.trackId) {
+                    trackName = conferenceController.getTrack(event.trackId).names[resourceManager.localeChain[0]];
+                    trackIcon = trackController.getIconForTrack(event.trackId);
+                } else {
+                    trackName = null;
+                    trackIcon = null;
+                }
                 var languageId:String = event.languageId ? event.languageId : "de";
                 languageName = conferenceController.getLanguage(languageId).names[resourceManager.localeChain[0]];
                 languageIcon = languageController.getIconForLanguage(event.languageId);
@@ -165,7 +170,7 @@
         <s:Label id="speakersLabel" width="480" styleName="talkSpeakers"/>
         <s:VGroup width="100%" gap="10">
             <s:HGroup width="100%" gap="20" verticalAlign="middle">
-                <s:Image source="@Embed('/clock.png')" width="32" height="32"/>
+                <s:Image source="@Embed('/clock.png')" visible="{event != null}" width="32" height="32"/>
                 <s:Label text="{timeString}" styleName="talkTime"/>
             </s:HGroup>
             <s:HGroup width="100%" gap="20" verticalAlign="middle">
