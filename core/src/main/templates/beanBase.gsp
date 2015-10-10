@@ -263,7 +263,7 @@ package ${jClass.as3Type.packageName} {
                 selectStatement.execute();
                 var sqlResult:SQLResult = selectStatement.getResult();
                 for each(var obj:Object in sqlResult.data) {
-                    var item:${jClass.as3Type.name} = new ${jClass.as3Type.name}(obj);
+                    var item:${jClass.as3Type.qualifiedName} = new ${jClass.as3Type.qualifiedName}(obj);
                     result.addItem(item);
                 }
             } catch(initError:SQLError) {
@@ -272,7 +272,7 @@ package ${jClass.as3Type.packageName} {
             return result;
         }
 
-        public static function selectById(conn:SQLConnection, id:String):${jClass.as3Type.name} {
+        public static function selectById(conn:SQLConnection, id:String):${jClass.as3Type.qualifiedName} {
             var selectStatement:SQLStatement = new SQLStatement();
             selectStatement.sqlConnection = conn;
             selectStatement.text = "SELECT * FROM ${jClass.as3Type.name} WHERE id = '" + id + "'";
@@ -280,7 +280,7 @@ package ${jClass.as3Type.packageName} {
                 selectStatement.execute();
                 var sqlResult:SQLResult = selectStatement.getResult();
                 for each(var obj:Object in sqlResult.data) {
-                    var item:${jClass.as3Type.name} = new ${jClass.as3Type.name}(obj);
+                    var item:${jClass.as3Type.qualifiedName} = new ${jClass.as3Type.qualifiedName}(obj);
                     return item;
                 }
             } catch(initError:SQLError) {

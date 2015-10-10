@@ -14,10 +14,10 @@
     <![CDATA[
         import org.dukecon.controller.TrackController;
         import org.dukecon.events.ListEvent;
-        import org.dukecon.model.Talk;
+        import org.dukecon.model.Event;
 
         [Bindable]
-        protected var talk:Talk;
+        protected var event:org.dukecon.model.Event;
 
         [Bindable]
         protected var trackIcon:Class;
@@ -34,9 +34,9 @@
         override public function set data(value:Object):void {
             super.data = value;
 
-            talk = Talk(data);
-            if (data) {
-                trackIcon = trackController.getIconForTrack(talk.trackId);
+            event = org.dukecon.model.Event(data);
+            if (event) {
+                trackIcon = trackController.getIconForTrack(event.trackId);
             } else {
                 trackIcon = null;
             }
@@ -50,8 +50,8 @@
             invalidateDisplayList();
         }
 
-        protected function onItemClick(event:MouseEvent):void {
-            dispatchEvent(new ListEvent(talk, ListEvent.ITEM_SELECTED));
+        protected function onItemClick(evnt:MouseEvent):void {
+            dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
         }
         ]]>
   </fx:Script>
@@ -77,7 +77,7 @@
     <u:VectorImage source="{trackIcon}" top="10" left="10" width="110" bottom="10"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="itemLabel" text="{talk.title}" styleName="talkListTitle"/>
+        <s:Label id="itemLabel" text="{event.title}" styleName="talkListTitle"/>
     </s:HGroup>
 
 </s:ItemRenderer>

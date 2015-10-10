@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-[RemoteClass(alias="org.dukecon.model.Talk")]
-public class Talk extends TalkBase {
+    [RemoteClass(alias="org.dukecon.model.Event")]
+    public class Event extends EventBase {
 
-    public function Talk(obj:Object = null) {
-        super(obj);
+        public function Event(obj:Object = null) {
+            super(obj);
+        }
+
     }
-
-}
 }

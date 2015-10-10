@@ -21,15 +21,13 @@
     <fx:Script>
     <![CDATA[
         import org.dukecon.controller.ConferenceController;
+        import org.dukecon.controller.LanguageController;
         import org.dukecon.controller.LocationController;
         import org.dukecon.controller.SettingsController;
         import org.dukecon.controller.TrackController;
         import org.dukecon.controller.UserPreferenceController;
         import org.dukecon.events.ListEvent;
-        import org.dukecon.model.Language;
-        import org.dukecon.model.Room;
-        import org.dukecon.model.Talk;
-        import org.dukecon.model.Track;
+        import org.dukecon.model.Speaker;
 
         [Embed(source="/star-unselected.png")]
         [Bindable]
@@ -40,7 +38,28 @@
         public var starSelected:Class;
 
         [Bindable]
-        protected var talk:Talk;
+        protected var event:org.dukecon.model.Event;
+
+        [Bindable]
+        protected var trackName:String;
+        [Bindable]
+        protected var trackIcon:Class;
+
+        [Bindable]
+        protected var timeString:String;
+
+        [Bindable]
+        protected var locationName:String;
+        [Bindable]
+        protected var locationIcon:Class;
+
+        [Bindable]
+        protected var languageName:String;
+        [Bindable]
+        protected var languageIcon:Class;
+
+        [Bindable]
+        protected var speakers:String;
 
         [Inject]
         public var conferenceController:ConferenceController;
@@ -50,6 +69,9 @@
 
         [Inject]
         public var locationController:LocationController;
+
+        [Inject]
+        public var languageController:LanguageController;
 
         [Inject]
         public var userPreferenceController:UserPreferenceController;
@@ -66,19 +88,25 @@
         override public function set data(value:Object):void {
             super.data = value;
             if (value) {
-                talk = Talk(data[column.dataField]);
+                event = org.dukecon.model.Event(data[column.dataField]);
             }
         }
 
         override protected function commitProperties():void {
             super.commitProperties();
 
-            if (talk) {
-                var room:Room = conferenceController.getRoom(talk.roomId);
-                var track:Track = conferenceController.getTrack(talk.trackId);
-                var language:Language = conferenceController.getLanguage(talk.languageId);
-                var speakers:String = "";
-                for each(var speaker:Object in talk.speakerIds) {
+            if (event) {
+                timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
+                locationName = conferenceController.getLocation(event.locationId).names[resourceManager.localeChain[0]];
+                locationIcon = locationController.getIconForLocation(event.locationId);
+                trackName = conferenceController.getTrack(event.trackId).names[resourceManager.localeChain[0]];
+                trackIcon = trackController.getIconForTrack(event.trackId);
+                var languageId:String = event.languageId ? event.languageId : "de";
+                languageName = conferenceController.getLanguage(languageId).names[resourceManager.localeChain[0]];
+                languageIcon = languageController.getIconForLanguage(event.languageId);
+                speakers = "";
+                for each(var speakerId:String in event.speakerIds.split(",")) {
+                    var speaker:Speaker = conferenceController.getSpeaker(speakerId);
                     if (speakers != "") {
                         speakers += ", ";
                     }
@@ -87,70 +115,43 @@
                         speakers += " (" + speaker.company + ")";
                     }
                 }
-
-                speakersLabel.text = speakers;
-                timeIcon.visible = true;
-                timeLabel.text = timeFormatter.format(talk.start) + " - " + timeFormatter.format(talk.end);
-                if(room) {
-                    locationIcon.source = locationController.getIconForLocation(room.id);
-                    locationLabel.text = room.name;
-                } else {
-                    locationIcon.source = null;
-                    locationLabel.text = "";
-                }
-                if(track) {
-                    trackIcon.source = trackController.getIconForTrack(track.id);
-                    trackLabel.text = track.names[resourceManager.localeChain[0]];
-                } else {
-                    trackIcon.source = null;
-                    trackLabel.text = "";
-                }
-                if(language) {
-                    languageIcon.visible = language.id == "en";
-                    languageLabel.text = language.names[resourceManager.localeChain[0]];
-                } else {
-                    languageIcon.visible = false;
-                    languageLabel.text = "";
-                }
             } else {
-                speakersLabel.text = "";
-                timeIcon.visible = false;
-                timeLabel.text = "";
-                locationIcon.source = null;
-                locationLabel.text = "";
-                trackIcon.source = null;
-                trackLabel.text = "";
-                languageIcon.visible = false;
-                languageLabel.text = "";
+                timeString = null;
+                locationName = null;
+                locationIcon = null;
+                trackName = null;
+                trackIcon = null;
+                languageName = null;
+                languageIcon = null;
             }
 
             updateSelectionIcon();
         }
 
         protected function updateSelectionIcon():void {
-            if (talk) {
-                favoriteImage.source = userPreferenceController.isTalkSelected(talk) ? starSelected : starUnselected;
+            if (event) {
+                favoriteImage.source = userPreferenceController.isEventSelected(event) ? starSelected : starUnselected;
             } else {
                 favoriteImage.source = null;
             }
         }
 
-        protected function toggleSelection(event:MouseEvent):void {
-            if (userPreferenceController.isTalkSelected(talk)) {
-                userPreferenceController.unselectTalk(talk);
+        protected function toggleSelection(evnt:MouseEvent):void {
+            if (userPreferenceController.isEventSelected(event)) {
+                userPreferenceController.unselectEvent(event);
             } else {
-                userPreferenceController.selectTalk(talk);
+                userPreferenceController.selectEvent(event);
             }
             updateSelectionIcon();
         }
 
-        protected function onMoreClicked(event:MouseEvent):void {
-            dispatchEvent(new ListEvent(talk, ListEvent.ITEM_SELECTED));
+        protected function onMoreClicked(evnt:MouseEvent):void {
+            dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
         }
         ]]>
   </fx:Script>
 
-    <s:Rect top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10" visible="{talk != null}">
+    <s:Rect top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10" visible="{event != null}">
         <s:fill>
             <s:SolidColor color="0xffffff"/>
         </s:fill>
@@ -160,24 +161,24 @@
     </s:Rect>
 
     <s:VGroup top="20" left="20" right="20" bottom="20" gap="20" click="onMoreClicked(event)">
-        <s:Label text="{talk.title}" width="480" styleName="talkTitle"/>
+        <s:Label text="{event.title}" width="480" height="100" styleName="talkTitle"/>
         <s:Label id="speakersLabel" width="480" styleName="talkSpeakers"/>
         <s:VGroup width="100%" gap="10">
             <s:HGroup width="100%" gap="20" verticalAlign="middle">
-                <s:Image id="timeIcon" source="@Embed('/clock.png')" width="32" height="32"/>
-                <s:Label id="timeLabel" styleName="talkTime"/>
+                <s:Image source="@Embed('/clock.png')" width="32" height="32"/>
+                <s:Label text="{timeString}" styleName="talkTime"/>
             </s:HGroup>
             <s:HGroup width="100%" gap="20" verticalAlign="middle">
-                <s:Image id="locationIcon" width="32" height="32"/>
-                <s:Label id="locationLabel" styleName="talkLocation"/>
+                <s:Image source="{locationIcon}" width="32" height="32"/>
+                <s:Label text="{locationName}" styleName="talkLocation"/>
             </s:HGroup>
             <s:HGroup width="100%" gap="20" verticalAlign="middle">
-                <s:Image id="trackIcon" width="32" height="32"/>
-                <s:Label id="trackLabel" styleName="talkTrack"/>
+                <s:Image source="{trackIcon}" width="32" height="32"/>
+                <s:Label text="{trackName}" styleName="talkTrack"/>
             </s:HGroup>
             <s:HGroup width="100%" gap="20" verticalAlign="middle">
-                <s:Image id="languageIcon" source="@Embed('/english-small.png')" width="32" height="32"/>
-                <s:Label id="languageLabel" styleName="talkLanguage"/>
+                <s:Image source="{languageIcon}" width="32" height="32"/>
+                <s:Label text="{languageName}" styleName="talkLanguage"/>
             </s:HGroup>
         </s:VGroup>
     </s:VGroup>

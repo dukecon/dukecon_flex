@@ -34,7 +34,7 @@
         protected var trackIcon:Class;
 
         [Bindable]
-        protected var talks:ArrayCollection;
+        protected var events:ArrayCollection;
 
         [Inject]
         public var conferenceController:ConferenceController;
@@ -50,11 +50,11 @@
             super.commitProperties();
             track = Track(data);
             trackIcon = trackController.getIconForTrack(track.id);
-            talks = conferenceController.getTalksForTrack(track);
+            events = conferenceController.getEventsForTrack(track);
         }
 
         protected function onTalkSelected(event:ListEvent):void {
-            navigator.pushView(TalkView, event.data);
+            navigator.pushView(EventView, event.data);
         }
         ]]>
     </fx:Script>
@@ -86,8 +86,8 @@
                 <u:VectorImage source="{trackIcon}" top="22" right="22" width="116" height="116"/>
             </s:Group>
             <s:List id="talkList" width="100%" height="100%"
-                    itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
-                    dataProvider="{talks}"/>
+                    itemRenderer="org.dukecon.itemrenderer.EventItemRenderer"
+                    dataProvider="{events}"/>
         </s:VGroup>
     </s:Scroller>
 

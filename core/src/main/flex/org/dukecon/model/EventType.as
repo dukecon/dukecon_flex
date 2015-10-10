@@ -7,12 +7,12 @@
 
 package org.dukecon.model {
 
-[RemoteClass(alias="org.dukecon.model.Room")]
-public class Room extends RoomBase {
+    [RemoteClass(alias="org.dukecon.model.EventType")]
+    public class EventType extends EventTypeBase {
 
-    public function Room(obj:Object = null) {
-        super(obj);
+        public function EventType(obj:Object = null) {
+            super(obj);
+        }
+
     }
-
-}
 }

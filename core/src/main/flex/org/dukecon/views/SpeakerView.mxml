@@ -35,7 +35,7 @@
         protected var speakerPortrait:Class;
 
         [Bindable]
-        protected var talks:ArrayCollection;
+        protected var events:ArrayCollection;
 
         [Inject]
         public var conferenceController:ConferenceController;
@@ -51,11 +51,11 @@
             super.commitProperties();
             speaker = Speaker(data);
             speakerPortrait = speakerController.getIconForSpeaker(speaker.name);
-            talks = conferenceController.getTalksForSpeaker(speaker);
+            events = conferenceController.getEventsForSpeaker(speaker);
         }
 
         protected function onTalkSelected(event:ListEvent):void {
-            navigator.pushView(TalkView, event.data);
+            navigator.pushView(EventView, event.data);
         }
         ]]>
     </fx:Script>
@@ -103,8 +103,8 @@
                 </s:FormItem>
             </s:Form>
             <s:List id="talkList" width="100%"
-                    itemRenderer="org.dukecon.itemrenderer.TalkItemRenderer"
-                    dataProvider="{talks}"/>
+                    itemRenderer="org.dukecon.itemrenderer.EventItemRenderer"
+                    dataProvider="{events}"/>
         </s:VGroup>
     </s:Scroller>
 

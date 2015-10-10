@@ -8,6 +8,7 @@
 
     <fx:Declarations>
         <controller:ConferenceController baseUrl="{baseUrl}"/>
+        <controller:LanguageController/>
         <controller:LocationController/>
         <controller:SpeakerController/>
         <controller:TrackController/>

@@ -23,8 +23,8 @@
 
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.events.ListEvent;
-        import org.dukecon.model.Room;
-        import org.dukecon.model.Talk;
+        import org.dukecon.model.Location;
+        import org.dukecon.model.Event;
 
         [Bindable]
         protected var formattedDate:String;
@@ -39,6 +39,15 @@
             grid.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
         }
 
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
+
+        override public function set data(value:Object):void {
+            super.data = value;
+        }
+
         override protected function commitProperties():void {
             super.commitProperties();
             if (data) {
@@ -47,22 +56,22 @@
                 var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
                 formattedDate = formatter.format(date);
 
-                var talksForDay:ArrayCollection = conferenceController.getTalksForDay(String(data));
+                var talksForDay:ArrayCollection = conferenceController.getEventsForDay(String(data));
                 var talkIndex:Object = {};
-                for each(var talk:Talk in talksForDay) {
-                    var start:String = timeFormatter.format(talk.start);
-                    var end:String = timeFormatter.format(talk.end);
-                    key = talk.roomId + "-" + start + " - " + end;
-                    talkIndex[key] = talk;
+                for each(var event:org.dukecon.model.Event in talksForDay) {
+                    var start:String = timeFormatter.format(event.start);
+                    var end:String = timeFormatter.format(event.end);
+                    key = event.locationId + "-" + start + " - " + end;
+                    talkIndex[key] = event;
                 }
                 var timeSlots:ArrayCollection = conferenceController.getTimeSlotsForDay(String(data));
-                var rooms:ArrayCollection = conferenceController.rooms;
+                var locations:ArrayCollection = conferenceController.locations;
                 var gridData:Array = [];
-                for each(var room:Room in rooms) {
+                for each(var location:Location in locations) {
                     var item:Object = {};
-                    item.room = room;
+                    item.location = location;
                     for each(var timeSlot:String in timeSlots) {
-                        key = room.id + "-" + timeSlot;
+                        key = location.id + "-" + timeSlot;
                         item[timeSlot] = talkIndex[key];
                     }
                     gridData.push(item);
@@ -74,7 +83,7 @@
         }
 
         protected function onTalkSelected(event:ListEvent):void {
-            navigator.pushView(TalkView, event.data);
+            navigator.pushView(EventView, event.data);
         }
 
         protected function updateGrid():void {
@@ -105,30 +114,30 @@
         <s:columns>
             <s:ArrayList>
                 <s:GridColumn dataField="location" headerText="" width="40"
-                              itemRenderer="org.dukecon.itemrenderer.header.RoomItemRenderer"/>
+                              itemRenderer="org.dukecon.itemrenderer.header.LocationItemRenderer"/>
                 <s:GridColumn dataField="10:00 - 10:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
+                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
                               headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
                 <s:GridColumn dataField="11:00 - 11:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
+                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
                               headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
                 <s:GridColumn dataField="12:00 - 12:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
+                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
                               headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
                 <s:GridColumn dataField="13:00 - 13:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
+                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
                               headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
                 <s:GridColumn dataField="14:00 - 14:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
+                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
                               headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
                 <s:GridColumn dataField="15:00 - 15:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
+                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
                               headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
                 <s:GridColumn dataField="16:00 - 16:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
+                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
                               headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
                 <s:GridColumn dataField="17:00 - 17:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridTalkItemRenderer"
+                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
                               headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
             </s:ArrayList>
         </s:columns>

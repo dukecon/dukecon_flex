@@ -16,7 +16,7 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 
 import org.dukecon.events.UserPreferenceDataChangedEvent;
-import org.dukecon.model.Talk;
+import org.dukecon.model.Event;
 import org.dukecon.model.user.UserPreference;
 import org.dukecon.model.user.UserPreferenceBase;
 import org.jboss.keycloak.flex.MobileKeycloakRestService;
@@ -84,11 +84,11 @@ public class UserPreferenceController extends EventDispatcher {
 
             // Flush the table and add each user preference returned by the server.
             UserPreferenceBase.clearTable(conn);
-            var selectedTalkIds:ArrayCollection = new ArrayCollection();
+            var selectedEventIds:ArrayCollection = new ArrayCollection();
             for each(var obj:Object in result as Array) {
                 var userPreference:UserPreference = new UserPreference(obj);
                 userPreference.persist(conn);
-                selectedTalkIds.addItem(userPreference.talkId);
+                selectedEventIds.addItem(userPreference.eventId);
             }
             trace("Got: " + result.length + " preferences.");
 
@@ -96,10 +96,10 @@ public class UserPreferenceController extends EventDispatcher {
             if (uncommittedAdditions.length > 0) {
                 trace("Replaying uncommitted additions:");
                 for each(var addition:UserPreference in uncommittedAdditions) {
-                    // Only re-send the addition if the talk was not
+                    // Only re-send the addition if the event was not
                     // selected, as it could have been added by another
                     // client.
-                    if (!selectedTalkIds.contains(addition.talkId)) {
+                    if (!selectedEventIds.contains(addition.eventId)) {
                         addUserPreference(addition);
                     }
                 }
@@ -108,10 +108,10 @@ public class UserPreferenceController extends EventDispatcher {
             if (uncommittedDeletes.length > 0) {
                 trace("Replaying uncommitted deletions:");
                 for each(var deletion:UserPreference in uncommittedDeletes) {
-                    // Only re-send the deletion if the talk was still
+                    // Only re-send the deletion if the event was still
                     // selected, as it could have been removed by another
                     // client.
-                    if (selectedTalkIds.contains(addition.talkId)) {
+                    if (selectedEventIds.contains(addition.eventId)) {
                         deleteUserPreference(deletion);
                     }
                 }
@@ -129,25 +129,6 @@ public class UserPreferenceController extends EventDispatcher {
         if (!uncommittedAdditions.contains(userPreference)) {
             uncommittedAdditions.addItem(userPreference);
         }
-
-        /*        if (authController.accessToken) {
-         trace("Add: " + userPreference.talkId);
-         addService.headers = {
-         Accept: "application/json",
-         Authorization: "Bearer " + authController.accessToken
-         };
-         var jsonString:String = JSON.stringify(userPreference);
-         var token:AsyncToken = addService.send(jsonString);
-         token.userPreference = userPreference;
-         token.addResponder(new Responder(function (event:ResultEvent):void {
-         var userPreference:UserPreference = UserPreference(event.token.userPreference);
-         uncommittedAdditions.removeItem(userPreference);
-         trace("Added: " + userPreference.talkId);
-         }, onFault));
-         } else {
-         trace("Added locally: " + userPreference.talkId);
-         }
-         */
     }
 
     public function deleteUserPreference(userPreference:UserPreference):void {
@@ -161,25 +142,6 @@ public class UserPreferenceController extends EventDispatcher {
         if (!uncommittedDeletes.contains(userPreference)) {
             uncommittedDeletes.addItem(userPreference);
         }
-
-        /*        if (authController.accessToken) {
-         trace("Remove: " + userPreference.talkId);
-         removeService.headers = {
-         Accept: "application/json",
-         Authorization: "Bearer " + authController.accessToken
-         };
-         var jsonString:String = JSON.stringify(userPreference);
-         var token:AsyncToken = removeService.send(jsonString);
-         token.userPreference = userPreference;
-         token.addResponder(new Responder(function (event:ResultEvent):void {
-         var userPreference:UserPreference = UserPreference(event.token.userPreference);
-         uncommittedDeletes.removeItem(userPreference);
-         trace("Removed: " + userPreference.talkId);
-         }, onFault));
-         } else {
-         trace("Removed locally: " + userPreference.talkId);
-         }
-         */
     }
 
     protected function onFault(fault:FaultEvent):void {
@@ -190,14 +152,14 @@ public class UserPreferenceController extends EventDispatcher {
         // by a different client. So it's safe to ignore the error response.
         if (fault.statusCode == 409) {
             uncommittedAdditions.removeItem(userPreference);
-            trace("Added (duplicate): " + userPreference.talkId);
+            trace("Added (duplicate): " + userPreference.eventId);
         }
         // This is usually returned if we try to remove something, that's not there.
         // The only time this should happen, is if the same item had been removed
         // by a different client. So it's safe to ignore the error response.
         else if (fault.statusCode == 404) {
             uncommittedDeletes.removeItem(userPreference);
-            trace("Removed (non-existent): " + userPreference.talkId);
+            trace("Removed (non-existent): " + userPreference.eventId);
         }
         // In all other cases something went wrong, so let's at least log it.
         else {
@@ -206,21 +168,21 @@ public class UserPreferenceController extends EventDispatcher {
     }
 
     public function get userPreferences():ArrayCollection {
-        var talks:ArrayCollection = UserPreferenceBase.select(conn);
-        return talks;
+        var events:ArrayCollection = UserPreferenceBase.select(conn);
+        return events;
     }
 
-    public function isTalkSelected(talk:Talk):Boolean {
-        if (!talk) return false;
+    public function isEventSelected(event:org.dukecon.model.Event):Boolean {
+        if (!event) return false;
         var userPreferences:ArrayCollection =
-                executeQuery("SELECT DISTINCT talkId FROM UserPreference WHERE talkId = '" + talk.id + "'");
+                executeQuery("SELECT DISTINCT eventId FROM UserPreference WHERE eventId = '" + event.id + "'");
         return userPreferences && (userPreferences.length > 0);
     }
 
-    public function selectTalk(talk:Talk):void {
-        if (!talk) return;
+    public function selectEvent(event:org.dukecon.model.Event):void {
+        if (!event) return;
         var userPreference:UserPreference = new UserPreference();
-        userPreference.talkId = talk.id;
+        userPreference.eventId = event.id;
         userPreference.version = 0;
         userPreference.persist(conn);
 
@@ -228,11 +190,11 @@ public class UserPreferenceController extends EventDispatcher {
         addUserPreference(userPreference);
     }
 
-    public function unselectTalk(talk:Talk):void {
-        if (!talk) return;
-        var userPreferences:ArrayCollection = UserPreferenceBase.select(conn, "talkId = " + talk.id);
+    public function unselectEvent(event:org.dukecon.model.Event):void {
+        if (!event) return;
+        var userPreferences:ArrayCollection = UserPreferenceBase.select(conn, "eventId = " + event.id);
         if (userPreferences != null) {
-            executeQuery("DELETE FROM UserPreference WHERE talkId = '" + talk.id + "'");
+            executeQuery("DELETE FROM UserPreference WHERE eventId = '" + event.id + "'");
 
             // Write the preferences back to the server.
             deleteUserPreference(userPreferences[0]);
