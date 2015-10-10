@@ -100,14 +100,14 @@
                 }
                 if(track) {
                     trackIcon.source = trackController.getIconForTrack(track.id);
-                    trackLabel.text = track.names['de'];
+                    trackLabel.text = track.names[resourceManager.localeChain[0]];
                 } else {
                     trackIcon.source = null;
                     trackLabel.text = "";
                 }
                 if(language) {
                     languageIcon.visible = language.id == "en";
-                    languageLabel.text = language.names['de'];
+                    languageLabel.text = language.names[resourceManager.localeChain[0]];
                 } else {
                     languageIcon.visible = false;
                     languageLabel.text = "";

@@ -93,7 +93,7 @@
                 title = startTimeFormatter.format(talk.start) + " - " + endTimeFormatter.format(talk.end);
                 ratingGroup.selectedValue = conferenceController.getRating(talk);
                 roomName = conferenceController.getRoom(talk.roomId).name;
-                trackName = conferenceController.getTrack(talk.trackId).names['de'];
+                trackName = conferenceController.getTrack(talk.trackId).names[resourceManager.localeChain[0]];
             }
         }
 

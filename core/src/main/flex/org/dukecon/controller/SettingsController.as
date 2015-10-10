@@ -5,6 +5,8 @@ import flash.events.NetStatusEvent;
 import flash.net.SharedObject;
 import flash.net.SharedObjectFlushStatus;
 
+import mx.resources.ResourceManager;
+
 import org.dukecon.events.SettingsChangedEvent;
 
 [Event(type="org.dukecon.events.SettingsChangedEvent", name="settingsChanged")]
@@ -15,6 +17,8 @@ public class SettingsController extends EventDispatcher {
 
     public function SettingsController() {
         settings = SharedObject.getLocal("settings");
+
+        ResourceManager.getInstance().localeChain = [selectedLanguage];
     }
 
     [Bindable("settingsChanged")]
