@@ -310,16 +310,7 @@ public class ConferenceController extends EventDispatcher {
     }
 
     public function getTalksForSpeaker(speaker:Speaker):ArrayCollection {
-        var result:ArrayCollection = new ArrayCollection();
-        for each(var talk:Talk in talks) {
-            for each(var speakerId:Object in talk.speakerIds.split(",")) {
-                if(speakerId == speaker.id) {
-                    result.addItem(talk);
-                    break;
-                }
-            }
-        }
-        return result;
+        return TalkBase.select(conn, "id IN (" + speaker.talkIds + ")");
     }
 
     public function setRating(talk:Talk, rating:Number):void {
