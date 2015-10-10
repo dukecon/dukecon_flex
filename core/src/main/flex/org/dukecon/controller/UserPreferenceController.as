@@ -20,6 +20,7 @@ import org.dukecon.model.Event;
 import org.dukecon.model.user.UserPreference;
 import org.dukecon.model.user.UserPreferenceBase;
 import org.jboss.keycloak.flex.MobileKeycloakRestService;
+import org.jboss.keycloak.flex.util.KeycloakToken;
 
 import spark.components.ViewNavigator;
 
@@ -29,6 +30,7 @@ public class UserPreferenceController extends EventDispatcher {
 
     private var cookieStores:Object;
     private var getService:MobileKeycloakRestService;
+    private var clientId:String;
 //    private var addService:HTTPService;
 //    private var removeService:HTTPService;
 
@@ -82,6 +84,8 @@ public class UserPreferenceController extends EventDispatcher {
         token.addEventListener(ResultEvent.RESULT, function (event:ResultEvent):void {
             var result:Object = event.result;
 
+            clientId = KeycloakToken(token).keycloakToken['sub'];
+            trace("ClientId: " + clientId);
             // Flush the table and add each user preference returned by the server.
             UserPreferenceBase.clearTable(conn);
             var selectedEventIds:ArrayCollection = new ArrayCollection();
