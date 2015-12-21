@@ -11,6 +11,7 @@
 
     <fx:Script>
         <![CDATA[
+        import mx.core.FlexGlobals;
         import mx.events.FlexEvent;
         import mx.events.ResizeEvent;
 
@@ -46,26 +47,40 @@
         protected function onCreationComplete(event:FlexEvent):void {
             stageWebView = new StageWebView();
             stageWebView.stage = stage;
-            var viewPort:Rectangle = new Rectangle(0, 0, width, height);
-            stageWebView.viewPort = viewPort;
             stageWebView.addEventListener(LocationChangeEvent.LOCATION_CHANGE, onBrowserLocationChange);
             stageWebView.addEventListener(LocationChangeEvent.LOCATION_CHANGING, onBrowserLocationChanging);
             if (currentUrl) {
                 stageWebView.loadURL(currentUrl);
                 currentUrl = null;
             }
+            invalidateProperties();
         }
 
         protected function onResize(event:ResizeEvent):void {
+            invalidateProperties();
+        }
+
+        override protected function commitProperties():void {
+            super.commitProperties();
             if (stageWebView) {
-                var viewPort:Rectangle = new Rectangle(0, 0, width, height);
+                // It seems this needs to be done or the sizes are not correct.
+                var runtimeDPI:int = FlexGlobals.topLevelApplication.runtimeDPI;
+                var applicationDPI:int = FlexGlobals.topLevelApplication.applicationDPI;
+                var scaleFactor:Number = runtimeDPI / applicationDPI;
+                var localPoint:Point = new Point(x, y);
+                var globalPoint:Point = localToGlobal(localPoint)
+                var browserTop:Number = globalPoint.y;
+                var browserLeft:Number = globalPoint.x;
+                var browserWidth:Number = width * scaleFactor;
+                var browserHeight:Number = height * scaleFactor;
+                var viewPort:Rectangle = new Rectangle(browserLeft, browserTop, browserWidth, browserHeight);
                 stageWebView.viewPort = viewPort;
             }
         }
 
         protected function onBrowserLocationChange(event:LocationChangeEvent):void {
             trace(event);
-            if(event.location.indexOf("http://keycloak.dukecon.org") == 0) {
+            if (event.location.indexOf("http://keycloak.dukecon.org") == 0) {
                 event.preventDefault();
                 dispatchEvent(new BrowserEvent(BrowserEvent.LOCATION_CHANGED, null, event.location));
             }

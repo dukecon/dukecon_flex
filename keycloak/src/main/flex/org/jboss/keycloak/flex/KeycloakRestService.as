@@ -319,8 +319,5 @@ public class KeycloakRestService extends EventDispatcher {
         return request;
     }
 
-
-
-
 }
 }

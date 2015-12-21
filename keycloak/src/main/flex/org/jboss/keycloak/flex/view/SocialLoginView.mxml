@@ -20,7 +20,7 @@
         protected var socialLoginCallback:Function;
 
         protected function onCreationComplete(event:FlexEvent):void {
-            browser.addEventListener(BrowserEvent.LOCATION_CHANGED, onBrowserLocationChanged)
+            browser.addEventListener(BrowserEvent.LOCATION_CHANGED, onBrowserLocationChanged);
         }
 
         [Bindable("locationChanged")]
@@ -51,7 +51,7 @@
 
         protected function onBrowserLocationChanged(event:BrowserEvent):void {
             // If we were directed back to the Keycloak server, we'll take over again.
-            if(KeycloakToken.getHostName(event.newUrl) == SocialLoginEvent(data).keycloakHost) {
+            if (KeycloakToken.getHostName(event.newUrl) == SocialLoginEvent(data).keycloakHost) {
                 browser.close();
                 navigator.popView();
                 socialLoginCallback(event.newUrl);
