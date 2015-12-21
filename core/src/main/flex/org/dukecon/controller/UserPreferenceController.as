@@ -84,46 +84,50 @@ public class UserPreferenceController extends EventDispatcher {
         token.addEventListener(ResultEvent.RESULT, function (event:ResultEvent):void {
             var result:Object = event.result;
 
-            clientId = KeycloakToken(token).keycloakToken['sub'];
-            trace("ClientId: " + clientId);
-            // Flush the table and add each user preference returned by the server.
-            UserPreferenceBase.clearTable(conn);
-            var selectedEventIds:ArrayCollection = new ArrayCollection();
-            for each(var obj:Object in result as Array) {
-                var userPreference:UserPreference = new UserPreference(obj);
-                userPreference.persist(conn);
-                selectedEventIds.addItem(userPreference.eventId);
+            if(KeycloakToken(token).keycloakToken) {
+                clientId = KeycloakToken(token).keycloakToken['sub'];
             }
-            trace("Got: " + result.length + " preferences.");
-
-            // If there are outstanding creations or deletions, replay them now.
-            if (uncommittedAdditions.length > 0) {
-                trace("Replaying uncommitted additions:");
-                for each(var addition:UserPreference in uncommittedAdditions) {
-                    // Only re-send the addition if the event was not
-                    // selected, as it could have been added by another
-                    // client.
-                    if (!selectedEventIds.contains(addition.eventId)) {
-                        addUserPreference(addition);
-                    }
+            if(clientId) {
+                trace("ClientId: " + clientId);
+                // Flush the table and add each user preference returned by the server.
+                UserPreferenceBase.clearTable(conn);
+                var selectedEventIds:ArrayCollection = new ArrayCollection();
+                for each(var obj:Object in result as Array) {
+                    var userPreference:UserPreference = new UserPreference(obj);
+                    userPreference.persist(conn);
+                    selectedEventIds.addItem(userPreference.eventId);
                 }
-                trace("Done replaying uncommitted additions.");
-            }
-            if (uncommittedDeletes.length > 0) {
-                trace("Replaying uncommitted deletions:");
-                for each(var deletion:UserPreference in uncommittedDeletes) {
-                    // Only re-send the deletion if the event was still
-                    // selected, as it could have been removed by another
-                    // client.
-                    if (selectedEventIds.contains(addition.eventId)) {
-                        deleteUserPreference(deletion);
-                    }
-                }
-                trace("Done replaying uncommitted deletions.");
-            }
+                trace("Got: " + result.length + " preferences.");
 
-            dispatchEvent(new UserPreferenceDataChangedEvent(
-                    UserPreferenceDataChangedEvent.USER_PREFERENCE_DATA_CHANGED));
+                // If there are outstanding creations or deletions, replay them now.
+                if (uncommittedAdditions.length > 0) {
+                    trace("Replaying uncommitted additions:");
+                    for each(var addition:UserPreference in uncommittedAdditions) {
+                        // Only re-send the addition if the event was not
+                        // selected, as it could have been added by another
+                        // client.
+                        if (!selectedEventIds.contains(addition.eventId)) {
+                            addUserPreference(addition);
+                        }
+                    }
+                    trace("Done replaying uncommitted additions.");
+                }
+                if (uncommittedDeletes.length > 0) {
+                    trace("Replaying uncommitted deletions:");
+                    for each(var deletion:UserPreference in uncommittedDeletes) {
+                        // Only re-send the deletion if the event was still
+                        // selected, as it could have been removed by another
+                        // client.
+                        if (selectedEventIds.contains(addition.eventId)) {
+                            deleteUserPreference(deletion);
+                        }
+                    }
+                    trace("Done replaying uncommitted deletions.");
+                }
+
+                dispatchEvent(new UserPreferenceDataChangedEvent(
+                        UserPreferenceDataChangedEvent.USER_PREFERENCE_DATA_CHANGED));
+            }
         });
     }
 
