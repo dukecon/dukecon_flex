@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
-                xmlns:u="org.dukecon.utils.*"
+                xmlns:comp="org.dukecon.components.*"
                 xmlns:parsley="http://www.spicefactory.org/parsley"
                 height="136"
                 click="onItemClick(event)">
@@ -66,7 +66,7 @@
         </s:stroke>
     </s:Rect>
 
-    <u:VectorImage source="{locationIcon}" top="10" left="10" width="110" bottom="10"/>
+    <comp:VectorImage source="{locationIcon}" top="10" left="10" width="110" bottom="10"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
         <s:Label id="itemLabel" text="{locationName}" styleName="listTitle"/>

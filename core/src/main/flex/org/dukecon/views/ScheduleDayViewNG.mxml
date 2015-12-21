@@ -1,0 +1,141 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 30.05.15.
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:parsley="http://www.spicefactory.org/parsley"
+        xmlns:exp="http://flex.apache.org/experimental/ns"
+        title="{formattedDate}" preinitialize="onPreinitialize(event)">
+
+    <fx:Declarations>
+        <parsley:FastInject property="conferenceController" type="{ConferenceController}"/>
+        <s:DateTimeFormatter id="formatter"
+                             dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
+        <s:DateTimeFormatter id="timeFormatter"
+                             dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>
+    </fx:Declarations>
+
+    <fx:Script>
+    <![CDATA[
+        import mx.collections.ArrayCollection;
+        import mx.events.FlexEvent;
+
+        import org.dukecon.controller.ConferenceController;
+        import org.dukecon.events.ListEvent;
+        import org.dukecon.model.Location;
+        import org.dukecon.model.Event;
+        import org.spicefactory.parsley.view.Configure;
+
+        [Bindable]
+        protected var items:Array;
+
+        [Bindable]
+        protected var dateString:String;
+
+        [Bindable]
+        protected var startDate:Date;
+
+        [Bindable]
+        protected var endDate:Date;
+
+        [Bindable]
+        protected var formattedDate:String;
+
+        [Bindable]
+        protected var talkDataProvider:ArrayCollection;
+
+        [Bindable]
+        protected var locationDataProvider:ArrayCollection;
+
+        [Inject]
+        public var conferenceController:ConferenceController;
+
+        protected function onPreinitialize(event:FlexEvent):void {
+            Configure.view(this).execute();
+            updateTalks();
+        }
+
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
+
+        override public function set data(value:Object):void {
+            super.data = value;
+            dateString = String(value);
+
+            if(dateString) {
+                var matches:Array = dateString.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+                var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
+                formattedDate = formatter.format(date);
+            } else {
+                formattedDate = null;
+            }
+
+            updateTalks();
+        }
+
+        public function updateTalks():void {
+            if(dateString && conferenceController) {
+                var talksForDay:ArrayCollection = conferenceController.getEventsForDay(dateString);
+                var locationIndex:Object = {};
+                var newStartDate:Date = null;
+                var newEndDate:Date = null;
+                for each(var event:org.dukecon.model.Event in talksForDay) {
+                    if(!newStartDate || (event.start < newStartDate)) {
+                        newStartDate = event.start;
+                    }
+                    if(!newEndDate || (event.end < newEndDate)) {
+                        newEndDate = event.end;
+                    }
+                    if(!locationIndex[event.locationId]) {
+                        locationIndex[event.locationId] = [];
+                    }
+                    locationIndex[event.locationId].push(event);
+                }
+                startDate = newStartDate;
+                endDate = newEndDate;
+                locationDataProvider = conferenceController.locations;
+                talkDataProvider = new ArrayCollection();
+                for each(var location:Location in locationDataProvider) {
+                    var item:Object = { location: location, events: locationIndex[location.id]};
+                    talkDataProvider.addItem(item);
+                }
+                trace(locationDataProvider.length);
+
+                items = talksForDay.source;
+            } else {
+                startDate = null;
+                endDate = null;
+                locationDataProvider = null;
+                talkDataProvider = null;
+            }
+        }
+
+        protected function onTalkSelected(event:ListEvent):void {
+            navigator.pushView(EventView, event.data);
+        }
+
+        protected function getLocationText(item:*):String {
+            return item.location.names[resourceManager.localeChain];
+        }
+
+        ]]>
+  </fx:Script>
+
+    <s:navigationContent>
+        <s:Button label="&lt;" click="{navigator.popView()}"/>
+    </s:navigationContent>
+
+    <!--comp:MobileSchedule width="{this.width}" height="{this.height}" dataProvider="{talkDataProvider}">
+    </comp:MobileSchedule-->
+    <exp:MobileGrid id="grid" width="{this.width}" height="{this.height}" dataProvider="{talkDataProvider}">
+        <exp:columns>
+            <exp:MobileGridColumn dataField="locationId" labelFunction="getLocationText" width="100"
+                                  itemRenderer="org.dukecon.itemrenderer.header.RotatedMobileGridTextCellRenderer"/>
+            <exp:MobileGridColumn dataField="events" width="4000"/>
+        </exp:columns>
+    </exp:MobileGrid>
+
+</s:View>

@@ -11,6 +11,9 @@
             // As Object needs no import, simply omit the import.
             else if(jImport.as3Type.qualifiedName == "org.granite.collections.IMap") {
             }
+            // We will use Date for this type and that needs no import.
+            else if(jImport.as3Type.qualifiedName == "java.time.LocalDateTime") {
+            }
             // We don't need imports of the same package.
             else {
                 if(jImport.as3Type.packageName != jClass.as3Type.packageName) {
@@ -97,6 +100,12 @@ package ${jClass.as3Type.packageName} {
                         this.${jProperty.name}[${jProperty.name}Key] = ${jProperty.name}Value;
                     }
                 }<%
+                } else if("java.time.LocalDateTime".equals(jProperty.as3Type.qualifiedName)) { %>
+                if(obj.${jProperty.name} is Date) {
+                    this.${jProperty.name} = obj.${jProperty.name} as Date;
+                } else {
+                    this.${jProperty.name} = isoToDate(obj.${jProperty.name});
+                }<%
                 } else { %>
                 if(obj.${jProperty.name}) {
                     this.${jProperty.name} = new ${jProperty.as3Type.name}(obj.${jProperty.name});
@@ -129,6 +138,8 @@ package ${jClass.as3Type.packageName} {
         private var _${jProperty.name}:Array;<%
         } else if(jProperty.as3Type.name == "IMap") { %>
         private var _${jProperty.name}:Object;<%
+        } else if(jProperty.as3Type.name == "LocalDateTime") { %>
+        private var _${jProperty.name}:Date;<%
         } else { %>
         private var _${jProperty.name}:${jProperty.as3Type.name};<%
         }
@@ -158,6 +169,10 @@ package ${jClass.as3Type.packageName} {
         public function set ${jProperty.name}(value:Object):void {
             _${jProperty.name} = value;
         }<%
+                } else if(jProperty.as3Type.name == "LocalDateTime") {%>
+        public function set ${jProperty.name}(value:Date):void {
+            _${jProperty.name} = value;
+        }<%
                 } else {%>
         public function set ${jProperty.name}(value:${jProperty.as3Type.name}):void {
             _${jProperty.name} = value;
@@ -180,6 +195,10 @@ package ${jClass.as3Type.packageName} {
         }<%
                 } else if(jProperty.as3Type.name == "IMap") {%>
         public function get ${jProperty.name}():Object {
+            return _${jProperty.name};
+        }<%
+                } else if(jProperty.as3Type.name == "LocalDateTime") {%>
+        public function get ${jProperty.name}():Date {
             return _${jProperty.name};
         }<%
                 } else {%>

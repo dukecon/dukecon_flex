@@ -42,7 +42,7 @@
         protected function onRefreshClicked(event:MouseEvent):void {
             conferenceController.updateEvents();
 //            if (authController.loggedIn) {
-            userPreferenceController.readUserPreferences(navigator);
+//            userPreferenceController.readUserPreferences(navigator);
 //            }
         }
 

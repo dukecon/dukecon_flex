@@ -1,7 +1,7 @@
 /**
  * Created by christoferdutz on 22.05.15.
  */
-package org.dukecon.utils {
+package org.dukecon.components {
 import flash.display.DisplayObject;
 
 import mx.core.UIComponent;

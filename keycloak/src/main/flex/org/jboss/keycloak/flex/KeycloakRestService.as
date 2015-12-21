@@ -128,8 +128,7 @@ public class KeycloakRestService extends EventDispatcher {
                                 trace(e);
                             }
                             var decodedToken:String = decodedByteArray.toString();
-                            var keycloakToken:Object = JSON.parse(decodedToken.substr(1, decodedToken.length - 1));
-                            trace(keycloakToken);
+                            token.keycloakToken = JSON.parse(decodedToken);
                         }
                     }
                     // Setting an empty value is a delete-request.
