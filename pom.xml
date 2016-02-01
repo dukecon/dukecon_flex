@@ -19,9 +19,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Flex related properties -->
-        <flex.version>4.14.1</flex.version>
-        <air.version>18.0</air.version>
-        <flexmojos.version>7.1.0-SNAPSHOT</flexmojos.version>
+        <flex.version>4.15.0</flex.version>
+        <air.version>20.0</air.version>
+        <flexmojos.version>7.1.0</flexmojos.version>
         <apparat.version>1.0-RC9</apparat.version>
         <!-- Set this to localhost if you would like to test upload server -->
         <nexus.repository.host>dev.dukecon.org</nexus.repository.host>
@@ -69,7 +69,7 @@
                 </plugin>
             </plugins>
         </pluginManagement>
-   </build>
+    </build>
 
     <repositories>
         <!--
@@ -168,7 +168,7 @@
         </pluginRepository>
     </pluginRepositories>
     
-        <distributionManagement>
+    <distributionManagement>
         <repository>
             <id>dukecon</id>
             <name>DukeCon Snapshots</name>
