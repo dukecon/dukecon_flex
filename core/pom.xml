@@ -308,14 +308,6 @@
             <type>swc</type>
         </dependency>
 
-        <!-- Component lib containing the schedule view -->
-        <dependency>
-            <groupId>com.flexicious</groupId>
-            <artifactId>dashboard</artifactId>
-            <version>3.2</version>
-            <type>swc</type>
-        </dependency>
-
         <dependency>
             <groupId>org.apache.flex.flexunit</groupId>
             <artifactId>flexunit-flex</artifactId>

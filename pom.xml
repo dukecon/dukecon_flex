@@ -51,8 +51,8 @@
                         <debug>${debug}</debug>
                         <advancedTelemetry>true</advancedTelemetry>
                         <localesCompiled>
-                            <locale>de,de_DE</locale>
-                            <locale>en,en_US</locale>
+                            <locale>de_DE</locale>
+                            <locale>en_US</locale>
                         </localesCompiled>
                         <rslUrls>
                             <url>rsl/{artifactId}-{version}.{extension}</url>
