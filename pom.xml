@@ -71,6 +71,15 @@
         </pluginManagement>
     </build>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.flex.utilities.converter</groupId>
+            <artifactId>flex-sdk-converter-maven-extension</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
     <repositories>
         <!--
             This is where we get released stuff from.
