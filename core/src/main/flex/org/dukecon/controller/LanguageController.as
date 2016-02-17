@@ -12,14 +12,20 @@ public class LanguageController {
     [Bindable]
     public var de:Class;
 
+    [Embed(source="/languages/deen.png")]
+    [Bindable]
+    public var deen:Class;
+
     public function LanguageController() {
     }
 
     public function getIconForLanguage(id:String):Class {
-        if(id == "en_US") {
+        if(id == "en") {
             return en;
-        } else if(id == "de_DE") {
+        } else if(id == "de") {
             return de;
+        } else if(id == "germanenglish") {
+            return deen;
         } else {
             return null;
         }

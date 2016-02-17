@@ -60,7 +60,6 @@
         protected function onDaySelected(event:ListEvent):void {
             navigator.pushView(ScheduleDayView, event.data);
         }
-
         ]]>
     </fx:Script>
 

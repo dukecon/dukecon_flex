@@ -36,6 +36,10 @@ public class TrackController {
     [Bindable]
     protected static var track_newcomer:Class;
 
+    [Embed(source="/tracks/track_unknown.jpg")]
+    [Bindable]
+    protected static var track_unknown:Class;
+
     public function TrackController() {
     }
 
@@ -58,8 +62,9 @@ public class TrackController {
                     return track_enterprise_java_cloud;
                 case "8":
                     return track_frontend_mobile;
+                default:
+                    return track_unknown;
             }
-            trace("Couldn't find icon for: " + id);
         }
         return null;
     }

@@ -229,6 +229,15 @@ public class ConferenceController extends EventDispatcher {
         return LanguageBase.selectById(conn, id);
     }
 
+    public function getLanguageName(id:String, locale:String):String {
+        var language:Language = getLanguage(id);
+        if(language) {
+            var parts:Array = locale.split("_");
+            return language.names[parts[0]];
+        }
+        return null;
+    }
+
     public function get locations():ArrayCollection {
         var locations:ArrayCollection = LocationBase.select(conn);
         var dataSortField:SortField = new SortField();
@@ -245,6 +254,15 @@ public class ConferenceController extends EventDispatcher {
         return LocationBase.selectById(conn, id);
     }
 
+    public function getLocationName(id:String, locale:String):String {
+        var location:Location = getLocation(id);
+        if(location) {
+            var parts:Array = locale.split("_");
+            return location.names[parts[0]];
+        }
+        return null;
+    }
+
     public function get tracks():ArrayCollection {
         var tracks:ArrayCollection = TrackBase.select(conn);
         var dataSortField:SortField = new SortField();
@@ -259,6 +277,15 @@ public class ConferenceController extends EventDispatcher {
 
     public function getTrack(id:String):Track {
         return TrackBase.selectById(conn, id);
+    }
+
+    public function getTrackName(id:String, locale:String):String {
+        var track:Track = getTrack(id);
+        if(track) {
+            var parts:Array = locale.split("_");
+            return track.names[parts[0]];
+        }
+        return null;
     }
 
     public function get speakers():ArrayCollection {

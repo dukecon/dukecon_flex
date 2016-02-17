@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  Created by christoferdutz on 30.05.15.
+  Created by christoferdutz on 17.02.16.
 -->
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
@@ -17,14 +17,15 @@
     </fx:Declarations>
 
     <fx:Script>
-    <![CDATA[
+        <![CDATA[
         import mx.collections.ArrayCollection;
         import mx.events.FlexEvent;
 
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.events.ListEvent;
-        import org.dukecon.model.Location;
         import org.dukecon.model.Event;
+        import org.dukecon.model.Location;
+        import org.dukecon.utils.EventItemFactory;
 
         [Bindable]
         protected var dateString:String;
@@ -32,8 +33,10 @@
         [Bindable]
         protected var formattedDate:String;
 
-        [Bindable]
-        protected var dataProvider:ArrayCollection;
+        protected var dataProvider:ArrayCollection = new ArrayCollection();
+
+        protected var dayStart:Number;
+        protected var locationIds:ArrayCollection;
 
         [Inject]
         public var conferenceController:ConferenceController;
@@ -59,37 +62,43 @@
         }
 
         protected function update():void {
+            var event:org.dukecon.model.Event;
+
             if (dateString && conferenceController) {
-                var key:String;
                 var matches:Array = dateString.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
                 var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
                 formattedDate = formatter.format(date);
 
                 var talksForDay:ArrayCollection = conferenceController.getEventsForDay(dateString);
-                var talkIndex:Object = {};
-                for each(var event:org.dukecon.model.Event in talksForDay) {
-                    var start:String = timeFormatter.format(event.start);
-                    var end:String = timeFormatter.format(event.end);
-                    key = event.locationId + "-" + start + " - " + end;
-                    talkIndex[key] = event;
-                }
-                var timeSlots:ArrayCollection = conferenceController.getTimeSlotsForDay(dateString);
                 var locations:ArrayCollection = conferenceController.locations;
-                var gridData:Array = [];
-                for each(var location:Location in locations) {
-                    var item:Object = {};
-                    item.location = location;
-                    for each(var timeSlot:String in timeSlots) {
-                        key = location.id + "-" + timeSlot;
-                        item[timeSlot] = talkIndex[key];
+
+                // Find out the time range in which all events are.
+                dayStart = NaN;
+                for each(event in talksForDay) {
+                    if (event.end.time - event.start.time > 0) {
+                        if ((isNaN(dayStart)) || (dayStart > event.start.time)) {
+                            dayStart = event.start.time;
+                        }
                     }
-                    gridData.push(item);
                 }
-                dataProvider = new ArrayCollection(gridData);
+
+                locationIds = new ArrayCollection();
+                for each(var location:Location in locations) {
+                    locationIds.addItem(location.id);
+                }
+
+                for each(event in talksForDay) {
+                    if (event.end.time - event.start.time > 0) {
+                        dataProvider.addItem(event);
+                    }
+                }
             } else {
                 formattedDate = null;
-                dataProvider = null;
             }
+        }
+
+        private function itemRenderer(event:org.dukecon.model.Event):IFactory {
+            return new EventItemFactory(dayStart, locationIds);
         }
 
         protected function onTalkSelected(event:ListEvent):void {
@@ -97,44 +106,30 @@
         }
 
         ]]>
-  </fx:Script>
+    </fx:Script>
 
     <s:navigationContent>
         <s:Button label="&lt;" click="{navigator.popView()}"/>
     </s:navigationContent>
 
-    <s:DataGrid id="grid" lockedColumnCount="1" lockedRowCount="0" dataProvider="{dataProvider}"
-                width="100%" height="100%" styleName="dukeconGrid">
-        <s:columns>
-            <s:ArrayList>
-                <s:GridColumn dataField="location" headerText="" width="40"
-                              itemRenderer="org.dukecon.itemrenderer.header.LocationItemRenderer"/>
-                <s:GridColumn dataField="10:00 - 10:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
-                              headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
-                <s:GridColumn dataField="11:00 - 11:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
-                              headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
-                <s:GridColumn dataField="12:00 - 12:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
-                              headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
-                <s:GridColumn dataField="13:00 - 13:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
-                              headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
-                <s:GridColumn dataField="14:00 - 14:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
-                              headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
-                <s:GridColumn dataField="15:00 - 15:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
-                              headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
-                <s:GridColumn dataField="16:00 - 16:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
-                              headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
-                <s:GridColumn dataField="17:00 - 17:40" width="600"
-                              itemRenderer="org.dukecon.itemrenderer.GridEventItemRenderer"
-                              headerRenderer="org.dukecon.itemrenderer.header.TimeHeaderRenderer"/>
-            </s:ArrayList>
-        </s:columns>
-    </s:DataGrid>
+    <s:Scroller id="scroller" top="0" left="0" right="0" bottom="0">
+        <s:Group width="100%" height="100%"
+                 minWidth="{grid.contentWidth}"
+                 minHeight="{grid.contentHeight}">
+            <s:Rect width="{grid.contentWidth}"
+                    height="{grid.contentHeight}">
+                <s:fill>
+                    <s:SolidColor color="0xEEEEEE"/>
+                </s:fill>
+            </s:Rect>
+
+            <s:DataGroup id="grid" dataProvider="{dataProvider}"
+                         itemRendererFunction="itemRenderer" clipAndEnableScrolling="true">
+                <s:layout>
+                    <s:BasicLayout/>
+                </s:layout>
+            </s:DataGroup>
+        </s:Group>
+    </s:Scroller>
 
 </s:View>

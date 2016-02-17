@@ -113,9 +113,9 @@
                 }
                 title = startTimeFormatter.format(event.start) + " - " + endTimeFormatter.format(event.end);
                 ratingGroup.selectedValue = conferenceController.getRating(event);
-                locationName = conferenceController.getLocation(event.locationId).names[resourceManager.localeChain[0]];
+                locationName = conferenceController.getLocationName(event.locationId, resourceManager.localeChain[0]);
                 if(event.trackId) {
-                    trackName = conferenceController.getTrack(event.trackId).names[resourceManager.localeChain[0]];
+                    trackName = conferenceController.getTrackName(event.trackId, resourceManager.localeChain[0]);
                 } else {
                     trackName = null;
                 }

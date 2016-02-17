@@ -20,6 +20,8 @@
 
     <fx:Script>
     <![CDATA[
+        import mx.collections.ArrayCollection;
+
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.controller.LanguageController;
         import org.dukecon.controller.LocationController;
@@ -80,6 +82,9 @@
         [Bindable]
         public var settingsController:SettingsController;
 
+        public var startTime:Number;
+        public var locationIds:ArrayCollection;
+
         [Bindable("dataChange")]
         override public function get data():Object {
             return super.data;
@@ -87,29 +92,37 @@
 
         override public function set data(value:Object):void {
             super.data = value;
-            event = org.dukecon.model.Event(data[column.dataField]);
+            event = org.dukecon.model.Event(value);
             update();
         }
 
         override protected function commitProperties():void {
             super.commitProperties();
+            adjustSize();
             update();
+        }
+
+        protected function adjustSize():void {
+            // Update the position of the item based on it's data.
+            x = (event.start.time - startTime) / 4000;
+            y = locationIds.getItemIndex(event.locationId) * 394;
+            width = (event.end.time - event.start.time) / 4000;
         }
 
         protected function update():void {
             if (event) {
                 timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
-                locationName = conferenceController.getLocation(event.locationId).names[resourceManager.localeChain[0]];
+                locationName = conferenceController.getLocationName(event.locationId, resourceManager.localeChain[0]);
                 locationIcon = locationController.getIconForLocation(event.locationId);
                 if(event.trackId) {
-                    trackName = conferenceController.getTrack(event.trackId).names[resourceManager.localeChain[0]];
+                    trackName = conferenceController.getTrackName(event.trackId, resourceManager.localeChain[0]);
                     trackIcon = trackController.getIconForTrack(event.trackId);
                 } else {
                     trackName = null;
                     trackIcon = null;
                 }
                 var languageId:String = event.languageId ? event.languageId : "de";
-                languageName = conferenceController.getLanguage(languageId).names[resourceManager.localeChain[0]];
+                languageName = conferenceController.getLanguageName(languageId, resourceManager.localeChain[0]);
                 languageIcon = languageController.getIconForLanguage(event.languageId);
                 speakerNames = "";
                 for each(var speakerId:String in event.speakerIds.split(",")) {
@@ -117,9 +130,11 @@
                     if (speakerNames != "") {
                         speakerNames += ", ";
                     }
-                    speakerNames += speaker.name;
-                    if (speaker.company) {
-                        speakerNames += " (" + speaker.company + ")";
+                    if(speaker) {
+                        speakerNames += speaker.name;
+                        if (speaker.company) {
+                            speakerNames += " (" + speaker.company + ")";
+                        }
                     }
                 }
             } else {
@@ -171,7 +186,7 @@
 
     <s:VGroup top="20" left="20" right="20" bottom="20" gap="20" click="onMoreClicked(event)">
         <s:Label text="{event.title}" width="480" height="100" styleName="talkTitle"/>
-        <s:Label id="speakersLabel" text="{speakerNames}" width="480" styleName="talkSpeakers"/>
+        <s:Label id="speakersLabel" text="{speakerNames}" width="480" height="56" styleName="talkSpeakers"/>
         <s:VGroup width="100%" gap="10">
             <s:HGroup width="100%" gap="20" verticalAlign="middle">
                 <s:Image source="@Embed('/clock.png')" visible="{event != null}" width="32" height="32"/>
