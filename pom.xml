@@ -72,6 +72,7 @@
     </build>
 
     <dependencies>
+        <!-- Hack to download the extension ... can be removed after it is released -->
         <dependency>
             <groupId>org.apache.flex.utilities.converter</groupId>
             <artifactId>flex-sdk-converter-maven-extension</artifactId>

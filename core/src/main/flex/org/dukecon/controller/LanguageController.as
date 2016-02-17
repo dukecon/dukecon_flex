@@ -16,9 +16,9 @@ public class LanguageController {
     }
 
     public function getIconForLanguage(id:String):Class {
-        if(id == "en") {
+        if(id == "en_US") {
             return en;
-        } else if(id == "de") {
+        } else if(id == "de_DE") {
             return de;
         } else {
             return null;

@@ -50,11 +50,11 @@
             }
 
             languageButtons = [];
-            for each(var language:Language in conferenceController.languages) {
+            for each(var language:String in ["de_DE", "en_US"]) {
                 var languageButton:RadioButton = new  RadioButton();
-                languageButton.label = language.names[language.id];
-                languageButton.value = language.id;
-                languageButton.selected = (language.id == resourceManager.localeChain[0]);
+                languageButton.label = resourceManager.getString('dukecon', 'language.' + language);
+                languageButton.value = language;
+                languageButton.selected = (language == resourceManager.localeChain[0]);
                 languageButton.addEventListener("change", onLanguageChange);
                 languageSelection.addElement(languageButton);
                 languageButtons.push(languageButton);

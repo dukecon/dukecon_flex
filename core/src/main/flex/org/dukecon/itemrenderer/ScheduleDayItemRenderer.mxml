@@ -5,6 +5,10 @@
                 height="136"
                 click="onItemClick(event)">
 
+    <fx:Metadata>
+        [ResourceBundle("dukecon")]
+    </fx:Metadata>
+
     <fx:Declarations>
         <parsley:Configure/>
         <s:DateTimeFormatter id="formatter"
@@ -12,7 +16,7 @@
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
         <s:DateTimeFormatter id="dayFormatter"
                              locale="{settingsController.selectedLanguage}"
-                             dateTimePattern="{resourceManager.getString('dukecon', 'datetime.dayOfWeek')}"/>
+                             dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dayOfWeek')}"/>
     </fx:Declarations>
 
     <fx:Script>

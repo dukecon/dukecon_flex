@@ -142,7 +142,7 @@
                             <targetPlatform>android</targetPlatform>
                         </configuration>
                     </execution-->
-                    <!--<execution>
+                    <!--execution>
                         <id>package-android-captive</id>
                         <goals>
                             <goal>package-air</goal>
@@ -152,7 +152,7 @@
                             <includeCaptiveRuntime>true</includeCaptiveRuntime>
                             <classifier>captive</classifier>
                         </configuration>
-                    </execution>-->
+                    </execution-->
                     <!--
                         Packaging for ios
                     -->
@@ -182,6 +182,10 @@
                             <value>"${base-url}"</value>
                         </property>
                     </defines>
+                    <!--localesCompiled>
+                        <locale>de_DE</locale>
+                        <locale>en_US</locale>
+                    </localesCompiled-->
                     <keepAs3Metadatas>
                         <name>ManagedEvents</name>
                         <name>MessageHandler</name>

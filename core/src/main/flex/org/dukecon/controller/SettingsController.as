@@ -26,7 +26,7 @@ public class SettingsController extends EventDispatcher {
         if (settings.data && settings.data.savedValue) {
             return settings.data.savedValue["language"];
         }
-        return "en";
+        return "en_US";
     }
 
     public function set selectedLanguage(language:String):void {
