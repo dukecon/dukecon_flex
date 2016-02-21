@@ -100,11 +100,6 @@
         override public function set data(value:Object):void {
             super.data = value;
             event = org.dukecon.model.Event(value);
-            update();
-        }
-
-        override protected function commitProperties():void {
-            super.commitProperties();
             adjustSize();
             update();
         }
