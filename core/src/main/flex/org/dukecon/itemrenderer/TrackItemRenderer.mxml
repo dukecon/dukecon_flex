@@ -7,7 +7,7 @@
                 click="onItemClick(event)">
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject property="trackController" type="{TrackController}" />
     </fx:Declarations>
 
     <fx:Script>
@@ -38,15 +38,10 @@
             update();
         }
 
-        override protected function commitProperties():void {
-            super.commitProperties();
-            update();
-        }
-
         protected function update():void {
             if (track && trackController) {
                 trackIcon = trackController.getIconForTrack(track.id);
-                trackName = track.names[resourceManager.localeChain[0]];
+                trackName = track.getName(resourceManager.localeChain[0]);
             } else {
                 trackIcon = null;
                 trackName = null;

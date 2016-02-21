@@ -132,7 +132,7 @@ public class ConferenceController extends EventDispatcher {
             }
         }
 
-        TrackBase.createTable(conn);
+        TrackBase.clearTable(conn);
         var persistedTrackIds:Array = [];
         for each(obj in result.metaData.tracks as Array) {
             var track:Track = new Track(obj);

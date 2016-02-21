@@ -7,7 +7,7 @@
                 click="onItemClick(event)">
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject property="trackController" type="{TrackController}" />
     </fx:Declarations>
 
     <fx:Script>
@@ -37,13 +37,8 @@
             update();
         }
 
-        override protected function commitProperties():void {
-            super.commitProperties();
-            update();
-        }
-
         protected function update():void {
-            if (event) {
+            if (event && trackController) {
                 trackIcon = trackController.getIconForTrack(event.trackId);
             } else {
                 trackIcon = null;
@@ -55,7 +50,6 @@
         protected function onItemClick(evnt:MouseEvent):void {
             dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
         }
-
         ]]>
   </fx:Script>
 

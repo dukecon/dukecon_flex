@@ -7,7 +7,10 @@ import flash.data.SQLResult;
 import flash.data.SQLStatement;
 import flash.errors.SQLError;
 import flash.events.EventDispatcher;
+import flash.events.NetStatusEvent;
 import flash.filesystem.File;
+import flash.net.SharedObject;
+import flash.net.SharedObjectFlushStatus;
 
 import mx.collections.ArrayCollection;
 import mx.messaging.messages.HTTPRequestMessage;
@@ -28,9 +31,8 @@ import spark.components.ViewNavigator;
 [ManagedEvents("userPreferenceDataChanged")]
 public class UserPreferenceController extends EventDispatcher {
 
-    private var cookieStores:Object;
+    private var preferenceSettings:SharedObject;
     private var getService:MobileKeycloakRestService;
-    private var clientId:String;
 //    private var addService:HTTPService;
 //    private var removeService:HTTPService;
 
@@ -43,12 +45,19 @@ public class UserPreferenceController extends EventDispatcher {
     public var baseUrl:String;
 
     public function UserPreferenceController() {
-        cookieStores = {};
+        preferenceSettings = SharedObject.getLocal("preference-settings");
+        if(!preferenceSettings.data.cookieStore) {
+            preferenceSettings.data.cookieStore = {};
+        }
     }
 
     [Init]
     public function init():void {
         getService = new MobileKeycloakRestService();
+        //getService.preferredProvider = "keycloak";
+        //getService.preferredProvider = "github";
+        //getService.preferredProvider = "google";
+        //getService.preferredProvider = "twitter";
 
         /*        addService = new HTTPService();
          addService.contentType = "application/json";
@@ -80,9 +89,12 @@ public class UserPreferenceController extends EventDispatcher {
     public function readUserPreferences(navigator:ViewNavigator):void {
         getService.navigator = navigator;
         var token:AsyncToken = getService.send(baseUrl + "/rest/preferences", HTTPRequestMessage.GET_METHOD,
-                cookieStores);
+                preferenceSettings.data.cookieStore);
         token.addEventListener(ResultEvent.RESULT, function (event:ResultEvent):void {
-            var result:Object = event.result;
+            // Persist any changes to the cookie store.
+            flushSharedObject(preferenceSettings);
+
+            /*var result:Object = event.result;
 
             if(KeycloakToken(token).keycloakToken) {
                 clientId = KeycloakToken(token).keycloakToken['sub'];
@@ -127,7 +139,7 @@ public class UserPreferenceController extends EventDispatcher {
 
                 dispatchEvent(new UserPreferenceDataChangedEvent(
                         UserPreferenceDataChangedEvent.USER_PREFERENCE_DATA_CHANGED));
-            }
+            }*/
         });
     }
 
@@ -224,6 +236,38 @@ public class UserPreferenceController extends EventDispatcher {
             throw new Error("Error selecting records from table '${jClass.as3Type.name}': " + initError.message);
         }
         return result;
+    }
+
+    protected function flushSharedObject(so:SharedObject):void {
+        var flushStatus:String = null;
+        try {
+            flushStatus = so.flush(10000);
+        } catch (error:Error) {
+            trace("Error...Could not write SharedObject to disk\n");
+        }
+        if (flushStatus != null) {
+            switch (flushStatus) {
+                case SharedObjectFlushStatus.PENDING:
+                    trace("Requesting permission to save object...\n");
+                    so.addEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
+                    break;
+                case SharedObjectFlushStatus.FLUSHED:
+                    trace("Value flushed to disk.\n");
+                    break;
+            }
+        }
+    }
+
+    private function onFlushStatus(event:NetStatusEvent):void {
+        trace("User closed permission dialog...\n");
+        switch (event.info.code) {
+            case "SharedObject.Flush.Success":
+                trace("User granted permission -- value saved.\n");
+                break;
+            case "SharedObject.Flush.Failed":
+                trace("User denied permission -- value not saved.\n");
+                break;
+        }
     }
 
 }

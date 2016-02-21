@@ -10,7 +10,7 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject property="settingsController" type="{SettingsController}" />
         <s:DateTimeFormatter id="formatter"
                              locale="{settingsController.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
@@ -38,14 +38,25 @@
         [Bindable]
         public var settingsController:SettingsController;
 
-        override protected function commitProperties():void {
-            super.commitProperties();
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
 
-            if (data) {
-                var matches:Array = String(data).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
-                date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
+        override public function set data(value:Object):void {
+            super.data = value;
+            var matches:Array = String(data).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+            date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
+            update();
+        }
+
+        protected function update():void {
+            if (date) {
                 formattedData = formatter.format(date);
                 dayString = dayFormatter.format(date);
+            } else {
+                formattedData = null;
+                dayString = null;
             }
 
             itemLabel.width = this.parent.parent.width - 168;

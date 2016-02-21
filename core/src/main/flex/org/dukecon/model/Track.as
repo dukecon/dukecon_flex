@@ -13,6 +13,11 @@ public class Track extends TrackBase {
     public function Track(obj:Object = null) {
         super(obj);
     }
+    
+    public function getName(locale:String):String {
+        var parts:Array = locale.split("_");
+        return names[parts[0]];
+    }
 
 }
 }

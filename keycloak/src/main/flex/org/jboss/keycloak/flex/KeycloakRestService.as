@@ -38,6 +38,7 @@ public class KeycloakRestService extends EventDispatcher {
     protected static const STATE_CALL_REST_SERVICE_AFTER_LOGIN:int = 50;
 
     protected var keycloakAdapter:KeycloakAdapter;
+    public var preferredProvider:String;
 
     public function KeycloakRestService(keycloakAdapter:KeycloakAdapter = null) {
         super();
@@ -49,6 +50,17 @@ public class KeycloakRestService extends EventDispatcher {
     }
 
     public function send(url:String, method:String, cookieStores:Object = null):AsyncToken {
+        // If a preferred provider is set and is not set to "keycloak",
+        // pass the hint parameter to keycloak.
+        if(preferredProvider && (preferredProvider != "keycloak")) {
+            if(url.indexOf("?") != -1) {
+                url += "&";
+            } else {
+                url += "?";
+            }
+            url += "kc_idp_hint=" + preferredProvider;
+        }
+
         var token:KeycloakToken = new KeycloakToken(cookieStores);
         token.state = STATE_CALL_REST_SERVICE;
         token.currentUrl = url;
@@ -180,7 +192,9 @@ public class KeycloakRestService extends EventDispatcher {
                     token.keycloakHost = KeycloakToken.getHostName(token.currentUrl);
                     var response:XML = keycloakAdapter.parseResponse(token.loader.data);
                     var manualLoginUrl:String = keycloakAdapter.getFormLoginUrlXPath(response);
-                    var socialProviders:Object = keycloakAdapter.getSocialProviders(response);
+                    // If "keycloak" is the preferred provider, we simply omit all social providers.
+                    var socialProviders:Object = (preferredProvider != "keycloak") ?
+                            keycloakAdapter.getSocialProviders(response) : {};
                     var feedbackMessage:String = keycloakAdapter.getFeedbackMessage(response);
                     var keycloakEvent:KeycloakLoginEvent = new KeycloakLoginEvent(KeycloakLoginEvent.SHOW_LOGIN_SCREEN,
                             socialProviders,
@@ -223,7 +237,22 @@ public class KeycloakRestService extends EventDispatcher {
                     request = createUrlRequest(token, URLRequestMethod.GET);
                     token.loader.load(request);
                 }
-
+                // If a preferred provider was specified, we might be directly redirected
+                // to the social provider login.
+                else if (token.status == 307) {
+                    token.state = STATE_LOGIN_USING_SOCIAL_PROVIDER;
+                    token.currentUrl = token.redirectUrl;
+                    request = createUrlRequest(token, URLRequestMethod.GET);
+                    token.loader.load(request);
+                    var provider:String = token.currentUrl.substr(token.currentUrl.indexOf("/broker/") + 8);
+                    provider = provider.substr(0, provider.indexOf("/"));
+                    token.selectedProvider = provider;
+                }
+                // We get an 500 error, if a provider is selected that no longer exists or
+                // never existed (This condition is rather unspecific).
+                else if ((token.status == 500) && preferredProvider) {
+                    // TODO: Implement something ...
+                }
                 else {
                     trace("In State: STATE_CONTACT_KEYCLOAK_SERVER got return code: " + token.status);
                 }
@@ -289,7 +318,7 @@ public class KeycloakRestService extends EventDispatcher {
         throw new Error("This method must be implemented in sub-type.");
     }
 
-    protected static function createUrlRequest(token:KeycloakToken, method:String):URLRequest {
+    protected function createUrlRequest(token:KeycloakToken, method:String):URLRequest {
         var request:URLRequest = new URLRequest(token.currentUrl);
         request.method = method;
 

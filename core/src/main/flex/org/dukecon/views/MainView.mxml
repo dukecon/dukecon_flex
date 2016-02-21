@@ -12,7 +12,10 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject injectionComplete="init();">
+            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
+            <parsley:Inject property="userPreferenceController" type="{UserPreferenceController}" />
+        </parsley:FastInject>
     </fx:Declarations>
 
     <fx:Script>

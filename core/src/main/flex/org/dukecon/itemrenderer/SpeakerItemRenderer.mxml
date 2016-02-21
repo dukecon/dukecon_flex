@@ -7,7 +7,7 @@
                 click="onItemClick(event)">
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject property="speakerController" type="{SpeakerController}" />
     </fx:Declarations>
 
     <fx:Script>
@@ -25,11 +25,19 @@
         [Inject]
         public var speakerController:SpeakerController;
 
-        override protected function commitProperties():void {
-            super.commitProperties();
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
 
+        override public function set data(value:Object):void {
+            super.data = value;
             speaker = Speaker(data);
-            if (speaker) {
+            update();
+        }
+
+        protected function update():void {
+            if (speaker && speakerController) {
                 speakerIcon = speakerController.getIconForSpeaker(speaker.name);
             } else {
                 speakerIcon = null;

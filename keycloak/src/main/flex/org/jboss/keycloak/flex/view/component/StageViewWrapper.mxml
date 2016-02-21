@@ -79,7 +79,6 @@
         }
 
         protected function onBrowserLocationChange(event:LocationChangeEvent):void {
-            trace(event);
             if (event.location.indexOf("http://keycloak.dukecon.org") == 0) {
                 event.preventDefault();
                 dispatchEvent(new BrowserEvent(BrowserEvent.LOCATION_CHANGED, null, event.location));

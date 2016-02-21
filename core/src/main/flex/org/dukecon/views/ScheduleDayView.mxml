@@ -9,7 +9,7 @@
         creationComplete="onCreationComplete(event)">
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject property="conferenceController" type="{ConferenceController}" />
         <s:DateTimeFormatter id="formatter"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
         <s:DateTimeFormatter id="timeFormatter"
@@ -33,6 +33,7 @@
         [Bindable]
         protected var formattedDate:String;
 
+        [Bindable]
         protected var dataProvider:ArrayCollection = new ArrayCollection();
 
         protected var dayStart:Number;

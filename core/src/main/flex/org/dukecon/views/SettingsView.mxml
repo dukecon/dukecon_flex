@@ -13,7 +13,10 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject>
+            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
+            <parsley:Inject property="settingsController" type="{SettingsController}" />
+        </parsley:FastInject>
         <!--s:RadioButtonGroup id="languageGroup" change="onLanguageChange(event)"/-->
     </fx:Declarations>
 

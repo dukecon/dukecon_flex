@@ -12,7 +12,7 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject injectionComplete="init();" property="conferenceController" type="{ConferenceController}" />
     </fx:Declarations>
 
     <fx:Script>
@@ -36,20 +36,10 @@
         [Inject]
         public var conferenceController:ConferenceController;
 
-        [Inject]
-        public var context:Context;
-
         [Init]
         public function init():void {
             listData = conferenceController.locations;
             list.addEventListener(ListEvent.ITEM_SELECTED, onLocationSelected)
-
-            var registry:MessageReceiverRegistry = context.scopeManager.getScope(ScopeName.GLOBAL).messageReceivers;
-            var info:MessageReceiverInfo = new MessageReceiverInfo();
-            info.type = ClassInfo.forClass(ConferenceDataChangedEvent);
-            var handler:DefaultMessageHandler = new DefaultMessageHandler(info);
-            handler.init(Provider.forInstance(this), ClassInfo.forInstance(this).getMethod("onConferenceDataChanged"));
-            registry.addTarget(handler);
         }
 
         [MessageHandler]

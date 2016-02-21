@@ -14,7 +14,10 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject>
+            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
+            <parsley:Inject property="speakerController" type="{SpeakerController}" />
+        </parsley:FastInject>
     </fx:Declarations>
 
     <fx:Script>

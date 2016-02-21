@@ -14,5 +14,10 @@ package org.dukecon.model {
             super(obj);
         }
 
+        public function getName(locale:String):String {
+            var parts:Array = locale.split("_");
+            return names[parts[0]];
+        }
+
     }
 }

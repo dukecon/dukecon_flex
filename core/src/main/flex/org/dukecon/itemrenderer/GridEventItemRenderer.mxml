@@ -12,7 +12,14 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject>
+            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
+            <parsley:Inject property="trackController" type="{TrackController}" />
+            <parsley:Inject property="locationController" type="{LocationController}" />
+            <parsley:Inject property="languageController" type="{LanguageController}" />
+            <parsley:Inject property="userPreferenceController" type="{UserPreferenceController}" />
+            <parsley:Inject property="settingsController" type="{SettingsController}" />
+        </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
                              locale="{settingsController.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>

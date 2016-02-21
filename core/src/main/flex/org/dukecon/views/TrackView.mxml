@@ -14,7 +14,10 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:Configure/>
+        <parsley:FastInject>
+            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
+            <parsley:Inject property="trackController" type="{TrackController}" />
+        </parsley:FastInject>
     </fx:Declarations>
 
     <fx:Script>
@@ -66,8 +69,8 @@
 
         protected function update():void {
             if(track && trackController && conferenceController) {
+                trackName = track.getName(resourceManager.localeChain[0]);
                 trackIcon = trackController.getIconForTrack(track.id);
-                trackName = track.names[resourceManager.localeChain[0]];
                 events = conferenceController.getEventsForTrack(track);
             } else {
                 trackIcon = null;

@@ -57,6 +57,7 @@
                         <rslUrls>
                             <url>rsl/{artifactId}-{version}.{extension}</url>
                         </rslUrls>
+                        <advancedTelemetry>true</advancedTelemetry>
                     </configuration>
                     <dependencies>
                         <dependency>
