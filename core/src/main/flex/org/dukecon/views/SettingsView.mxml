@@ -76,7 +76,7 @@
             }
 
             // Hide the button that currently should not be displayed.
-            if (settingsController.serverAccount) {
+            /*if (settingsController.serverAccount) {
                 bindButton.visible = false;
                 unbindButton.visible = true;
             } else {
@@ -84,7 +84,7 @@
                 unbindButton.visible = false;
             }
             bindButton.includeInLayout = bindButton.visible;
-            unbindButton.includeInLayout = unbindButton.visible;
+            unbindButton.includeInLayout = unbindButton.visible;*/
         }
 
         protected function onBackClicked(event:MouseEvent):void {
@@ -119,12 +119,12 @@
     <s:Form width="100%">
         <s:FormItem id="languageSelection" label="{resourceManager.getString('dukecon', 'settings.language')}:"
                      width="300"/>
-        <s:FormItem label="{resourceManager.getString('dukecon', 'settings.server-account')}:" width="300">
+        <!--s:FormItem label="{resourceManager.getString('dukecon', 'settings.server-account')}:" width="300">
             <s:Button id="bindButton" label="{resourceManager.getString('dukecon', 'settings.server-account.bind')}"
                       click="onBindClicked(event)" width="100%"/>
             <s:Button id="unbindButton" label="{resourceManager.getString('dukecon', 'settings.server-account.unbind')}"
                       click="onUnbindClicked(event)" width="100%"/>
-        </s:FormItem>
+        </s:FormItem-->
     </s:Form>
 
 </s:View>
