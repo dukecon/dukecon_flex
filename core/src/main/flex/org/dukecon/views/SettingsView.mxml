@@ -16,8 +16,8 @@
         <parsley:FastInject>
             <parsley:Inject property="conferenceController" type="{ConferenceController}" />
             <parsley:Inject property="settingsController" type="{SettingsController}" />
+            <parsley:Inject property="userPreferenceController" type="{UserPreferenceController}" />
         </parsley:FastInject>
-        <!--s:RadioButtonGroup id="languageGroup" change="onLanguageChange(event)"/-->
     </fx:Declarations>
 
     <s:navigationContent>
@@ -32,7 +32,7 @@
         import org.dukecon.controller.ConferenceController;
 
         import org.dukecon.controller.SettingsController;
-        import org.dukecon.model.Language;
+        import org.dukecon.controller.UserPreferenceController;
 
         import spark.components.RadioButton;
 
@@ -41,6 +41,9 @@
 
         [Inject]
         public var settingsController:SettingsController;
+
+        [Inject]
+        public var userPreferenceController:UserPreferenceController;
 
         protected var languageButtons:Array;
 
@@ -104,7 +107,7 @@
         }
 
         protected function onBindClicked(event:MouseEvent):void {
-
+            userPreferenceController.readUserPreferences(navigator);
         }
 
         protected function onUnbindClicked(event:MouseEvent):void {

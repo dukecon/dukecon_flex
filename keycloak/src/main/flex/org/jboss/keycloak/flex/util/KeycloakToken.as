@@ -3,6 +3,7 @@
  */
 package org.jboss.keycloak.flex.util {
 import flash.net.URLLoader;
+import flash.net.URLRequest;
 
 import mx.rpc.AsyncToken;
 
@@ -45,9 +46,25 @@ public class KeycloakToken extends AsyncToken {
     public function set state(value:int):void {
         _state = value;
     }
-
-    public function get loader():URLLoader {
-        return _loader;
+    
+    public function load(request:URLRequest):void {
+        if(!_loader) {
+            throw new Error("No loader specified");
+        }
+        trace(" ");
+        trace(" ");
+        trace("----------------------------------------------------------------------");
+        trace("-- New HTTP Request");
+        trace("----------------------------------------------------------------------");
+        trace("Loading = " + request.url);
+        _loader.load(request);
+    }
+    
+    public function get data():* {
+        if(!_loader) {
+            throw new Error("No loader specified");
+        }
+        return _loader.data;       
     }
 
     public function set loader(value:URLLoader):void {

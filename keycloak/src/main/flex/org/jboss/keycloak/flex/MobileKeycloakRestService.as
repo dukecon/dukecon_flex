@@ -2,6 +2,7 @@
  * Created by christoferdutz on 17.09.15.
  */
 package org.jboss.keycloak.flex {
+import org.jboss.keycloak.flex.adapter.KeycloakAdapter;
 import org.jboss.keycloak.flex.event.KeycloakLoginEvent;
 import org.jboss.keycloak.flex.event.SocialLoginEvent;
 import org.jboss.keycloak.flex.view.KeycloakLoginView;
@@ -13,7 +14,8 @@ public class MobileKeycloakRestService extends KeycloakRestService {
 
     private var _navigator:ViewNavigator;
 
-    public function MobileKeycloakRestService() {
+    public function MobileKeycloakRestService(keycloakAdapter:KeycloakAdapter = null) {
+        super(keycloakAdapter);
     }
 
     public function get navigator():ViewNavigator {

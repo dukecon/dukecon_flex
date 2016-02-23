@@ -63,6 +63,7 @@ public class KeycloakRestService extends EventDispatcher {
 
         var token:KeycloakToken = new KeycloakToken(cookieStores);
         token.state = STATE_CALL_REST_SERVICE;
+        trace("Change State to STATE_CALL_REST_SERVICE");
         token.currentUrl = url;
         token.initialMethod = method;
 
@@ -85,7 +86,7 @@ public class KeycloakRestService extends EventDispatcher {
         token.loader = loader;
 
         var request:URLRequest = createUrlRequest(token, method);
-        loader.load(request);
+        token.load(request);
 
         return token;
     }
@@ -101,7 +102,11 @@ public class KeycloakRestService extends EventDispatcher {
         var cookieStorage:CookieStorage = token.getCookieStorageForUrl(token.currentUrl);
 
         // Process the headers and extract redirect urls and cookies.
+        trace("--------------------------------------------");
+        trace("Headers:");
+        trace("--------------------------------------------");
         for each(var header:URLRequestHeader in event.responseHeaders) {
+            trace(" - " + header.name + "=" + header.value);
             if (header.name == "Content-Type") {
                 token.contentType = header.value.split(";")[0];
             }
@@ -154,17 +159,23 @@ public class KeycloakRestService extends EventDispatcher {
                 token.redirectUrl = header.value;
             }
         }
+        trace("--------------------------------------------");
     }
 
     protected function onHTTPCompleteEvent(token:KeycloakToken, event:Event):void {
         var request:URLRequest;
+        trace("State = " + token.status);
+        if((token.status == 302) || (token.status == 307)) {
+            trace("Redirect-To = " + token.redirectUrl);
+        }
         switch (token.state) {
             case STATE_CALL_REST_SERVICE:
             {
                 // The requested response is returned immediately.
                 if (token.status == 200) {
                     if (token.contentType == "application/json") {
-                        token.dispatchEvent(ResultEvent.createEvent(JSON.parse(token.loader.data), token));
+                        trace("Got normal response from service");
+                        token.dispatchEvent(ResultEvent.createEvent(JSON.parse(token.data), token));
                     }
 
                     else {
@@ -175,9 +186,10 @@ public class KeycloakRestService extends EventDispatcher {
 
                 else if (token.status == 302) {
                     token.state = STATE_CONTACT_KEYCLOAK_SERVER;
+                    trace("Change State to STATE_CONTACT_KEYCLOAK_SERVER");
                     token.currentUrl = token.redirectUrl;
                     request = createUrlRequest(token, URLRequestMethod.GET);
-                    token.loader.load(request);
+                    token.load(request);
                 }
 
                 else {
@@ -190,7 +202,7 @@ public class KeycloakRestService extends EventDispatcher {
                 // A login page was returned.
                 if (token.status == 200) {
                     token.keycloakHost = KeycloakToken.getHostName(token.currentUrl);
-                    var response:XML = keycloakAdapter.parseResponse(token.loader.data);
+                    var response:XML = keycloakAdapter.parseResponse(token.data);
                     var manualLoginUrl:String = keycloakAdapter.getFormLoginUrlXPath(response);
                     // If "keycloak" is the preferred provider, we simply omit all social providers.
                     var socialProviders:Object = (preferredProvider != "keycloak") ?
@@ -208,11 +220,12 @@ public class KeycloakRestService extends EventDispatcher {
                                 formData.rememberMe = "on";
                                 request.contentType = "application/x-www-form-urlencoded";
                                 request.data = formData;
-                                token.loader.load(request);
+                                token.load(request);
                                 token.selectedProvider = "keycloak"
                             },
                             function (event:SocialLoginRequestEvent):void {
                                 token.state = STATE_LOGIN_USING_SOCIAL_PROVIDER;
+                                trace("Change State to STATE_LOGIN_USING_SOCIAL_PROVIDER");
                                 // If this is a relative url, we have to add the protocol and host part
                                 // of the currently active page.
                                 if (event.providerUrl.charAt(0) == '/') {
@@ -222,7 +235,7 @@ public class KeycloakRestService extends EventDispatcher {
                                     token.currentUrl = event.providerUrl;
                                 }
                                 request = createUrlRequest(token, URLRequestMethod.GET);
-                                token.loader.load(request);
+                                token.load(request);
                                 var provider:String = token.currentUrl.substr(token.currentUrl.indexOf("/broker/") + 8);
                                 provider = provider.substr(0, provider.indexOf("/"));
                                 token.selectedProvider = provider;
@@ -233,17 +246,19 @@ public class KeycloakRestService extends EventDispatcher {
                 // a valid Keycloak session seems to be active.
                 else if (token.status == 302) {
                     token.state = STATE_LOGIN_AT_REST_SERVICE;
+                    trace("Change State to STATE_LOGIN_AT_REST_SERVICE");
                     token.currentUrl = token.redirectUrl;
                     request = createUrlRequest(token, URLRequestMethod.GET);
-                    token.loader.load(request);
+                    token.load(request);
                 }
                 // If a preferred provider was specified, we might be directly redirected
                 // to the social provider login.
                 else if (token.status == 307) {
                     token.state = STATE_LOGIN_USING_SOCIAL_PROVIDER;
+                    trace("Change State to STATE_LOGIN_USING_SOCIAL_PROVIDER");
                     token.currentUrl = token.redirectUrl;
                     request = createUrlRequest(token, URLRequestMethod.GET);
-                    token.loader.load(request);
+                    token.load(request);
                     var provider:String = token.currentUrl.substr(token.currentUrl.indexOf("/broker/") + 8);
                     provider = provider.substr(0, provider.indexOf("/"));
                     token.selectedProvider = provider;
@@ -264,9 +279,10 @@ public class KeycloakRestService extends EventDispatcher {
                     handleSocialLogin(new SocialLoginEvent(SocialLoginEvent.SHOW_SOCIAL_LOGIN_SCREEN,
                             token.keycloakHost, token.redirectUrl, function (redirectUrl:String):void {
                                 token.state = STATE_CONTACT_KEYCLOAK_SERVER;
+                                trace("Change State to STATE_CONTACT_KEYCLOAK_SERVER");
                                 token.currentUrl = redirectUrl;
                                 request = createUrlRequest(token, URLRequestMethod.GET);
-                                token.loader.load(request);
+                                token.load(request);
                             }));
                 }
 
@@ -279,9 +295,10 @@ public class KeycloakRestService extends EventDispatcher {
             {
                 if (token.status == 302) {
                     token.state = STATE_CALL_REST_SERVICE_AFTER_LOGIN;
+                    trace("Change State to STATE_CALL_REST_SERVICE_AFTER_LOGIN");
                     token.currentUrl = token.redirectUrl;
                     request = createUrlRequest(token, token.initialMethod);
-                    token.loader.load(request);
+                    token.load(request);
                 }
 
                 else {
@@ -294,7 +311,7 @@ public class KeycloakRestService extends EventDispatcher {
                 // The request seems to have succeeded, so we can interpret the response.
                 if (token.status == 200) {
                     if (token.contentType == "application/json") {
-                        token.dispatchEvent(ResultEvent.createEvent(JSON.parse(token.loader.data), token));
+                        token.dispatchEvent(ResultEvent.createEvent(JSON.parse(token.data), token));
                     }
 
                     else {

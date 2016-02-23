@@ -6,6 +6,10 @@
         xmlns:comp="org.jboss.keycloak.flex.view.component.*"
         creationComplete="onCreationComplete(event)">
 
+    <s:navigationContent>
+        <s:Button label="&lt;" click="closeView()"/>
+    </s:navigationContent>
+
     <fx:Script>
         <![CDATA[
         import mx.events.FlexEvent;
@@ -52,10 +56,14 @@
         protected function onBrowserLocationChanged(event:BrowserEvent):void {
             // If we were directed back to the Keycloak server, we'll take over again.
             if (KeycloakToken.getHostName(event.newUrl) == SocialLoginEvent(data).keycloakHost) {
-                browser.close();
-                navigator.popView();
+                closeView();
                 socialLoginCallback(event.newUrl);
             }
+        }
+
+        protected function closeView():void {
+            browser.close();
+            navigator.popView();
         }
 
         ]]>

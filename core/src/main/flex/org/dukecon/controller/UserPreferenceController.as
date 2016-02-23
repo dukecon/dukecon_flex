@@ -22,6 +22,7 @@ import org.dukecon.events.UserPreferenceDataChangedEvent;
 import org.dukecon.model.Event;
 import org.dukecon.model.user.UserPreference;
 import org.dukecon.model.user.UserPreferenceBase;
+import org.dukecon.utils.DukeconKeycloakAdapter;
 import org.jboss.keycloak.flex.MobileKeycloakRestService;
 import org.jboss.keycloak.flex.util.KeycloakToken;
 
@@ -33,8 +34,8 @@ public class UserPreferenceController extends EventDispatcher {
 
     private var preferenceSettings:SharedObject;
     private var getService:MobileKeycloakRestService;
-//    private var addService:HTTPService;
-//    private var removeService:HTTPService;
+//    private var addService:MobileKeycloakRestService;
+//    private var removeService:MobileKeycloakRestService;
 
     private var conn:SQLConnection;
     private var db:File;
@@ -53,18 +54,18 @@ public class UserPreferenceController extends EventDispatcher {
 
     [Init]
     public function init():void {
-        getService = new MobileKeycloakRestService();
+        getService = new MobileKeycloakRestService(new DukeconKeycloakAdapter());
         //getService.preferredProvider = "keycloak";
         //getService.preferredProvider = "github";
         //getService.preferredProvider = "google";
         //getService.preferredProvider = "twitter";
 
-        /*        addService = new HTTPService();
+        /*        addService = new MobileKeycloakRestService(new DukeconKeycloakAdapter());
          addService.contentType = "application/json";
          addService.method = HTTPRequestMessage.POST_METHOD;
          addService.url = baseUrl + "/rest/preferences?_method=PUT";
 
-         removeService = new HTTPService();
+         removeService = new MobileKeycloakRestService(new DukeconKeycloakAdapter());
          removeService.contentType = "application/json";
          removeService.method = HTTPRequestMessage.POST_METHOD;
          removeService.url = baseUrl + "/rest/preferences?_method=DELETE";
@@ -94,8 +95,9 @@ public class UserPreferenceController extends EventDispatcher {
             // Persist any changes to the cookie store.
             flushSharedObject(preferenceSettings);
 
-            /*var result:Object = event.result;
+            var result:Object = event.result;
 
+            var clientId:String;
             if(KeycloakToken(token).keycloakToken) {
                 clientId = KeycloakToken(token).keycloakToken['sub'];
             }
@@ -139,7 +141,7 @@ public class UserPreferenceController extends EventDispatcher {
 
                 dispatchEvent(new UserPreferenceDataChangedEvent(
                         UserPreferenceDataChangedEvent.USER_PREFERENCE_DATA_CHANGED));
-            }*/
+            }
         });
     }
 
@@ -192,14 +194,14 @@ public class UserPreferenceController extends EventDispatcher {
         return events;
     }
 
-    public function isEventSelected(event:org.dukecon.model.Event):Boolean {
+    public function isEventSelected(event:Event):Boolean {
         if (!event) return false;
         var userPreferences:ArrayCollection =
                 executeQuery("SELECT DISTINCT eventId FROM UserPreference WHERE eventId = '" + event.id + "'");
         return userPreferences && (userPreferences.length > 0);
     }
 
-    public function selectEvent(event:org.dukecon.model.Event):void {
+    public function selectEvent(event:Event):void {
         if (!event) return;
         var userPreference:UserPreference = new UserPreference();
         userPreference.eventId = event.id;
@@ -210,7 +212,7 @@ public class UserPreferenceController extends EventDispatcher {
         addUserPreference(userPreference);
     }
 
-    public function unselectEvent(event:org.dukecon.model.Event):void {
+    public function unselectEvent(event:Event):void {
         if (!event) return;
         var userPreferences:ArrayCollection = UserPreferenceBase.select(conn, "eventId = " + event.id);
         if (userPreferences != null) {
