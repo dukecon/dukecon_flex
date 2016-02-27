@@ -19,6 +19,10 @@
 
         import org.jboss.keycloak.flex.event.SocialLoginRequestEvent;
 
+        import spark.collections.Sort;
+
+        import spark.collections.SortField;
+
         [Bindable]
         protected var socialProviders:ArrayCollection;
 
@@ -49,6 +53,14 @@
                         socialProviders.addItem(provider);
                     }
                 }
+
+                // Sort the social providers so the appear in the same order every time.
+                var dataSortField:SortField = new SortField("name");
+                dataSortField.numeric = false;
+                var dataSort:Sort = new Sort();
+                dataSort.fields=[dataSortField];
+                socialProviders.sort = dataSort;
+                socialProviders.refresh();
             }
 
             feedbackMessage = keycloakEvent.feedbackMessage;
