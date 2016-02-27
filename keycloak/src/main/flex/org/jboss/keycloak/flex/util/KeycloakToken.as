@@ -4,10 +4,15 @@
 package org.jboss.keycloak.flex.util {
 import flash.net.URLLoader;
 import flash.net.URLRequest;
+import flash.utils.getQualifiedClassName;
 
+import mx.logging.ILogger;
+import mx.logging.Log;
 import mx.rpc.AsyncToken;
 
 public class KeycloakToken extends AsyncToken {
+
+    protected static var log:ILogger = Log.getLogger(getQualifiedClassName(KeycloakToken).replace("::", "."));
 
     private var _state:int = -1;
     private var _loader:URLLoader = null;
@@ -51,12 +56,12 @@ public class KeycloakToken extends AsyncToken {
         if(!_loader) {
             throw new Error("No loader specified");
         }
-        trace(" ");
-        trace(" ");
-        trace("----------------------------------------------------------------------");
-        trace("-- New HTTP Request");
-        trace("----------------------------------------------------------------------");
-        trace("Loading = " + request.url);
+        log.debug(" ");
+        log.debug(" ");
+        log.debug("----------------------------------------------------------------------");
+        log.debug("-- New HTTP Request");
+        log.debug("----------------------------------------------------------------------");
+        log.debug("Loading = " + request.url);
         _loader.load(request);
     }
     

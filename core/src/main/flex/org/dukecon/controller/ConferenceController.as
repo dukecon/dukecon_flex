@@ -9,10 +9,13 @@ import flash.events.NetStatusEvent;
 import flash.filesystem.File;
 import flash.net.SharedObject;
 import flash.net.SharedObjectFlushStatus;
+import flash.utils.getQualifiedClassName;
 
 import mx.collections.ArrayCollection;
 import mx.collections.Sort;
 import mx.collections.SortField;
+import mx.logging.ILogger;
+import mx.logging.Log;
 import mx.rpc.AsyncToken;
 import mx.rpc.Responder;
 import mx.rpc.events.FaultEvent;
@@ -38,6 +41,8 @@ import org.dukecon.model.TrackBase;
 [Event(type="org.dukecon.events.ConferenceDataChangedEvent", name="conferenceDataChanged")]
 [ManagedEvents("conferenceDataChanged")]
 public class ConferenceController extends EventDispatcher {
+
+    protected static var log:ILogger = Log.getLogger(getQualifiedClassName(ConferenceController).replace("::", "."));
 
     private var service:HTTPService;
 
@@ -85,7 +90,7 @@ public class ConferenceController extends EventDispatcher {
                 updateEvents();
             }
         } catch (error:SQLError) {
-            trace("Error message:", error.message);
+            log.error("Error message:", error.message);
         }
     }
 
@@ -176,7 +181,7 @@ public class ConferenceController extends EventDispatcher {
     }
 
     protected static function onFault(fault:FaultEvent):void {
-        trace("Something went wrong:" + fault.message);
+        log.error("Something went wrong:" + fault.message);
     }
 
     public function get events():ArrayCollection {
@@ -361,29 +366,29 @@ public class ConferenceController extends EventDispatcher {
         try {
             flushStatus = so.flush(10000);
         } catch (error:Error) {
-            trace("Error...Could not write SharedObject to disk\n");
+            log.error("Error...Could not write SharedObject to disk\n");
         }
         if (flushStatus != null) {
             switch (flushStatus) {
                 case SharedObjectFlushStatus.PENDING:
-                    trace("Requesting permission to save object...\n");
+                    log.info("Requesting permission to save object...\n");
                     so.addEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
                     break;
                 case SharedObjectFlushStatus.FLUSHED:
-                    trace("Value flushed to disk.\n");
+                    log.info("Value flushed to disk.\n");
                     break;
             }
         }
     }
 
     private function onFlushStatus(event:NetStatusEvent):void {
-        trace("User closed permission dialog...\n");
+        log.debug("User closed permission dialog...\n");
         switch (event.info.code) {
             case "SharedObject.Flush.Success":
-                trace("User granted permission -- value saved.\n");
+                log.info("User granted permission -- value saved.\n");
                 break;
             case "SharedObject.Flush.Failed":
-                trace("User denied permission -- value not saved.\n");
+                log.warn("User denied permission -- value not saved.\n");
                 break;
         }
         trackRatings.removeEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);

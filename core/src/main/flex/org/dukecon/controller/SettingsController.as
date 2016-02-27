@@ -4,6 +4,10 @@ import flash.events.EventDispatcher;
 import flash.events.NetStatusEvent;
 import flash.net.SharedObject;
 import flash.net.SharedObjectFlushStatus;
+import flash.utils.getQualifiedClassName;
+
+import mx.logging.ILogger;
+import mx.logging.Log;
 
 import mx.resources.ResourceManager;
 
@@ -12,6 +16,8 @@ import org.dukecon.events.SettingsChangedEvent;
 [Event(type="org.dukecon.events.SettingsChangedEvent", name="settingsChanged")]
 [ManagedEvents("settingsChanged")]
 public class SettingsController extends EventDispatcher {
+
+    protected static var log:ILogger = Log.getLogger(getQualifiedClassName(SettingsController).replace("::", "."));
 
     private var settings:SharedObject;
 
@@ -60,29 +66,29 @@ public class SettingsController extends EventDispatcher {
         try {
             flushStatus = so.flush(10000);
         } catch (error:Error) {
-            trace("Error...Could not write SharedObject to disk\n");
+            log.error("Error...Could not write SharedObject to disk\n");
         }
         if (flushStatus != null) {
             switch (flushStatus) {
                 case SharedObjectFlushStatus.PENDING:
-                    trace("Requesting permission to save object...\n");
+                    log.info("Requesting permission to save object...\n");
                     so.addEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
                     break;
                 case SharedObjectFlushStatus.FLUSHED:
-                    trace("Value flushed to disk.\n");
+                    log.info("Value flushed to disk.\n");
                     break;
             }
         }
     }
 
     private function onFlushStatus(event:NetStatusEvent):void {
-        trace("User closed permission dialog...\n");
+        log.debug("User closed permission dialog...\n");
         switch (event.info.code) {
             case "SharedObject.Flush.Success":
-                trace("User granted permission -- value saved.\n");
+                log.info("User granted permission -- value saved.\n");
                 break;
             case "SharedObject.Flush.Failed":
-                trace("User denied permission -- value not saved.\n");
+                log.warn("User denied permission -- value not saved.\n");
                 break;
         }
     }

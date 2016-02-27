@@ -26,8 +26,9 @@
 
     <fx:Script>
 
-
         import mx.events.FlexEvent;
+        import mx.logging.ILogger;
+        import mx.logging.Log;
 
         import org.dukecon.controller.ConferenceController;
 
@@ -35,6 +36,8 @@
         import org.dukecon.controller.UserPreferenceController;
 
         import spark.components.RadioButton;
+
+        protected static var log:ILogger = Log.getLogger(getQualifiedClassName(SettingsView).replace("::", "."));
 
         [Inject]
         public var conferenceController:ConferenceController;
@@ -103,7 +106,7 @@
             resourceManager.localeChain = [selectedLanguage];
             settingsController.selectedLanguage = String(selectedLanguage);
 
-            trace("Changed language to: " + selectedLanguage);
+            log.info("Changed language to: " + selectedLanguage);
         }
 
         protected function onBindClicked(event:MouseEvent):void {

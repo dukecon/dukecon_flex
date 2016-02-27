@@ -11,8 +11,11 @@ import flash.events.NetStatusEvent;
 import flash.filesystem.File;
 import flash.net.SharedObject;
 import flash.net.SharedObjectFlushStatus;
+import flash.utils.getQualifiedClassName;
 
 import mx.collections.ArrayCollection;
+import mx.logging.ILogger;
+import mx.logging.Log;
 import mx.messaging.messages.HTTPRequestMessage;
 import mx.rpc.AsyncToken;
 import mx.rpc.events.FaultEvent;
@@ -31,6 +34,8 @@ import spark.components.ViewNavigator;
 [Event(type="org.dukecon.events.UserPreferenceDataChangedEvent", name="userPreferenceDataChanged")]
 [ManagedEvents("userPreferenceDataChanged")]
 public class UserPreferenceController extends EventDispatcher {
+
+    protected static var log:ILogger = Log.getLogger(getQualifiedClassName(UserPreferenceController).replace("::", "."));
 
     private var preferenceSettings:SharedObject;
     private var getService:MobileKeycloakRestService;
@@ -83,7 +88,7 @@ public class UserPreferenceController extends EventDispatcher {
                 UserPreferenceBase.createTable(conn);
             }
         } catch (error:SQLError) {
-            trace("Error message:", error.message);
+            log.error("Error message:", error.message);
         }
     }
 
@@ -102,7 +107,7 @@ public class UserPreferenceController extends EventDispatcher {
                 clientId = KeycloakToken(token).keycloakToken['sub'];
             }
             if(clientId) {
-                trace("ClientId: " + clientId);
+                log.debug("ClientId: " + clientId);
                 // Flush the table and add each user preference returned by the server.
                 UserPreferenceBase.clearTable(conn);
                 var selectedEventIds:ArrayCollection = new ArrayCollection();
@@ -111,11 +116,11 @@ public class UserPreferenceController extends EventDispatcher {
                     userPreference.persist(conn);
                     selectedEventIds.addItem(userPreference.eventId);
                 }
-                trace("Got: " + result.length + " preferences.");
+                log.info("Got: " + result.length + " preferences.");
 
                 // If there are outstanding creations or deletions, replay them now.
                 if (uncommittedAdditions.length > 0) {
-                    trace("Replaying uncommitted additions:");
+                    log.debug("Replaying uncommitted additions:");
                     for each(var addition:UserPreference in uncommittedAdditions) {
                         // Only re-send the addition if the event was not
                         // selected, as it could have been added by another
@@ -124,10 +129,10 @@ public class UserPreferenceController extends EventDispatcher {
                             addUserPreference(addition);
                         }
                     }
-                    trace("Done replaying uncommitted additions.");
+                    log.debug("Done replaying uncommitted additions.");
                 }
                 if (uncommittedDeletes.length > 0) {
-                    trace("Replaying uncommitted deletions:");
+                    log.debug("Replaying uncommitted deletions:");
                     for each(var deletion:UserPreference in uncommittedDeletes) {
                         // Only re-send the deletion if the event was still
                         // selected, as it could have been removed by another
@@ -136,7 +141,7 @@ public class UserPreferenceController extends EventDispatcher {
                             deleteUserPreference(deletion);
                         }
                     }
-                    trace("Done replaying uncommitted deletions.");
+                    log.debug("Done replaying uncommitted deletions.");
                 }
 
                 dispatchEvent(new UserPreferenceDataChangedEvent(
@@ -174,18 +179,18 @@ public class UserPreferenceController extends EventDispatcher {
         // by a different client. So it's safe to ignore the error response.
         if (fault.statusCode == 409) {
             uncommittedAdditions.removeItem(userPreference);
-            trace("Added (duplicate): " + userPreference.eventId);
+            log.debug("Added (duplicate): " + userPreference.eventId);
         }
         // This is usually returned if we try to remove something, that's not there.
         // The only time this should happen, is if the same item had been removed
         // by a different client. So it's safe to ignore the error response.
         else if (fault.statusCode == 404) {
             uncommittedDeletes.removeItem(userPreference);
-            trace("Removed (non-existent): " + userPreference.eventId);
+            log.debug("Removed (non-existent): " + userPreference.eventId);
         }
         // In all other cases something went wrong, so let's at least log it.
         else {
-            trace("Something went wrong:" + fault.message);
+            log.error("Something went wrong:" + fault.message);
         }
     }
 
@@ -245,29 +250,29 @@ public class UserPreferenceController extends EventDispatcher {
         try {
             flushStatus = so.flush(10000);
         } catch (error:Error) {
-            trace("Error...Could not write SharedObject to disk\n");
+            log.error("Error...Could not write SharedObject to disk\n");
         }
         if (flushStatus != null) {
             switch (flushStatus) {
                 case SharedObjectFlushStatus.PENDING:
-                    trace("Requesting permission to save object...\n");
+                    log.info("Requesting permission to save object...\n");
                     so.addEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
                     break;
                 case SharedObjectFlushStatus.FLUSHED:
-                    trace("Value flushed to disk.\n");
+                    log.info("Value flushed to disk.\n");
                     break;
             }
         }
     }
 
     private function onFlushStatus(event:NetStatusEvent):void {
-        trace("User closed permission dialog...\n");
+        log.debug("User closed permission dialog...\n");
         switch (event.info.code) {
             case "SharedObject.Flush.Success":
-                trace("User granted permission -- value saved.\n");
+                log.info("User granted permission -- value saved.\n");
                 break;
             case "SharedObject.Flush.Failed":
-                trace("User denied permission -- value not saved.\n");
+                log.warn("User denied permission -- value not saved.\n");
                 break;
         }
     }

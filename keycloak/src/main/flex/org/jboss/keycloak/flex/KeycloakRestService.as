@@ -14,6 +14,11 @@ import flash.net.URLRequestHeader;
 import flash.net.URLRequestMethod;
 import flash.net.URLVariables;
 import flash.utils.ByteArray;
+import flash.utils.getQualifiedClassName;
+
+import mx.logging.ILogger;
+
+import mx.logging.Log;
 
 import mx.rpc.AsyncToken;
 import mx.rpc.events.ResultEvent;
@@ -31,6 +36,8 @@ import org.jboss.keycloak.flex.util.KeycloakToken;
 
 public class KeycloakRestService extends EventDispatcher {
 
+    protected static var log:ILogger = Log.getLogger(getQualifiedClassName(KeycloakRestService).replace("::", "."));
+    
     protected static const STATE_CALL_REST_SERVICE:int = 10;
     protected static const STATE_CONTACT_KEYCLOAK_SERVER:int = 20;
     protected static const STATE_LOGIN_USING_SOCIAL_PROVIDER:int = 30;
@@ -63,7 +70,7 @@ public class KeycloakRestService extends EventDispatcher {
 
         var token:KeycloakToken = new KeycloakToken(cookieStores);
         token.state = STATE_CALL_REST_SERVICE;
-        trace("Change State to STATE_CALL_REST_SERVICE");
+        log.debug("Change State to STATE_CALL_REST_SERVICE");
         token.currentUrl = url;
         token.initialMethod = method;
 
@@ -75,13 +82,13 @@ public class KeycloakRestService extends EventDispatcher {
             onHTTPCompleteEvent(token, event);
         });
         loader.addEventListener(IOErrorEvent.IO_ERROR, function (event:IOErrorEvent):void {
-            trace(event);
+            log.debug(event.toString());
         });
         loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, function (event:SecurityErrorEvent):void {
-            trace(event);
+            log.debug(event.toString());
         });
         loader.addEventListener(ErrorEvent.ERROR, function (event:ErrorEvent):void {
-            trace(event);
+            log.debug(event.toString());
         });
         token.loader = loader;
 
@@ -102,11 +109,11 @@ public class KeycloakRestService extends EventDispatcher {
         var cookieStorage:CookieStorage = token.getCookieStorageForUrl(token.currentUrl);
 
         // Process the headers and extract redirect urls and cookies.
-        trace("--------------------------------------------");
-        trace("Headers:");
-        trace("--------------------------------------------");
+        log.debug("--------------------------------------------");
+        log.debug("Headers:");
+        log.debug("--------------------------------------------");
         for each(var header:URLRequestHeader in event.responseHeaders) {
-            trace(" - " + header.name + "=" + header.value);
+            log.debug(" - " + header.name + "=" + header.value);
             if (header.name == "Content-Type") {
                 token.contentType = header.value.split(";")[0];
             }
@@ -142,7 +149,7 @@ public class KeycloakRestService extends EventDispatcher {
                             try {
                                 var decodedByteArray:ByteArray = decoder.toByteArray();
                             } catch(e:Error) {
-                                trace(e);
+                                log.debug(e.toString());
                             }
                             var decodedToken:String = decodedByteArray.toString();
                             token.keycloakToken = JSON.parse(decodedToken);
@@ -159,14 +166,14 @@ public class KeycloakRestService extends EventDispatcher {
                 token.redirectUrl = header.value;
             }
         }
-        trace("--------------------------------------------");
+        log.debug("--------------------------------------------");
     }
 
     protected function onHTTPCompleteEvent(token:KeycloakToken, event:Event):void {
         var request:URLRequest;
-        trace("State = " + token.status);
+        log.debug("State = " + token.status);
         if((token.status == 302) || (token.status == 307)) {
-            trace("Redirect-To = " + token.redirectUrl);
+            log.debug("Redirect-To = " + token.redirectUrl);
         }
         switch (token.state) {
             case STATE_CALL_REST_SERVICE:
@@ -174,26 +181,26 @@ public class KeycloakRestService extends EventDispatcher {
                 // The requested response is returned immediately.
                 if (token.status == 200) {
                     if (token.contentType == "application/json") {
-                        trace("Got normal response from service");
+                        log.debug("Got normal response from service");
                         token.dispatchEvent(ResultEvent.createEvent(JSON.parse(token.data), token));
                     }
 
                     else {
-                        trace("In State: STATE_CALL_REST_SERVICE got content type: " + token.contentType);
+                        log.debug("In State: STATE_CALL_REST_SERVICE got content type: " + token.contentType);
                     }
                 }
                 // We got a redirect (assuming we are redirected to the Keycloak server.
 
                 else if (token.status == 302) {
                     token.state = STATE_CONTACT_KEYCLOAK_SERVER;
-                    trace("Change State to STATE_CONTACT_KEYCLOAK_SERVER");
+                    log.debug("Change State to STATE_CONTACT_KEYCLOAK_SERVER");
                     token.currentUrl = token.redirectUrl;
                     request = createUrlRequest(token, URLRequestMethod.GET);
                     token.load(request);
                 }
 
                 else {
-                    trace("In State: STATE_CALL_REST_SERVICE got return code: " + token.status);
+                    log.debug("In State: STATE_CALL_REST_SERVICE got return code: " + token.status);
                 }
                 break;
             }
@@ -225,7 +232,7 @@ public class KeycloakRestService extends EventDispatcher {
                             },
                             function (event:SocialLoginRequestEvent):void {
                                 token.state = STATE_LOGIN_USING_SOCIAL_PROVIDER;
-                                trace("Change State to STATE_LOGIN_USING_SOCIAL_PROVIDER");
+                                log.debug("Change State to STATE_LOGIN_USING_SOCIAL_PROVIDER");
                                 // If this is a relative url, we have to add the protocol and host part
                                 // of the currently active page.
                                 if (event.providerUrl.charAt(0) == '/') {
@@ -246,7 +253,7 @@ public class KeycloakRestService extends EventDispatcher {
                 // a valid Keycloak session seems to be active.
                 else if (token.status == 302) {
                     token.state = STATE_LOGIN_AT_REST_SERVICE;
-                    trace("Change State to STATE_LOGIN_AT_REST_SERVICE");
+                    log.debug("Change State to STATE_LOGIN_AT_REST_SERVICE");
                     token.currentUrl = token.redirectUrl;
                     request = createUrlRequest(token, URLRequestMethod.GET);
                     token.load(request);
@@ -255,7 +262,7 @@ public class KeycloakRestService extends EventDispatcher {
                 // to the social provider login.
                 else if (token.status == 307) {
                     token.state = STATE_LOGIN_USING_SOCIAL_PROVIDER;
-                    trace("Change State to STATE_LOGIN_USING_SOCIAL_PROVIDER");
+                    log.debug("Change State to STATE_LOGIN_USING_SOCIAL_PROVIDER");
                     token.currentUrl = token.redirectUrl;
                     request = createUrlRequest(token, URLRequestMethod.GET);
                     token.load(request);
@@ -269,7 +276,7 @@ public class KeycloakRestService extends EventDispatcher {
                     // TODO: Implement something ...
                 }
                 else {
-                    trace("In State: STATE_CONTACT_KEYCLOAK_SERVER got return code: " + token.status);
+                    log.debug("In State: STATE_CONTACT_KEYCLOAK_SERVER got return code: " + token.status);
                 }
                 break;
             }
@@ -279,7 +286,7 @@ public class KeycloakRestService extends EventDispatcher {
                     handleSocialLogin(new SocialLoginEvent(SocialLoginEvent.SHOW_SOCIAL_LOGIN_SCREEN,
                             token.keycloakHost, token.redirectUrl, function (redirectUrl:String):void {
                                 token.state = STATE_CONTACT_KEYCLOAK_SERVER;
-                                trace("Change State to STATE_CONTACT_KEYCLOAK_SERVER");
+                                log.debug("Change State to STATE_CONTACT_KEYCLOAK_SERVER");
                                 token.currentUrl = redirectUrl;
                                 request = createUrlRequest(token, URLRequestMethod.GET);
                                 token.load(request);
@@ -287,7 +294,7 @@ public class KeycloakRestService extends EventDispatcher {
                 }
 
                 else {
-                    trace("In State: STATE_LOGIN_USING_SOCIAL_PROVIDER got return code: " + token.status);
+                    log.debug("In State: STATE_LOGIN_USING_SOCIAL_PROVIDER got return code: " + token.status);
                 }
                 break;
             }
@@ -295,14 +302,14 @@ public class KeycloakRestService extends EventDispatcher {
             {
                 if (token.status == 302) {
                     token.state = STATE_CALL_REST_SERVICE_AFTER_LOGIN;
-                    trace("Change State to STATE_CALL_REST_SERVICE_AFTER_LOGIN");
+                    log.debug("Change State to STATE_CALL_REST_SERVICE_AFTER_LOGIN");
                     token.currentUrl = token.redirectUrl;
                     request = createUrlRequest(token, token.initialMethod);
                     token.load(request);
                 }
 
                 else {
-                    trace("In State: STATE_LOGIN_AT_REST_SERVICE got return code: " + token.status);
+                    log.debug("In State: STATE_LOGIN_AT_REST_SERVICE got return code: " + token.status);
                 }
                 break;
             }
@@ -315,12 +322,12 @@ public class KeycloakRestService extends EventDispatcher {
                     }
 
                     else {
-                        trace("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got content type: " + token.contentType);
+                        log.debug("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got content type: " + token.contentType);
                     }
                 }
 
                 else {
-                    trace("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got return code: " + token.status);
+                    log.debug("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got return code: " + token.status);
                 }
                 break;
             }
