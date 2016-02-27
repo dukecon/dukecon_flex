@@ -21,6 +21,9 @@
         [Bindable]
         protected var url:String;
 
+        [Bindable]
+        protected var keycloakHost:String;
+
         protected var socialLoginCallback:Function;
 
         protected function onCreationComplete(event:FlexEvent):void {
@@ -41,6 +44,7 @@
             var loginEvent:SocialLoginEvent = SocialLoginEvent(value);
 
             url = loginEvent.url;
+            keycloakHost = loginEvent.keycloakHost;
 
             socialLoginCallback = loginEvent.socialLoginCallback;
         }
@@ -69,6 +73,6 @@
         ]]>
     </fx:Script>
 
-    <comp:StageViewWrapper id="browser" width="100%" height="100%"/>
+    <comp:StageViewWrapper id="browser" keycloakHost="{keycloakHost}" width="100%" height="100%"/>
 
 </s:View>

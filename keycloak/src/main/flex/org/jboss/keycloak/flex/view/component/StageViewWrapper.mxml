@@ -19,6 +19,7 @@
 
         private var currentUrl:String;
         private var stageWebView:StageWebView;
+        private var _keycloakHost:String;
 
         [Bindable("locationChanged")]
         public function get url():String {
@@ -35,6 +36,14 @@
             } else {
                 currentUrl = url;
             }
+        }
+
+        public function get keycloakHost():String {
+            return _keycloakHost;
+        }
+
+        public function set keycloakHost(value:String):void {
+            _keycloakHost = value;
         }
 
         public function close():void {
@@ -79,7 +88,7 @@
         }
 
         protected function onBrowserLocationChange(event:LocationChangeEvent):void {
-            if (event.location.indexOf("http://keycloak.dukecon.org") == 0) {
+            if (event.location.indexOf(_keycloakHost) != -1) {
                 event.preventDefault();
                 dispatchEvent(new BrowserEvent(BrowserEvent.LOCATION_CHANGED, null, event.location));
             }
@@ -87,7 +96,7 @@
 
         protected function onBrowserLocationChanging(event:LocationChangeEvent):void {
             // Prevent the browser from following the url.
-            if (event.location.indexOf("http://keycloak.dukecon.org") == 0) {
+            if (event.location.indexOf(_keycloakHost) != -1) {
                 event.preventDefault();
                 dispatchEvent(new BrowserEvent(BrowserEvent.LOCATION_CHANGED, null, event.location));
             }
