@@ -16,7 +16,8 @@
     <name>DukeCon Client: Flex (Core-Application)</name>
 
     <properties>
-        <base-url>https://dev.dukecon.org/latest</base-url>
+        <base-url>https://dukecon.org/javaland</base-url>
+        <!--base-url>https://dev.dukecon.org/latest</base-url-->
     </properties>
 
     <build>
