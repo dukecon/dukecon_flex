@@ -8,6 +8,7 @@ import flash.events.EventDispatcher;
 import flash.events.HTTPStatusEvent;
 import flash.events.IOErrorEvent;
 import flash.events.SecurityErrorEvent;
+import flash.net.SharedObject;
 import flash.net.URLLoader;
 import flash.net.URLRequest;
 import flash.net.URLRequestHeader;
@@ -17,9 +18,7 @@ import flash.utils.ByteArray;
 import flash.utils.getQualifiedClassName;
 
 import mx.logging.ILogger;
-
 import mx.logging.Log;
-
 import mx.rpc.AsyncToken;
 import mx.rpc.events.ResultEvent;
 import mx.utils.Base64Decoder;
@@ -29,9 +28,9 @@ import org.jboss.keycloak.flex.adapter.DefaultKeycloakAdapter;
 import org.jboss.keycloak.flex.adapter.KeycloakAdapter;
 import org.jboss.keycloak.flex.event.KeycloakLoginEvent;
 import org.jboss.keycloak.flex.event.KeycloakLoginRequestEvent;
+import org.jboss.keycloak.flex.event.ProviderChangedEvent;
 import org.jboss.keycloak.flex.event.SocialLoginEvent;
 import org.jboss.keycloak.flex.event.SocialLoginRequestEvent;
-import org.jboss.keycloak.flex.util.CookieStorage;
 import org.jboss.keycloak.flex.util.KeycloakToken;
 
 public class KeycloakRestService extends EventDispatcher {
@@ -45,7 +44,8 @@ public class KeycloakRestService extends EventDispatcher {
     protected static const STATE_CALL_REST_SERVICE_AFTER_LOGIN:int = 50;
 
     protected var keycloakAdapter:KeycloakAdapter;
-    public var preferredProvider:String;
+    
+    private var keycloakSettings:SharedObject = null;
 
     public function KeycloakRestService(keycloakAdapter:KeycloakAdapter = null) {
         super();
@@ -54,25 +54,38 @@ public class KeycloakRestService extends EventDispatcher {
         } else {
             this.keycloakAdapter = new DefaultKeycloakAdapter();
         }
+        if(!keycloakSettings) {
+            keycloakSettings = SharedObject.getLocal("keycloak-settings");
+        }
     }
 
-    public function send(url:String, method:String, cookieStores:Object = null):AsyncToken {
+    public function send(url:String, method:String):AsyncToken {
         // If a preferred provider is set and is not set to "keycloak",
         // pass the hint parameter to keycloak.
-        if(preferredProvider && (preferredProvider != "keycloak")) {
+        var provider:String = keycloakSettings.data["provider"];
+        if(provider && (provider != "keycloak")) {
             if(url.indexOf("?") != -1) {
                 url += "&";
             } else {
                 url += "?";
             }
-            url += "kc_idp_hint=" + preferredProvider;
+            url += "kc_idp_hint=" + provider;
         }
 
+        // Get or initialize the cookie store.
+        if(!keycloakSettings.data.hasOwnProperty("cookieStores")) {
+            keycloakSettings.data.cookieStores = {};
+        }
+        var cookieStores:Object = keycloakSettings.data.cookieStores;
+        
         var token:KeycloakToken = new KeycloakToken(cookieStores);
         token.state = STATE_CALL_REST_SERVICE;
         log.debug("Change State to STATE_CALL_REST_SERVICE");
         token.currentUrl = url;
         token.initialMethod = method;
+        if(provider) {
+            token.selectedProvider = provider;
+        }
 
         var loader:URLLoader = new URLLoader();
         loader.addEventListener(HTTPStatusEvent.HTTP_RESPONSE_STATUS, function (event:HTTPStatusEvent):void {
@@ -97,8 +110,25 @@ public class KeycloakRestService extends EventDispatcher {
 
         return token;
     }
+    
+    [Bindable("providerChanged")]
+    public function get provider():String {
+        if(keycloakSettings.data) {
+            return keycloakSettings.data.provider;
+        }
+        return null;
+    }
+    
+    public function reset():void {
+        keycloakSettings.clear();
+        dispatchEvent(new ProviderChangedEvent(ProviderChangedEvent.PROVIDER_CHANGED, null));
+    }
 
     protected static function onHTTPStatusEvent(token:KeycloakToken, event:HTTPStatusEvent):void {
+        import flash.net.URLRequestHeader;
+
+        import org.jboss.keycloak.flex.util.KeycloakToken;
+
         // Save the status so we can access this in the complete event-handler.
         token.status = event.status;
 
@@ -106,7 +136,7 @@ public class KeycloakRestService extends EventDispatcher {
         // be set to the new value.
         token.redirectUrl = null;
 
-        var cookieStorage:CookieStorage = token.getCookieStorageForUrl(token.currentUrl);
+        var cookieStorage:Object = token.getCookieStorageForUrl(token.currentUrl);
 
         // Process the headers and extract redirect urls and cookies.
         log.debug("--------------------------------------------");
@@ -125,7 +155,7 @@ public class KeycloakRestService extends EventDispatcher {
                     var cookieName:String = StringUtil.trim(parts[0]);
                     var cookieValue:String = StringUtil.trim(parts[1]);
                     if (cookieValue.length > 0) {
-                        cookieStorage.setCookie(cookieName, cookieValue);
+                        cookieStorage[cookieName] = cookieValue;
                         if ("KEYCLOAK_IDENTITY" == cookieName) {
                             // Here the user id is encoded in the keycloak servers
                             // cookie stores KEYCLOAK_IDENTITY cookie. Decode with http://jwt.io/
@@ -157,12 +187,14 @@ public class KeycloakRestService extends EventDispatcher {
                     }
                     // Setting an empty value is a delete-request.
                     else {
-                        cookieStorage.removeCookie(cookieName);
+                        delete cookieStorage.cookieName;
                     }
                 }
+
             }
             // The header was a redirect ... so we have to save that.
-            else if ((header.name == "Location") && ((event.status == 302) || (event.status == 307))) {
+            else if ((header.name == "Location") &&
+                    ((event.status == 301) || (event.status == 302) || (event.status == 307))) {
                 token.redirectUrl = header.value;
             }
         }
@@ -182,6 +214,12 @@ public class KeycloakRestService extends EventDispatcher {
                 if (token.status == 200) {
                     if (token.contentType == "application/json") {
                         log.debug("Got normal response from service");
+                        if(keycloakSettings.data.provider != token.selectedProvider) {
+                            keycloakSettings.data.provider= token.selectedProvider;
+                            persistKeycloakSettings();
+                            dispatchEvent(new ProviderChangedEvent(
+                                    ProviderChangedEvent.PROVIDER_CHANGED, token.selectedProvider));
+                        }
                         token.dispatchEvent(ResultEvent.createEvent(JSON.parse(token.data), token));
                     }
 
@@ -212,7 +250,8 @@ public class KeycloakRestService extends EventDispatcher {
                     var response:XML = keycloakAdapter.parseResponse(token.data);
                     var manualLoginUrl:String = keycloakAdapter.getFormLoginUrlXPath(response);
                     // If "keycloak" is the preferred provider, we simply omit all social providers.
-                    var socialProviders:Object = (preferredProvider != "keycloak") ?
+                    var provider:String = keycloakSettings.data["provider"];
+                    var socialProviders:Object = (provider != "keycloak") ?
                             keycloakAdapter.getSocialProviders(response) : {};
                     var feedbackMessage:String = keycloakAdapter.getFeedbackMessage(response);
                     var keycloakEvent:KeycloakLoginEvent = new KeycloakLoginEvent(KeycloakLoginEvent.SHOW_LOGIN_SCREEN,
@@ -272,7 +311,7 @@ public class KeycloakRestService extends EventDispatcher {
                 }
                 // We get an 500 error, if a provider is selected that no longer exists or
                 // never existed (This condition is rather unspecific).
-                else if ((token.status == 500) && preferredProvider) {
+                else if (token.status == 500) {
                     // TODO: Implement something ...
                 }
                 else {
@@ -318,6 +357,12 @@ public class KeycloakRestService extends EventDispatcher {
                 // The request seems to have succeeded, so we can interpret the response.
                 if (token.status == 200) {
                     if (token.contentType == "application/json") {
+                        if(keycloakSettings.data.provider != token.selectedProvider) {
+                            keycloakSettings.data.provider= token.selectedProvider;
+                            persistKeycloakSettings();
+                            dispatchEvent(new ProviderChangedEvent(
+                                    ProviderChangedEvent.PROVIDER_CHANGED, token.selectedProvider));
+                        }
                         token.dispatchEvent(ResultEvent.createEvent(JSON.parse(token.data), token));
                     }
 
@@ -326,11 +371,26 @@ public class KeycloakRestService extends EventDispatcher {
                     }
                 }
 
+                else if((token.status == 301) || (token.status == 302)) {
+                    token.currentUrl = token.redirectUrl;
+                    request = createUrlRequest(token, token.initialMethod);
+                    token.load(request);
+                }
+
                 else {
-                    log.debug("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got return code: " + token.status);
+                    trace(token.currentUrl);
+                    log.error("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got return code: " + token.status);
                 }
                 break;
             }
+        }
+    }
+
+    protected function persistKeycloakSettings():void {
+        try {
+            keycloakSettings.flush(10000);
+        } catch (error:Error) {
+            log.error("Error...Could not write SharedObject to disk\n");
         }
     }
 
@@ -342,7 +402,7 @@ public class KeycloakRestService extends EventDispatcher {
         throw new Error("This method must be implemented in sub-type.");
     }
 
-    protected function createUrlRequest(token:KeycloakToken, method:String):URLRequest {
+    protected static function createUrlRequest(token:KeycloakToken, method:String):URLRequest {
         var request:URLRequest = new URLRequest(token.currentUrl);
         request.method = method;
 
@@ -352,22 +412,19 @@ public class KeycloakRestService extends EventDispatcher {
         // We will handle cookies manually.
         request.manageCookies = false;
 
-        var cookieStorage:CookieStorage = token.getCookieStorageForUrl(token.currentUrl);
-        if (cookieStorage.getCookies()) {
-            var cookieHeader:String = "";
-            var cookies:Object = cookieStorage.getCookies();
-            for (var cookieName:String in cookies) {
-                if (cookies.hasOwnProperty(cookieName)) {
-                    var cookieValue:String = cookieStorage.getCookie(cookieName);
-                    if (cookieHeader.length > 0) {
-                        cookieHeader += "; ";
-                    }
-                    cookieHeader += cookieName + "=" + cookieValue;
+        var cookieStorage:Object = token.getCookieStorageForUrl(token.currentUrl);
+        var cookieHeader:String = "";
+        for (var cookieName:String in cookieStorage) {
+            if(cookieStorage.hasOwnProperty(cookieName)) {
+                var cookieValue:String = cookieStorage[cookieName];
+                if(cookieHeader.length > 0) {
+                    cookieHeader += "; ";
                 }
+                cookieHeader += cookieName + "=" + cookieValue;
             }
-            if (cookieHeader.length > 0) {
-                request.requestHeaders = [new URLRequestHeader("Cookie", cookieHeader)];
-            }
+        }
+        if (cookieHeader.length > 0) {
+            request.requestHeaders = [new URLRequestHeader("Cookie", cookieHeader)];
         }
         return request;
     }

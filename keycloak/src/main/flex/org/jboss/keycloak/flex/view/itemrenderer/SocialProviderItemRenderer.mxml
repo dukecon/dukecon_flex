@@ -27,5 +27,8 @@
 
         ]]></fx:Script>
 
-    <s:Button width="100%" label="{socialProviderName}" click="onButtonClick(event)"/>
+    <s:VGroup width="100%" paddingBottom="20">
+        <s:Button width="100%" label="{socialProviderName}" click="onButtonClick(event)"/>
+    </s:VGroup>
+
 </s:ItemRenderer>

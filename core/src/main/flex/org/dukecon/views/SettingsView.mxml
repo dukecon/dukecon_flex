@@ -31,9 +31,9 @@
         import mx.logging.Log;
 
         import org.dukecon.controller.ConferenceController;
-
         import org.dukecon.controller.SettingsController;
         import org.dukecon.controller.UserPreferenceController;
+        import org.jboss.keycloak.flex.event.ProviderChangedEvent;
 
         import spark.components.RadioButton;
 
@@ -60,7 +60,7 @@
 
             languageButtons = [];
             for each(var language:String in ["de_DE", "en_US"]) {
-                var languageButton:RadioButton = new  RadioButton();
+                var languageButton:RadioButton = new RadioButton();
                 languageButton.label = resourceManager.getString('dukecon', 'language.' + language);
                 languageButton.value = language;
                 languageButton.selected = (language == resourceManager.localeChain[0]);
@@ -68,6 +68,13 @@
                 languageSelection.addElement(languageButton);
                 languageButtons.push(languageButton);
             }
+
+            userPreferenceController.addEventListener(ProviderChangedEvent.PROVIDER_CHANGED,
+                    function (event:ProviderChangedEvent):void {
+                        updateBinding();
+                    });
+
+            updateBinding();
         }
 
         override protected function commitProperties():void {
@@ -77,17 +84,6 @@
             for each(var languageButton:RadioButton in languageButtons) {
                 languageButton.selected = (languageButton.value == resourceManager.localeChain[0]);
             }
-
-            // Hide the button that currently should not be displayed.
-            /*if (settingsController.serverAccount) {
-                bindButton.visible = false;
-                unbindButton.visible = true;
-            } else {
-                bindButton.visible = true;
-                unbindButton.visible = false;
-            }
-            bindButton.includeInLayout = bindButton.visible;
-            unbindButton.includeInLayout = unbindButton.visible;*/
         }
 
         protected function onBackClicked(event:MouseEvent):void {
@@ -109,25 +105,50 @@
             log.info("Changed language to: " + selectedLanguage);
         }
 
+        protected function updateBinding():void {
+            // Hide the button that currently should not be displayed.
+            if (userPreferenceController.provider) {
+                var msg:String = resourceManager.getString('dukecon', 'settings.server-account.connected',
+                        [userPreferenceController.provider]);
+                boundMessage.text = msg;
+                connectForm.includeInLayout = connectForm.visible = false;
+                disconnectForm.includeInLayout = disconnectForm.visible = true;
+            } else {
+                connectForm.includeInLayout = connectForm.visible = true;
+                disconnectForm.includeInLayout = disconnectForm.visible = false;
+            }
+        }
+
         protected function onBindClicked(event:MouseEvent):void {
+            // TODO: If the readUserPreferences returns values, ask the user how to merge the data.
             userPreferenceController.readUserPreferences(navigator);
         }
 
         protected function onUnbindClicked(event:MouseEvent):void {
-            settingsController.serverAccount = null;
+            // TODO: Ask the user if he is sure that he wants to disconnect.
+            userPreferenceController.reset();
         }
 
     </fx:Script>
 
     <s:Form width="100%">
-        <s:FormItem id="languageSelection" label="{resourceManager.getString('dukecon', 'settings.language')}:"
-                     width="300"/>
-        <!--s:FormItem label="{resourceManager.getString('dukecon', 'settings.server-account')}:" width="300">
-            <s:Button id="bindButton" label="{resourceManager.getString('dukecon', 'settings.server-account.bind')}"
+        <s:FormItem id="languageSelection"
+                    label="{resourceManager.getString('dukecon', 'settings.language')}:"
+                    width="300"/>
+        <s:FormItem id="connectForm" label="{resourceManager.getString('dukecon', 'settings.server-account')}:" width="300">
+            <s:Button id="bindButton"
+                      label="{resourceManager.getString('dukecon', 'settings.server-account.bind')}"
                       click="onBindClicked(event)" width="100%"/>
-            <s:Button id="unbindButton" label="{resourceManager.getString('dukecon', 'settings.server-account.unbind')}"
-                      click="onUnbindClicked(event)" width="100%"/>
-        </s:FormItem-->
+        </s:FormItem>
+        <s:FormItem id="disconnectForm"
+                    label="{resourceManager.getString('dukecon', 'settings.server-account')}:" width="300">
+            <s:VGroup width="100%">
+                <s:Label id="boundMessage" paddingBottom="20"/>
+                <s:Button id="unbindButton"
+                          label="{resourceManager.getString('dukecon', 'settings.server-account.unbind')}"
+                          click="onUnbindClicked(event)" width="100%"/>
+            </s:VGroup>
+        </s:FormItem>
     </s:Form>
 
 </s:View>

@@ -106,23 +106,24 @@
                 <s:Label text="{feedbackMessage}" color="red"/>
             </s:FormItem>
             <s:FormItem label="Username:" skinClass="spark.skins.spark.StackedFormItemSkin">
-                <s:TextInput id="username"/>
+                <s:TextInput id="username" width="100%"/>
             </s:FormItem>
             <s:FormItem label="Password:" skinClass="spark.skins.spark.StackedFormItemSkin">
-                <s:TextInput id="password" displayAsPassword="true"/>
+                <s:TextInput id="password" width="100%" displayAsPassword="true"/>
             </s:FormItem>
             <s:FormItem skinClass="spark.skins.spark.StackedFormItemSkin">
                 <s:HGroup width="100%">
-                    <s:Button id="login" label="Login" click="onLoginClick(event)"/>
-                    <s:Button id="cancel" label="Cancel" click="onCancelClick(event)"/>
+                    <s:Button id="login" label="Login" width="50%" click="onLoginClick(event)"/>
+                    <s:Button id="cancel" label="Cancel" width="50%" click="onCancelClick(event)"/>
                 </s:HGroup>
             </s:FormItem>
         </s:Form>
 
         <!-- Login using one of the other providers -->
-        <s:List id="socialProviderList" width="100%" minHeight="10" dataProvider="{socialProviders}"
-                itemRenderer="org.jboss.keycloak.flex.view.itemrenderer.SocialProviderItemRenderer"/>
-
+        <s:VGroup padding="20" width="100%">
+            <s:List id="socialProviderList" width="100%" minHeight="10" dataProvider="{socialProviders}"
+                    itemRenderer="org.jboss.keycloak.flex.view.itemrenderer.SocialProviderItemRenderer"/>
+        </s:VGroup>
     </s:VGroup>
 
 </s:View>

@@ -27,6 +27,7 @@ import org.dukecon.model.user.UserPreference;
 import org.dukecon.model.user.UserPreferenceBase;
 import org.dukecon.utils.DukeconKeycloakAdapter;
 import org.jboss.keycloak.flex.MobileKeycloakRestService;
+import org.jboss.keycloak.flex.event.ProviderChangedEvent;
 import org.jboss.keycloak.flex.util.KeycloakToken;
 
 import spark.components.ViewNavigator;
@@ -60,6 +61,9 @@ public class UserPreferenceController extends EventDispatcher {
     [Init]
     public function init():void {
         getService = new MobileKeycloakRestService(new DukeconKeycloakAdapter());
+        getService.addEventListener(ProviderChangedEvent.PROVIDER_CHANGED, function(event:ProviderChangedEvent) {
+            dispatchEvent(new ProviderChangedEvent(ProviderChangedEvent.PROVIDER_CHANGED, event.provider));
+        });
         //getService.preferredProvider = "keycloak";
         //getService.preferredProvider = "github";
         //getService.preferredProvider = "google";
@@ -91,11 +95,19 @@ public class UserPreferenceController extends EventDispatcher {
             log.error("Error message:", error.message);
         }
     }
+    
+    [Bindable("providerChanged")]
+    public function get provider():String {
+        return getService.provider;
+    }
+    
+    public function reset():void {
+        getService.reset();
+    }
 
-    public function readUserPreferences(navigator:ViewNavigator):void {
+    public function readUserPreferences(navigator:ViewNavigator):AsyncToken {
         getService.navigator = navigator;
-        var token:AsyncToken = getService.send(baseUrl + "/rest/preferences", HTTPRequestMessage.GET_METHOD,
-                preferenceSettings.data.cookieStore);
+        var token:AsyncToken = getService.send(baseUrl + "/rest/preferences", HTTPRequestMessage.GET_METHOD);
         token.addEventListener(ResultEvent.RESULT, function (event:ResultEvent):void {
             // Persist any changes to the cookie store.
             flushSharedObject(preferenceSettings);
@@ -148,6 +160,7 @@ public class UserPreferenceController extends EventDispatcher {
                         UserPreferenceDataChangedEvent.USER_PREFERENCE_DATA_CHANGED));
             }
         });
+        return token;
     }
 
     public function addUserPreference(userPreference:UserPreference):void {

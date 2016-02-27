@@ -12,7 +12,7 @@ import mx.rpc.AsyncToken;
 
 public class KeycloakToken extends AsyncToken {
 
-    protected static var log:ILogger = Log.getLogger(getQualifiedClassName(KeycloakToken).replace("::", "."));
+    protected static var log:ILogger = Log.getLogger(getQualifiedClassName(KeycloakToken).replace("::"));
 
     private var _state:int = -1;
     private var _loader:URLLoader = null;
@@ -35,11 +35,11 @@ public class KeycloakToken extends AsyncToken {
         }
     }
 
-    public function getCookieStorageForUrl(url:String):CookieStorage {
+    public function getCookieStorageForUrl(url:String):Object {
         var host:String = getHostName(url);
 
         if(!_cookieStores.hasOwnProperty(host)) {
-            _cookieStores[host] = new CookieStorage();
+            _cookieStores[host] = {};
         }
         return _cookieStores[host];
     }
