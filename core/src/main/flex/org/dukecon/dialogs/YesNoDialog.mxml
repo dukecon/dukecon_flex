@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Created by christoferdutz on 27.02.16.
+-->
+<s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                           xmlns:s="library://ns.adobe.com/flex/spark"
+                           backgroundColor="0x898989" width="80%">
+
+    <fx:Metadata>
+        [ResourceBundle("dukecon")]
+    </fx:Metadata>
+
+    <fx:Script>
+        <![CDATA[
+
+        public static const YES:String = "yes";
+        public static const NO:String = "no";
+
+        [Bindable]
+        public var message:String;
+
+        protected function onYesClicked(event:MouseEvent):void {
+            close(true, YES);
+        }
+
+        protected function onNoClicked(event:MouseEvent):void {
+            close(true, NO);
+        }
+
+        ]]>
+    </fx:Script>
+
+    <s:Rect top="0" left="0" right="0" bottom="0">
+        <s:stroke>
+            <s:SolidColorStroke color="0x000000"/>
+        </s:stroke>
+        <s:fill>
+            <s:SolidColor color="0xFFFFFF"/>
+        </s:fill>
+    </s:Rect>
+
+    <s:VGroup width="100%" padding="20" gap="20">
+        <s:Label text="{message}" width="100%" textAlign="center"/>
+        <s:HGroup width="100%">
+            <s:Button label="{resourceManager.getString('dukecon', 'yes')}" width="50%" click="onYesClicked(event)"/>
+            <s:Button label="{resourceManager.getString('dukecon', 'no')}" width="50%" click="onNoClicked(event)"/>
+        </s:HGroup>
+    </s:VGroup>
+
+</s:SkinnablePopUpContainer>

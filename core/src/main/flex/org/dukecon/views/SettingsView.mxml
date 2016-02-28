@@ -25,17 +25,25 @@
     </s:navigationContent>
 
     <fx:Script>
+        <![CDATA[
 
+        import mx.collections.ArrayCollection;
         import mx.events.FlexEvent;
         import mx.logging.ILogger;
         import mx.logging.Log;
+        import mx.managers.PopUpManager;
+        import mx.rpc.AsyncToken;
+        import mx.rpc.events.ResultEvent;
 
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.controller.SettingsController;
         import org.dukecon.controller.UserPreferenceController;
+        import org.dukecon.dialogs.SelectDialog;
+        import org.dukecon.dialogs.YesNoDialog;
         import org.jboss.keycloak.flex.event.ProviderChangedEvent;
 
         import spark.components.RadioButton;
+        import spark.events.PopUpEvent;
 
         protected static var log:ILogger = Log.getLogger(getQualifiedClassName(SettingsView).replace("::", "."));
 
@@ -120,15 +128,66 @@
         }
 
         protected function onBindClicked(event:MouseEvent):void {
+            var localPreferences:Array = userPreferenceController.userPreferences.source;
             // TODO: If the readUserPreferences returns values, ask the user how to merge the data.
-            userPreferenceController.readUserPreferences(navigator);
+            var token:AsyncToken = userPreferenceController.readUserPreferences(navigator);
+            token.addEventListener(ResultEvent.RESULT, function (event:ResultEvent):void {
+                var serverPreferences:Array = (event.result as Array);
+                // If the server and the client had preferences, then ask the user which
+                // strategy should be used to merge the two:
+                // a) delete all local preferences and use the ones read from the server
+                // b) delete all remote preferences and the the local ones
+                // c) merge both the local and the remote preferences and update local and
+                //    remote
+                if((serverPreferences.length > 0) && (localPreferences.length > 0)) {
+                    openMergeStrategyDialog();
+                }
+                if(serverPreferences.length > 0) {
+                    // TODO: Update the local preferences with the ones from the server.
+                }
+                else if(localPreferences.length > 0) {
+                    // TODO: Send the list of preferences to the server
+                }
+            });
+        }
+
+        protected function openMergeStrategyDialog():void {
+            var mergeStrategyDialog:SelectDialog = new SelectDialog();
+            mergeStrategyDialog.message = resourceManager.getString(
+                    'dukecon', 'settings.server-account.select-preferences-merge-strategy');
+            mergeStrategyDialog.optionsResourcePrefix =
+                    "settings.server-account.select-preferences-merge-strategy.";
+            var options:ArrayCollection = new ArrayCollection();
+            options.addItem("server");
+            options.addItem("client");
+            options.addItem("merge");
+            mergeStrategyDialog.options = options;
+            mergeStrategyDialog.addEventListener(PopUpEvent.CLOSE, onMergeStrategySelected, false, 0, true);
+            mergeStrategyDialog.open(this, true);
+            PopUpManager.centerPopUp(mergeStrategyDialog);
+        }
+
+        protected function onMergeStrategySelected(event:PopUpEvent):void {
+            if (event.data == SelectDialog.OK) {
+                // TODO: Implement the action of consolidating the data on server and client.
+            }
         }
 
         protected function onUnbindClicked(event:MouseEvent):void {
-            // TODO: Ask the user if he is sure that he wants to disconnect.
-            userPreferenceController.reset();
+            var yesNoDialog:YesNoDialog = new YesNoDialog();
+            yesNoDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-unbind');
+            yesNoDialog.addEventListener(PopUpEvent.CLOSE, onUnbindConfirmDialogClosed, false, 0, true);
+            yesNoDialog.open(this, true);
+            PopUpManager.centerPopUp(yesNoDialog);
         }
 
+        protected function onUnbindConfirmDialogClosed(event:PopUpEvent):void {
+            if (event.data == YesNoDialog.YES) {
+                userPreferenceController.reset();
+            }
+        }
+
+        ]]>
     </fx:Script>
 
     <s:Form width="100%">

@@ -61,7 +61,7 @@ public class UserPreferenceController extends EventDispatcher {
     [Init]
     public function init():void {
         getService = new MobileKeycloakRestService(new DukeconKeycloakAdapter());
-        getService.addEventListener(ProviderChangedEvent.PROVIDER_CHANGED, function(event:ProviderChangedEvent) {
+        getService.addEventListener(ProviderChangedEvent.PROVIDER_CHANGED, function(event:ProviderChangedEvent):void {
             dispatchEvent(new ProviderChangedEvent(ProviderChangedEvent.PROVIDER_CHANGED, event.provider));
         });
         //getService.preferredProvider = "keycloak";
