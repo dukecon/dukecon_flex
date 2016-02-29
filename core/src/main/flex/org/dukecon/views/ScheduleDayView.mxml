@@ -72,6 +72,7 @@
 
                 var talksForDay:ArrayCollection = conferenceController.getEventsForDay(dateString);
                 var locations:ArrayCollection = conferenceController.locations;
+                var locationUsage:Object = {};
 
                 // Find out the time range in which all events are.
                 dayStart = NaN;
@@ -81,11 +82,20 @@
                             dayStart = event.start.time;
                         }
                     }
+                    // Keep track of the used locations.
+                    if(!locationUsage.hasOwnProperty(event.locationId)) {
+                        locationUsage[event.locationId] = 0;
+                    }
+                    locationUsage[event.locationId] += 1;
                 }
 
                 locationIds = new ArrayCollection();
                 for each(var location:Location in locations) {
-                    locationIds.addItem(location.id);
+                    // Filter out locations without talks.
+                    if(locationUsage.hasOwnProperty(location.id) &&
+                            Number(locationUsage[event.locationId]) > 0) {
+                        locationIds.addItem(location.id);
+                    }
                 }
 
                 for each(event in talksForDay) {
