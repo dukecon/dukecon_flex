@@ -16,7 +16,8 @@
             <parsley:Inject property="conferenceController" type="{ConferenceController}" />
             <parsley:Inject property="trackController" type="{TrackController}" />
             <parsley:Inject property="languageController" type="{LanguageController}" />
-            <parsley:Inject property="userPreferenceController" type="{UserPreferenceController}" />
+            <parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
+            <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" />
         </parsley:FastInject>
         <s:DateTimeFormatter id="startTimeFormatter"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
@@ -27,15 +28,20 @@
 
     <fx:Script>
         <![CDATA[
+        import mx.core.FlexGlobals;
         import mx.core.UIComponent;
         import mx.events.ItemClickEvent;
+        import mx.managers.PopUpManager;
 
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.controller.LanguageController;
+        import org.dukecon.controller.RemoteUserPreferencesController;
         import org.dukecon.controller.TrackController;
-        import org.dukecon.controller.UserPreferenceController;
+        import org.dukecon.controller.LocalUserPreferencesController;
+        import org.dukecon.dialogs.ConfirmDialog;
         import org.dukecon.model.Event;
         import org.dukecon.model.Speaker;
+        import org.dukecon.model.user.UserPreference;
 
         [Embed(source="/star-unselected.png")]
         [Bindable]
@@ -73,7 +79,10 @@
         public var languageController:LanguageController;
 
         [Inject]
-        public var userPreferenceController:UserPreferenceController;
+        public var localUserPreferencesController:LocalUserPreferencesController;
+
+        [Inject]
+        public var remoteUserPreferencesController:RemoteUserPreferencesController;
 
         [Bindable("dataChange")]
         override public function get data():Object {
@@ -105,12 +114,12 @@
                 if (event.speakerIds) {
                     for each(var speakerId:String in event.speakerIds.split(",")) {
                         var speaker:Speaker = conferenceController.getSpeaker(speakerId);
-                        if(speaker) {
+                        if (speaker) {
                             if (speakers.length > 0) {
                                 speakers += ", ";
                             }
                             speakers += speaker.name;
-                            if(speaker.company) {
+                            if (speaker.company) {
                                 speakers += " (" + speaker.company + ")";
                             }
                         }
@@ -119,7 +128,7 @@
                 title = startTimeFormatter.format(event.start) + " - " + endTimeFormatter.format(event.end);
                 ratingGroup.selectedValue = conferenceController.getRating(event);
                 locationName = conferenceController.getLocationName(event.locationId, resourceManager.localeChain[0]);
-                if(event.trackId) {
+                if (event.trackId) {
                     trackName = conferenceController.getTrackName(event.trackId, resourceManager.localeChain[0]);
                 } else {
                     trackName = null;
@@ -135,25 +144,35 @@
 
         protected function updateSelectionIcon():void {
             if (event) {
-                selectedIcon = userPreferenceController.isEventSelected(event) ? starSelected : starUnselected;
+                selectedIcon = localUserPreferencesController.isEventSelected(event) ? starSelected : starUnselected;
             } else {
                 selectedIcon = null;
             }
         }
 
         protected function toggleSelection(evnt:MouseEvent):void {
-            if (userPreferenceController.isEventSelected(event)) {
-                userPreferenceController.unselectEvent(event);
+            var userPreference:UserPreference = new UserPreference();
+            userPreference.eventId = event.id;
+            if (localUserPreferencesController.isEventSelected(event)) {
+                localUserPreferencesController.del(userPreference);
             } else {
-                userPreferenceController.selectEvent(event);
+                localUserPreferencesController.add(userPreference);
             }
             updateSelectionIcon();
+
+            if(!remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
+                var confirmDialog:ConfirmDialog = new ConfirmDialog();
+                confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
+                confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
+                PopUpManager.centerPopUp(confirmDialog);
+
+                remoteUserPreferencesController.infoPopupDisplayed = true;
+            }
         }
 
         protected function onRatingChanged(evnt:ItemClickEvent):void {
             conferenceController.setRating(event, Number(ratingGroup.selectedValue))
         }
-
         ]]>
     </fx:Script>
 

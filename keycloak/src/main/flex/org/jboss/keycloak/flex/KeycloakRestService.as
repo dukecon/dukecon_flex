@@ -19,6 +19,7 @@ import flash.utils.getQualifiedClassName;
 
 import mx.logging.ILogger;
 import mx.logging.Log;
+import mx.messaging.messages.HTTPRequestMessage;
 import mx.rpc.AsyncToken;
 import mx.rpc.events.ResultEvent;
 import mx.utils.Base64Decoder;
@@ -44,22 +45,37 @@ public class KeycloakRestService extends EventDispatcher {
     protected static const STATE_CALL_REST_SERVICE_AFTER_LOGIN:int = 50;
 
     protected var keycloakAdapter:KeycloakAdapter;
+    protected var simulateHttpMethod:Boolean;
     
     private var keycloakSettings:SharedObject = null;
 
-    public function KeycloakRestService(keycloakAdapter:KeycloakAdapter = null) {
+    public function KeycloakRestService(keycloakAdapter:KeycloakAdapter = null, simulateHttpMethod:Boolean = false) {
         super();
         if(keycloakAdapter) {
             this.keycloakAdapter = keycloakAdapter;
         } else {
             this.keycloakAdapter = new DefaultKeycloakAdapter();
         }
+        this.simulateHttpMethod = simulateHttpMethod;
         if(!keycloakSettings) {
             keycloakSettings = SharedObject.getLocal("keycloak-settings");
         }
     }
 
-    public function send(url:String, method:String):AsyncToken {
+    public function send(url:String, method:String, data:Object = null, contentType:String = "application/json", 
+                         etag:String = null):AsyncToken {
+        if(simulateHttpMethod) {
+            // Depending on if the service should pass the real method using "_method=DELETE", adjust the url.
+            if(url.indexOf("?") != -1) {
+                url += "&";
+            } else {
+                url += "?";
+            }
+            url += "_method=" + method;
+            // All simulated http methods are sent to the server using POST.
+            method = HTTPRequestMessage.POST_METHOD;
+        }
+        
         // If a preferred provider is set and is not set to "keycloak",
         // pass the hint parameter to keycloak.
         var provider:String = keycloakSettings.data["provider"];
@@ -106,6 +122,26 @@ public class KeycloakRestService extends EventDispatcher {
         token.loader = loader;
 
         var request:URLRequest = createUrlRequest(token, method);
+        
+        // Add data, if it was provided.
+        if(data) {
+            if(contentType == "application/json") {
+                request.data = JSON.stringify(data);
+            } else {
+                request.data = data;
+            }
+        }
+        
+        // If an etag parameter was provided, ad this to the request.
+        if(etag) {
+            if(!request.requestHeaders) {
+                request.requestHeaders = [];
+            }
+            var etagHeader:URLRequestHeader = new URLRequestHeader("If-None-Match", etag);
+            request.requestHeaders.push(etagHeader)
+        }
+        
+        request.contentType = contentType;
         token.load(request);
 
         return token;
@@ -197,6 +233,9 @@ public class KeycloakRestService extends EventDispatcher {
                     ((event.status == 301) || (event.status == 302) || (event.status == 307))) {
                 token.redirectUrl = header.value;
             }
+            else if ((header.name == "Etag") && (event.status == 200)) {
+                token.etag = header.value;
+            }
         }
         log.debug("--------------------------------------------");
     }
@@ -211,7 +250,7 @@ public class KeycloakRestService extends EventDispatcher {
             case STATE_CALL_REST_SERVICE:
             {
                 // The requested response is returned immediately.
-                if (token.status == 200) {
+                if ((token.status == 200) || (token.status == 201)) {
                     if (token.contentType == "application/json") {
                         log.debug("Got normal response from service");
                         if(keycloakSettings.data.provider != token.selectedProvider) {
@@ -224,7 +263,7 @@ public class KeycloakRestService extends EventDispatcher {
                     }
 
                     else {
-                        log.debug("In State: STATE_CALL_REST_SERVICE got content type: " + token.contentType);
+                        log.warn("In State: STATE_CALL_REST_SERVICE got content type: " + token.contentType);
                     }
                 }
                 // We got a redirect (assuming we are redirected to the Keycloak server.
@@ -237,20 +276,27 @@ public class KeycloakRestService extends EventDispatcher {
                     token.load(request);
                 }
 
+                // When using Etag headers the server might respond with a "nothing-changed"
+                // That's ok for us.
+                else if (token.status == 304) {
+                    token.dispatchEvent(ResultEvent.createEvent(null, token));
+                }
+
                 else {
-                    log.debug("In State: STATE_CALL_REST_SERVICE got return code: " + token.status);
+                    log.warn("In State: STATE_CALL_REST_SERVICE got return code: " + token.status);
                 }
                 break;
             }
             case STATE_CONTACT_KEYCLOAK_SERVER:
-            {
+            {   
+                var provider:String;
                 // A login page was returned.
                 if (token.status == 200) {
                     token.keycloakHost = KeycloakToken.getHostName(token.currentUrl);
                     var response:XML = keycloakAdapter.parseResponse(token.data);
                     var manualLoginUrl:String = keycloakAdapter.getFormLoginUrlXPath(response);
                     // If "keycloak" is the preferred provider, we simply omit all social providers.
-                    var provider:String = keycloakSettings.data["provider"];
+                    provider = keycloakSettings.data["provider"];
                     var socialProviders:Object = (provider != "keycloak") ?
                             keycloakAdapter.getSocialProviders(response) : {};
                     var feedbackMessage:String = keycloakAdapter.getFeedbackMessage(response);
@@ -282,7 +328,7 @@ public class KeycloakRestService extends EventDispatcher {
                                 }
                                 request = createUrlRequest(token, URLRequestMethod.GET);
                                 token.load(request);
-                                var provider:String = token.currentUrl.substr(token.currentUrl.indexOf("/broker/") + 8);
+                                provider = token.currentUrl.substr(token.currentUrl.indexOf("/broker/") + 8);
                                 provider = provider.substr(0, provider.indexOf("/"));
                                 token.selectedProvider = provider;
                             });
@@ -305,7 +351,7 @@ public class KeycloakRestService extends EventDispatcher {
                     token.currentUrl = token.redirectUrl;
                     request = createUrlRequest(token, URLRequestMethod.GET);
                     token.load(request);
-                    var provider:String = token.currentUrl.substr(token.currentUrl.indexOf("/broker/") + 8);
+                    provider = token.currentUrl.substr(token.currentUrl.indexOf("/broker/") + 8);
                     provider = provider.substr(0, provider.indexOf("/"));
                     token.selectedProvider = provider;
                 }
@@ -315,7 +361,7 @@ public class KeycloakRestService extends EventDispatcher {
                     // TODO: Implement something ...
                 }
                 else {
-                    log.debug("In State: STATE_CONTACT_KEYCLOAK_SERVER got return code: " + token.status);
+                    log.warn("In State: STATE_CONTACT_KEYCLOAK_SERVER got return code: " + token.status);
                 }
                 break;
             }
@@ -333,7 +379,7 @@ public class KeycloakRestService extends EventDispatcher {
                 }
 
                 else {
-                    log.debug("In State: STATE_LOGIN_USING_SOCIAL_PROVIDER got return code: " + token.status);
+                    log.warn("In State: STATE_LOGIN_USING_SOCIAL_PROVIDER got return code: " + token.status);
                 }
                 break;
             }
@@ -348,15 +394,18 @@ public class KeycloakRestService extends EventDispatcher {
                 }
 
                 else {
-                    log.debug("In State: STATE_LOGIN_AT_REST_SERVICE got return code: " + token.status);
+                    log.warn("In State: STATE_LOGIN_AT_REST_SERVICE got return code: " + token.status);
                 }
                 break;
             }
             case STATE_CALL_REST_SERVICE_AFTER_LOGIN:
             {
                 // The request seems to have succeeded, so we can interpret the response.
-                if (token.status == 200) {
-                    if (token.contentType == "application/json") {
+                if ((token.status == 200) || (token.status == 201)) {
+                    if(!token.contentType) {
+                        // If this is not a GET or POST, the content type is null.
+                    }
+                    else if (token.contentType == "application/json") {
                         if(keycloakSettings.data.provider != token.selectedProvider) {
                             keycloakSettings.data.provider= token.selectedProvider;
                             persistKeycloakSettings();
@@ -367,7 +416,7 @@ public class KeycloakRestService extends EventDispatcher {
                     }
 
                     else {
-                        log.debug("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got content type: " + token.contentType);
+                        log.warn("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got content type: " + token.contentType);
                     }
                 }
 
@@ -379,7 +428,7 @@ public class KeycloakRestService extends EventDispatcher {
 
                 else {
                     trace(token.currentUrl);
-                    log.error("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got return code: " + token.status);
+                    log.warn("In State: STATE_CALL_REST_SERVICE_AFTER_LOGIN got return code: " + token.status);
                 }
                 break;
             }

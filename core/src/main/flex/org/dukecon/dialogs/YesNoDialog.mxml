@@ -12,6 +12,7 @@
 
     <fx:Script>
         <![CDATA[
+        import mx.core.FlexGlobals;
 
         public static const YES:String = "yes";
         public static const NO:String = "no";
@@ -40,7 +41,7 @@
     </s:Rect>
 
     <s:VGroup width="100%" padding="20" gap="20">
-        <s:Label text="{message}" width="100%" textAlign="center"/>
+        <s:Label text="{message}" width="{FlexGlobals.topLevelApplication.width - 60}" textAlign="center"/>
         <s:HGroup width="100%">
             <s:Button label="{resourceManager.getString('dukecon', 'yes')}" width="50%" click="onYesClicked(event)"/>
             <s:Button label="{resourceManager.getString('dukecon', 'no')}" width="50%" click="onNoClicked(event)"/>

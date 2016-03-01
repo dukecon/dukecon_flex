@@ -14,8 +14,9 @@ public class MobileKeycloakRestService extends KeycloakRestService {
 
     private var _navigator:ViewNavigator;
 
-    public function MobileKeycloakRestService(keycloakAdapter:KeycloakAdapter = null) {
-        super(keycloakAdapter);
+    public function MobileKeycloakRestService(
+            keycloakAdapter:KeycloakAdapter = null, simulateHttpMethod:Boolean = false) {
+        super(keycloakAdapter, simulateHttpMethod);
     }
 
     public function get navigator():ViewNavigator {

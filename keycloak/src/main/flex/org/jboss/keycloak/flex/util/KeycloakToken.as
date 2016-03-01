@@ -25,6 +25,7 @@ public class KeycloakToken extends AsyncToken {
     private var _keycloakHost:String = null;
     private var _keycloakToken:Object = null;
     private var _selectedProvider:String = null;
+    private var _etag:String = null;
 
     public function KeycloakToken(cookieStores:Object = null) {
         super();
@@ -138,6 +139,14 @@ public class KeycloakToken extends AsyncToken {
 
     public function set selectedProvider(value:String):void {
         _selectedProvider = value;
+    }
+
+    public function get etag():String {
+        return _etag;
+    }
+
+    public function set etag(value:String):void {
+        _etag = value;
     }
 
     public static function getHostName(url:String):String {

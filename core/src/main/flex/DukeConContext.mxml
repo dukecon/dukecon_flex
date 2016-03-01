@@ -13,7 +13,8 @@
         <controller:SpeakerController/>
         <controller:TrackController/>
         <controller:SettingsController/>
-        <controller:UserPreferenceController baseUrl="{baseUrl}"/>
+        <controller:RemoteUserPreferencesController baseUrl="{baseUrl}"/>
+        <controller:LocalUserPreferencesController/>
     </fx:Declarations>
 
     <fx:Script>

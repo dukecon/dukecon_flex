@@ -17,7 +17,8 @@
             <parsley:Inject property="trackController" type="{TrackController}" />
             <parsley:Inject property="locationController" type="{LocationController}" />
             <parsley:Inject property="languageController" type="{LanguageController}" />
-            <parsley:Inject property="userPreferenceController" type="{UserPreferenceController}" />
+            <parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
+            <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" />
             <parsley:Inject property="settingsController" type="{SettingsController}" />
         </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
@@ -34,15 +35,20 @@
     <fx:Script>
     <![CDATA[
         import mx.collections.ArrayCollection;
+        import mx.core.FlexGlobals;
+        import mx.managers.PopUpManager;
 
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.controller.LanguageController;
+        import org.dukecon.controller.LocalUserPreferencesController;
         import org.dukecon.controller.LocationController;
+        import org.dukecon.controller.RemoteUserPreferencesController;
         import org.dukecon.controller.SettingsController;
         import org.dukecon.controller.TrackController;
-        import org.dukecon.controller.UserPreferenceController;
+        import org.dukecon.dialogs.ConfirmDialog;
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Speaker;
+        import org.dukecon.model.user.UserPreference;
 
         [Embed(source="/star-unselected.png")]
         [Bindable]
@@ -89,7 +95,10 @@
         public var languageController:LanguageController;
 
         [Inject]
-        public var userPreferenceController:UserPreferenceController;
+        public var localUserPreferencesController:LocalUserPreferencesController;
+
+        [Inject]
+        public var remoteUserPreferencesController:RemoteUserPreferencesController;
 
         [Inject]
         [Bindable]
@@ -112,9 +121,9 @@
 
         protected function adjustSize():void {
             var lengthInMinutes:Number = (event.end.time - event.start.time) / (1000 * 60);
-            if(lengthInMinutes < 40) {
+            if (lengthInMinutes < 40) {
                 currentState = "short";
-            } else if(length > 120) {
+            } else if (length > 120) {
                 currentState = "long";
             } else {
                 currentState = "normal";
@@ -130,7 +139,7 @@
                 timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
                 locationName = conferenceController.getLocationName(event.locationId, resourceManager.localeChain[0]);
                 locationIcon = locationController.getIconForLocation(event.locationId);
-                if(event.trackId) {
+                if (event.trackId) {
                     trackName = conferenceController.getTrackName(event.trackId, resourceManager.localeChain[0]);
                     trackIcon = trackController.getIconForTrack(event.trackId);
                 } else {
@@ -146,7 +155,7 @@
                     if (speakerNames != "") {
                         speakerNames += ", ";
                     }
-                    if(speaker) {
+                    if (speaker) {
                         speakerNames += speaker.name;
                         if (speaker.company) {
                             speakerNames += " (" + speaker.company + ")";
@@ -169,25 +178,35 @@
 
         protected function updateSelectionIcon():void {
             if (event) {
-                favoriteImage.source = userPreferenceController.isEventSelected(event) ? starSelected : starUnselected;
+                favoriteImage.source = localUserPreferencesController.isEventSelected(event) ? starSelected : starUnselected;
             } else {
                 favoriteImage.source = null;
             }
         }
 
         protected function toggleSelection(evnt:MouseEvent):void {
-            if (userPreferenceController.isEventSelected(event)) {
-                userPreferenceController.unselectEvent(event);
+            var userPreference:UserPreference = new UserPreference();
+            userPreference.eventId = event.id;
+            if (localUserPreferencesController.isEventSelected(event)) {
+                localUserPreferencesController.del(userPreference);
             } else {
-                userPreferenceController.selectEvent(event);
+                localUserPreferencesController.add(userPreference);
             }
             updateSelectionIcon();
+
+            if(!remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
+                var confirmDialog:ConfirmDialog = new ConfirmDialog();
+                confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
+                confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
+                PopUpManager.centerPopUp(confirmDialog);
+
+                remoteUserPreferencesController.infoPopupDisplayed = true;
+            }
         }
 
         protected function onMoreClicked(evnt:MouseEvent):void {
             dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
         }
-
         ]]>
   </fx:Script>
 

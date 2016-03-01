@@ -12,6 +12,7 @@
 
     <fx:Script>
         <![CDATA[
+        import mx.core.FlexGlobals;
 
         public static const OK:String = "ok";
 
@@ -35,7 +36,7 @@
     </s:Rect>
 
     <s:VGroup width="100%" padding="20" gap="20">
-        <s:Label text="{message}" width="100%" textAlign="center"/>
+        <s:Label text="{message}" width="{FlexGlobals.topLevelApplication.width - 60}" textAlign="center"/>
         <s:HGroup width="100%">
             <s:Button label="{resourceManager.getString('dukecon', 'ok')}" width="100%" click="onOkClicked(event)"/>
         </s:HGroup>

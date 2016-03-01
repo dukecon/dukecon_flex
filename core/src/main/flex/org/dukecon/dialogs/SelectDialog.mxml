@@ -13,14 +13,19 @@
     <fx:Script>
         <![CDATA[
         import mx.collections.ArrayCollection;
+        import mx.core.FlexGlobals;
 
         public static const OK:String = "ok";
+        public static const CANCEL:String = "cancel";
 
         [Bindable]
         public var message:String;
 
         [Bindable]
         public var options:ArrayCollection;
+
+        [Bindable]
+        public var data:Object;
 
         private var _optionsResourcePrefix:String;
 
@@ -31,11 +36,35 @@
 
         public function set optionsResourcePrefix(value:String):void {
             _optionsResourcePrefix = value;
-            // TODO: Update the options labels.
+            // TODO: Eventually update the options labels.
         }
 
         protected function onOkClicked(event:MouseEvent):void {
-            close(true, OK);
+            var eventData:Object = {result: OK, selectedOption: selection.selectedItem};
+            // Copy all the data from the data-property to the result event.
+            if(data) {
+                for(var propertyName:String in data) {
+                    if(data.hasOwnProperty(propertyName)) {
+                        var propertyValue:Object = data[propertyName];
+                        eventData[propertyName] = propertyValue;
+                    }
+                }
+            }
+            close(true, eventData);
+        }
+
+        protected function onCancelClicked(event:MouseEvent):void {
+            var eventData:Object = {result: CANCEL, selectedOption: null};
+            // Copy all the data from the data-property to the result event.
+            if(data) {
+                for(var propertyName:String in data) {
+                    if(data.hasOwnProperty(propertyName)) {
+                        var propertyValue:Object = data[propertyName];
+                        eventData[propertyName] = propertyValue;
+                    }
+                }
+            }
+            close(true, eventData);
         }
 
         protected function labelFunction(option:String):String {
@@ -55,10 +84,12 @@
     </s:Rect>
 
     <s:VGroup width="100%" padding="20" gap="20">
-        <s:Label text="{message}" width="100%" textAlign="center"/>
-        <s:List id="selection" dataProvider="{options}" labelFunction="labelFunction" width="100%"/>
+        <s:Label text="{message}" width="{FlexGlobals.topLevelApplication.width - 60}" textAlign="center"/>
+        <s:List id="selection" dataProvider="{options}" labelFunction="labelFunction" width="100%" minHeight="30"/>
         <s:HGroup width="100%">
-            <s:Button label="{resourceManager.getString('dukecon', 'ok')}" width="100%" click="onOkClicked(event)"/>
+            <s:Button label="{resourceManager.getString('dukecon', 'ok')}" width="50%"
+                      click="onOkClicked(event)" enabled="{selection.selectedIndex != -1}"/>
+            <s:Button label="{resourceManager.getString('dukecon', 'cancel')}" width="50%" click="onCancelClicked(event)"/>
         </s:HGroup>
     </s:VGroup>
 

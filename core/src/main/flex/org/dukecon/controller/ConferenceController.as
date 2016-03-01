@@ -16,11 +16,10 @@ import mx.collections.Sort;
 import mx.collections.SortField;
 import mx.logging.ILogger;
 import mx.logging.Log;
+import mx.messaging.messages.HTTPRequestMessage;
 import mx.rpc.AsyncToken;
-import mx.rpc.Responder;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
-import mx.rpc.http.HTTPService;
 
 import org.dukecon.events.ConferenceDataChangedEvent;
 import org.dukecon.model.Audience;
@@ -37,6 +36,7 @@ import org.dukecon.model.Speaker;
 import org.dukecon.model.SpeakerBase;
 import org.dukecon.model.Track;
 import org.dukecon.model.TrackBase;
+import org.jboss.keycloak.flex.KeycloakRestService;
 
 [Event(type="org.dukecon.events.ConferenceDataChangedEvent", name="conferenceDataChanged")]
 [ManagedEvents("conferenceDataChanged")]
@@ -44,7 +44,7 @@ public class ConferenceController extends EventDispatcher {
 
     protected static var log:ILogger = Log.getLogger(getQualifiedClassName(ConferenceController).replace("::", "."));
 
-    private var service:HTTPService;
+    private var service:KeycloakRestService;
 
     private var conn:SQLConnection;
     private var db:File;
@@ -58,11 +58,7 @@ public class ConferenceController extends EventDispatcher {
 
     [Init]
     public function init():void {
-        service = new HTTPService();
-        service.method = "GET";
-        service.contentType = "application/json";
-        service.headers = {Accept: "application/json"};
-        service.url = baseUrl + "/rest/conferences/499959/";
+        service = new KeycloakRestService();
 
         // This file will be used for storing the data on the device.
         var db:File = File.applicationStorageDirectory.resolvePath("dukecon-conference.db");
@@ -84,6 +80,16 @@ public class ConferenceController extends EventDispatcher {
                 LocationBase.createTable(conn);
                 SpeakerBase.createTable(conn);
                 EventBase.createTable(conn);
+
+                // We will use a database table to store the latest etag.
+                var createTableStatement:SQLStatement = new SQLStatement();
+                createTableStatement.sqlConnection = conn;
+                createTableStatement.text = "CREATE TABLE IF NOT EXISTS Etag (tag TEXT, lastUpdated DATE)";
+                try {
+                    createTableStatement.execute();
+                } catch(initError:SQLError) {
+                    throw new Error("Error creating table 'Event': " + initError.message);
+                }
             }
 
             if (EventBase.count(conn) == 0) {
@@ -95,13 +101,22 @@ public class ConferenceController extends EventDispatcher {
     }
 
     public function updateEvents():void {
-        var token:AsyncToken = service.send();
-        token.addResponder(new Responder(onResult, onFault));
+        var etag:String = getEtag();
+        var token:AsyncToken = service.send(baseUrl + "/rest/conferences/499959/", HTTPRequestMessage.GET_METHOD,
+                null, "application/json", etag);
+        token.addEventListener(ResultEvent.RESULT, onResult);
+        token.addEventListener(FaultEvent.FAULT, onFault);
     }
 
     protected function onResult(event:ResultEvent):void {
-        var resultData:String = event.result.toString();
-        var result:Object = JSON.parse(resultData);
+        // If we get a code 304 this is because we provided an Etag
+        // and the server responded with "nothing has changed". No need
+        // to do anything in this case.
+        if(event.token.status == 304) {
+            return;
+        }
+        
+        var result:Object = event.result;
 
         EventBase.clearTable(conn);
 
@@ -177,7 +192,50 @@ public class ConferenceController extends EventDispatcher {
             }
         }
 
+        var insertStatement:SQLStatement = new SQLStatement();
+        insertStatement.sqlConnection = conn;
+        insertStatement.text = "INSERT OR REPLACE INTO Etag ( tag, lastUpdated) VALUES (:tag, :lastUpdated)";
+        insertStatement.parameters[":tag"] = event.token.etag;
+        insertStatement.parameters[":lastUpdated"] = new Date();
+        try {
+            insertStatement.execute();
+        } catch(initError:SQLError) {
+            throw new Error("Error inserting record into table 'Event': " + initError.message);
+        }
+
         dispatchEvent(new ConferenceDataChangedEvent(ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED));
+    }
+
+    protected function getEtag():String {
+        var selectStatement:SQLStatement = new SQLStatement();
+        selectStatement.sqlConnection = conn;
+        selectStatement.text = "SELECT tag FROM Etag";
+        try {
+            selectStatement.execute();
+            var sqlResult:SQLResult = selectStatement.getResult();
+            if(sqlResult.data && sqlResult.data.length > 0) {
+                return String(sqlResult.data[0].tag);
+            }
+        } catch(initError:SQLError) {
+            throw new Error("Error selecting records from table 'Event': " + initError.message);
+        }
+        return null;
+    }
+
+    public function get lastUpdatedDate():Date {
+        var selectStatement:SQLStatement = new SQLStatement();
+        selectStatement.sqlConnection = conn;
+        selectStatement.text = "SELECT lastUpdated FROM Etag";
+        try {
+            selectStatement.execute();
+            var sqlResult:SQLResult = selectStatement.getResult();
+            if(sqlResult.data && sqlResult.data.length > 0) {
+                return (sqlResult.data[0].lastUpdated) as Date;
+            }
+        } catch(initError:SQLError) {
+            throw new Error("Error selecting records from table 'Event': " + initError.message);
+        }
+        return null;
     }
 
     protected static function onFault(fault:FaultEvent):void {
@@ -309,24 +367,6 @@ public class ConferenceController extends EventDispatcher {
 
     public function getSpeaker(id:String):Speaker {
         return SpeakerBase.selectById(conn, id);
-    }
-
-    public function getTimeSlotsForDay(day:String):ArrayCollection {
-        var slots:ArrayCollection = executeQuery("SELECT DISTINCT (strftime('%H:%M', start) || ' - ' || " +
-                "strftime('%H:%M', end)) AS slot FROM Event WHERE date(start) = '" + day + "'");
-        var result:ArrayCollection = new ArrayCollection();
-        for each(var obj:Object in slots) {
-            if (obj.slot) {
-                result.addItem(obj.slot);
-            }
-        }
-        var dataSortField:SortField = new SortField();
-        dataSortField.numeric = false;
-        var dataSort:Sort = new Sort();
-        dataSort.fields = [dataSortField];
-        result.sort = dataSort;
-        result.refresh();
-        return result;
     }
 
     public function getEventsForDay(day:String):ArrayCollection {

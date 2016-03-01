@@ -44,24 +44,7 @@ public class SettingsController extends EventDispatcher {
         dispatchEvent(new SettingsChangedEvent(SettingsChangedEvent.SETTINGS_CHANGED));
     }
 
-    [Bindable("settingsChanged")]
-    public function get serverAccount():String {
-        if (settings.data && settings.data.savedValue) {
-            return settings.data.savedValue["serverAccount"];
-        }
-        return null;
-    }
-
-    public function set serverAccount(serverAccount:String):void {
-        if (!settings.data.savedValue) {
-            settings.data.savedValue = {};
-        }
-        settings.data.savedValue["serverAccount"] = serverAccount;
-        flushSharedObject(settings);
-        dispatchEvent(new SettingsChangedEvent(SettingsChangedEvent.SETTINGS_CHANGED));
-    }
-
-    protected function flushSharedObject(so:SharedObject):void {
+    protected static function flushSharedObject(so:SharedObject):void {
         var flushStatus:String = null;
         try {
             flushStatus = so.flush(10000);
@@ -81,7 +64,7 @@ public class SettingsController extends EventDispatcher {
         }
     }
 
-    private function onFlushStatus(event:NetStatusEvent):void {
+    private static function onFlushStatus(event:NetStatusEvent):void {
         log.debug("User closed permission dialog...\n");
         switch (event.info.code) {
             case "SharedObject.Flush.Success":
