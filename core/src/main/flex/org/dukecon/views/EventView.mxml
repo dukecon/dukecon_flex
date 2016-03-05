@@ -221,17 +221,15 @@
                          styleName="content"/>
             </s:HGroup>
             <s:HGroup>
-                <s:Label text="{resourceManager.getString('dukecon', 'talks.room')}:" fontWeight="bold"/>
-                <s:Label text="{locationName}" styleName="content"/>
-            </s:HGroup>
-            <s:HGroup>
                 <s:Label text="{resourceManager.getString('dukecon', 'talks.track')}:" fontWeight="bold"/>
                 <s:Label text="{trackName}" styleName="content"/>
             </s:HGroup>
             <s:HGroup>
-                <s:Image id="locationMap" width="{UIComponent(parent).width - 20}"
-                         height="{(UIComponent(parent).width - 20) / 1.5}"/>
+                <s:Label text="{resourceManager.getString('dukecon', 'talks.room')}:" fontWeight="bold"/>
+                <s:Label text="{locationName}" styleName="content"/>
             </s:HGroup>
+            <s:Image id="locationMap" width="{UIComponent(parent).width - 20}"
+                     height="{(UIComponent(parent).width - 20) / 1.5}"/>
             <s:HGroup>
                 <s:Label text="{resourceManager.getString('dukecon', 'talks.rating')}:" fontWeight="bold"/>
                 <s:RadioButton groupName="ratingGroup" value="-1" color="red"
