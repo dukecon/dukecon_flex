@@ -16,6 +16,7 @@
             <parsley:Inject property="conferenceController" type="{ConferenceController}" />
             <parsley:Inject property="trackController" type="{TrackController}" />
             <parsley:Inject property="languageController" type="{LanguageController}" />
+            <parsley:Inject property="locationController" type="{LocationController}" />
             <parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
             <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" />
         </parsley:FastInject>
@@ -35,6 +36,7 @@
 
         import org.dukecon.controller.ConferenceController;
         import org.dukecon.controller.LanguageController;
+        import org.dukecon.controller.LocationController;
         import org.dukecon.controller.RemoteUserPreferencesController;
         import org.dukecon.controller.TrackController;
         import org.dukecon.controller.LocalUserPreferencesController;
@@ -73,6 +75,9 @@
         public var conferenceController:ConferenceController;
 
         [Inject]
+        public var locationController:LocationController;
+
+        [Inject]
         public var trackController:TrackController;
 
         [Inject]
@@ -106,9 +111,11 @@
                 if (event) {
                     trackIcon = trackController.getIconForTrack(event.trackId);
                     languageIcon.source = languageController.getIconForLanguage(event.languageId);
+                    locationMap.source = locationController.getMapForLocation(event.locationId);
                 } else {
                     trackIcon = null;
                     languageIcon.source = null;
+                    locationMap.source = null;
                 }
                 speakers = "";
                 if (event.speakerIds) {
@@ -160,7 +167,7 @@
             }
             updateSelectionIcon();
 
-            if(!remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
+            if (!remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
                 var confirmDialog:ConfirmDialog = new ConfirmDialog();
                 confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
                 confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
@@ -220,6 +227,10 @@
             <s:HGroup>
                 <s:Label text="{resourceManager.getString('dukecon', 'talks.track')}:" fontWeight="bold"/>
                 <s:Label text="{trackName}" styleName="content"/>
+            </s:HGroup>
+            <s:HGroup>
+                <s:Image id="locationMap" width="{UIComponent(parent).width - 20}"
+                         height="{(UIComponent(parent).width - 20) / 1.5}"/>
             </s:HGroup>
             <s:HGroup>
                 <s:Label text="{resourceManager.getString('dukecon', 'talks.rating')}:" fontWeight="bold"/>
