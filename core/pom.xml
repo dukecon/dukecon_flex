@@ -18,6 +18,8 @@
     <properties>
         <base-url>https://dukecon.org/javaland</base-url>
         <!--base-url>https://dev.dukecon.org/latest</base-url-->
+        <feature.server-favorites>false</feature.server-favorites>
+        <feature.event-rating>false</feature.event-rating>
     </properties>
 
     <build>
@@ -181,6 +183,14 @@
                         <property>
                             <name>CONFIG::baseUrl</name>
                             <value>"${base-url}"</value>
+                        </property>
+                        <property>
+                            <name>FEATURE::serverFavorites</name>
+                            <value>${feature.server-favorites}</value>
+                        </property>
+                        <property>
+                            <name>FEATURE::eventRating</name>
+                            <value>${feature.event-rating}</value>
                         </property>
                     </defines>
                     <!--localesCompiled>

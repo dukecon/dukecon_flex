@@ -48,6 +48,9 @@
 
         protected static var log:ILogger = Log.getLogger(getQualifiedClassName(SettingsView).replace("::", "."));
 
+        [Bindable]
+        protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
+
         [Inject]
         public var conferenceController:ConferenceController;
 
@@ -126,9 +129,9 @@
                         [remoteUserPreferencesController.provider]);
                 boundMessage.text = msg;
                 connectForm.includeInLayout = connectForm.visible = false;
-                disconnectForm.includeInLayout = disconnectForm.visible = true;
+                disconnectForm.includeInLayout = disconnectForm.visible = featureServerFavorites;
             } else {
-                connectForm.includeInLayout = connectForm.visible = true;
+                connectForm.includeInLayout = connectForm.visible = featureServerFavorites;
                 disconnectForm.includeInLayout = disconnectForm.visible = false;
             }
         }
@@ -235,7 +238,8 @@
         <s:FormItem id="languageSelection"
                     label="{resourceManager.getString('dukecon', 'settings.language')}:"
                     width="300"/>
-        <s:FormItem id="connectForm" label="{resourceManager.getString('dukecon', 'settings.server-account')}:" width="300">
+        <s:FormItem id="connectForm"
+                    label="{resourceManager.getString('dukecon', 'settings.server-account')}:" width="300">
             <s:Button id="bindButton"
                       label="{resourceManager.getString('dukecon', 'settings.server-account.bind')}"
                       click="onBindClicked(event)" width="100%"/>

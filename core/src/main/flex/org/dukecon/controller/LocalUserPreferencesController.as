@@ -21,7 +21,10 @@ import org.dukecon.model.user.UserPreferenceBase;
 public class LocalUserPreferencesController extends EventDispatcher implements UserPreferencesController {
 
     protected static var log:ILogger = Log.getLogger(getQualifiedClassName(LocalUserPreferencesController).replace("::", "."));
-    
+
+    [Bindable]
+    protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
+
     [Inject]
     public var remoteUserPreferencesController:RemoteUserPreferencesController;
 
@@ -69,7 +72,8 @@ public class LocalUserPreferencesController extends EventDispatcher implements U
         userPreference.persist(conn);
 
         // If the user has a server-backed profile, also add it on the server.
-        if(remoteUserPreferencesController && remoteUserPreferencesController.connectedToRemote) {
+        if(featureServerFavorites && remoteUserPreferencesController &&
+                remoteUserPreferencesController.connectedToRemote) {
             remoteUserPreferencesController.add(userPreference);
         }
     }
@@ -82,12 +86,13 @@ public class LocalUserPreferencesController extends EventDispatcher implements U
         }
 
         // If the user has a server-backed profile, also remove it on the server.
-        if(remoteUserPreferencesController && remoteUserPreferencesController.connectedToRemote) {
+        if(featureServerFavorites && remoteUserPreferencesController &&
+                remoteUserPreferencesController.connectedToRemote) {
             remoteUserPreferencesController.del(userPreference);
         }
     }
 
-    public function isEventSelected(event:Event):Boolean {
+    public function isEventSelected(event:org.dukecon.model.Event):Boolean {
         if (!event) return false;
         var userPreferences:ArrayCollection =
                 executeQuery("SELECT DISTINCT eventId FROM UserPreference WHERE eventId = '" + event.id + "'");

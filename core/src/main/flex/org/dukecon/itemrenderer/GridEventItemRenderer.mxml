@@ -50,6 +50,9 @@
         import org.dukecon.model.Speaker;
         import org.dukecon.model.user.UserPreference;
 
+        [Bindable]
+        protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
+
         [Embed(source="/star-unselected.png")]
         [Bindable]
         public var starUnselected:Class;
@@ -194,7 +197,8 @@
             }
             updateSelectionIcon();
 
-            if(!remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
+            if(featureServerFavorites && !remoteUserPreferencesController.connectedToRemote &&
+                    !remoteUserPreferencesController.infoPopupDisplayed) {
                 var confirmDialog:ConfirmDialog = new ConfirmDialog();
                 confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
                 confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);

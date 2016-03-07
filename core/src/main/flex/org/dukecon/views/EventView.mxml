@@ -45,6 +45,12 @@
         import org.dukecon.model.Speaker;
         import org.dukecon.model.user.UserPreference;
 
+        [Bindable]
+        protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
+
+        [Bindable]
+        protected var featureEventRating:Boolean = FEATURE::eventRating;
+
         [Embed(source="/star-unselected.png")]
         [Bindable]
         public var starUnselected:Class;
@@ -167,7 +173,8 @@
             }
             updateSelectionIcon();
 
-            if (!remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
+            if (featureServerFavorites && !remoteUserPreferencesController.connectedToRemote &&
+                    !remoteUserPreferencesController.infoPopupDisplayed) {
                 var confirmDialog:ConfirmDialog = new ConfirmDialog();
                 confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
                 confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
@@ -230,7 +237,7 @@
             </s:HGroup>
             <s:Image id="locationMap" width="{UIComponent(parent).width - 20}"
                      height="{(UIComponent(parent).width - 20) / 1.5}"/>
-            <s:HGroup>
+            <s:HGroup visible="{featureEventRating}">
                 <s:Label text="{resourceManager.getString('dukecon', 'talks.rating')}:" fontWeight="bold"/>
                 <s:RadioButton groupName="ratingGroup" value="-1" color="red"
                                skinClass="org.dukecon.skins.ImageRadioButtonSkin"/>
