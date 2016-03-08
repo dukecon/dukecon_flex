@@ -119,7 +119,7 @@ package ${jClass.as3Type.packageName} {
             var matches:Array = value.match(/(\d\d\d\d)-(\d\d)-(\d\d)T(\d\d):(\d\d)/);
             var date:Date = new Date();
             date.setUTCFullYear(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
-            date.setUTCHours(int(matches[4]), int(matches[5]), 0, 0);
+            date.setHours(int(matches[4]), int(matches[5]), 0, 0);
             return date;
         }
 <%
