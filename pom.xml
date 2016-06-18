@@ -54,10 +54,6 @@
                             <locale>de_DE</locale>
                             <locale>en_US</locale>
                         </localesCompiled>
-                        <rslUrls>
-                            <url>rsl/{artifactId}-{version}.{extension}</url>
-                        </rslUrls>
-                        <advancedTelemetry>true</advancedTelemetry>
                     </configuration>
                     <dependencies>
                         <dependency>

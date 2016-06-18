@@ -193,10 +193,6 @@
                             <value>${feature.event-rating}</value>
                         </property>
                     </defines>
-                    <!--localesCompiled>
-                        <locale>de_DE</locale>
-                        <locale>en_US</locale>
-                    </localesCompiled-->
                     <keepAs3Metadatas>
                         <name>ManagedEvents</name>
                         <name>MessageHandler</name>
@@ -208,65 +204,6 @@
                         <groupId>com.adobe.air</groupId>
                         <artifactId>compiler</artifactId>
                         <version>${air.version}</version>
-                        <type>pom</type>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <!--
-                Optimize the generated SWF.
-            -->
-            <plugin>
-                <groupId>com.googlecode.apparat</groupId>
-                <artifactId>apparat-maven-plugin</artifactId>
-                <version>${apparat.version}</version>
-
-                <!--executions>
-                    <execution>
-                        <id>reducer</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>reducer</goal>
-                            <goal>tdsi</goal>
-                        </goals>
-                    </execution>
-                </executions-->
-
-                <configuration>
-                    <mergeABC>true</mergeABC>
-                    <!-- Setting this to true lets apparat hang forever -->
-                    <sortCPool>false</sortCPool>
-                    <!-- LZMA does not work yet -->
-                    <lzma>false</lzma>
-                    <matryoshkaType>preloader</matryoshkaType>
-                    <!-- Setting this to true lets apparat hang forever -->
-                    <mergeCF>false</mergeCF>
-                </configuration>
-
-                <dependencies>
-                    <dependency>
-                        <groupId>com.googlecode.apparat</groupId>
-                        <artifactId>apparat-log</artifactId>
-                        <version>${apparat.version}</version>
-                    </dependency>
-                    <dependency>
-                        <groupId>com.googlecode.apparat</groupId>
-                        <artifactId>apparat-core</artifactId>
-                        <version>${apparat.version}</version>
-                        <exclusions>
-                            <exclusion>
-                                <groupId>com.adobe.flex.framework</groupId>
-                                <artifactId>playerglobal</artifactId>
-                            </exclusion>
-                            <exclusion>
-                                <groupId>com.adobe.flex.framework</groupId>
-                                <artifactId>flex</artifactId>
-                            </exclusion>
-                        </exclusions>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.apache.flex</groupId>
-                        <artifactId>compiler</artifactId>
-                        <version>${flex.version}</version>
                         <type>pom</type>
                     </dependency>
                 </dependencies>
@@ -351,7 +288,6 @@
                 <base-url>http://localhost:8080</base-url>
             </properties>
         </profile>
-
     </profiles>
 
 </project>
