@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 15.05.15.
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:parsley="http://www.spicefactory.org/parsley"
+        title="{resourceManager.getString('dukecon', 'streams.title')}">
+
+    <fx:Metadata>
+        [ResourceBundle("dukecon")]
+    </fx:Metadata>
+
+    <fx:Declarations>
+        <parsley:FastInject injectionComplete="init();" property="conferenceController" type="{ConferenceController}" />
+    </fx:Declarations>
+
+    <fx:Script>
+    <![CDATA[
+      import mx.collections.ArrayCollection;
+
+      import org.dukecon.controller.ConferenceController;
+      import org.dukecon.events.ConferenceDataChangedEvent;
+      import org.dukecon.events.ListEvent;
+
+      [Bindable]
+      protected var listData:ArrayCollection;
+
+      [Inject]
+      public var conferenceController:ConferenceController;
+
+      [Init]
+      public function init():void {
+        listData = conferenceController.streams;
+        list.addEventListener(ListEvent.ITEM_SELECTED, onStreamSelected);
+      }
+
+      [MessageHandler]
+      public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
+        listData = conferenceController.streams;
+      }
+
+      protected function onStreamSelected(event:ListEvent):void {
+        navigator.pushView(StreamView, event.data);
+      }
+      ]]>
+    </fx:Script>
+
+    <s:List id="list" width="100%" height="100%" horizontalScrollPolicy="off"
+            itemRenderer="org.dukecon.itemrenderer.StreamItemRenderer"
+            dataProvider="{listData}"/>
+
+</s:View>

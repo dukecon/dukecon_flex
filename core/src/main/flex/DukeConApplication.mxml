@@ -79,9 +79,9 @@
                       click="onOpenSettingsClicked(event)"/>
         </s:actionContent>
     </s:ViewNavigator>
-    <s:ViewNavigator label="{resourceManager.getString('dukecon', 'tracks.title')}"
-                     icon="@Embed('/track.png')"
-                     firstView="org.dukecon.views.TracksView" width="100%" height="100%">
+    <s:ViewNavigator label="{resourceManager.getString('dukecon', 'streams.title')}"
+                     icon="@Embed('/stream.png')"
+                     firstView="org.dukecon.views.StreamsView" width="100%" height="100%">
         <s:actionContent>
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
                       click="onOpenSettingsClicked(event)"/>

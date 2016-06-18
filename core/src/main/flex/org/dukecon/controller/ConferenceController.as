@@ -49,7 +49,7 @@ public class ConferenceController extends EventDispatcher {
     private var conn:SQLConnection;
     private var db:File;
 
-    private var trackRatings:SharedObject;
+    private var streamRatings:SharedObject;
 
     public var baseUrl:String;
 
@@ -70,7 +70,7 @@ public class ConferenceController extends EventDispatcher {
         try {
             conn.open(db);
 
-            trackRatings = SharedObject.getLocal("track-ratings");
+            streamRatings = SharedObject.getLocal("stream-ratings");
 
             if (initDb) {
                 AudienceBase.createTable(conn);
@@ -153,12 +153,12 @@ public class ConferenceController extends EventDispatcher {
         }
 
         TrackBase.clearTable(conn);
-        var persistedTrackIds:Array = [];
+        var persistedStreamIds:Array = [];
         for each(obj in result.metaData.tracks as Array) {
-            var track:Track = new Track(obj);
-            if (persistedTrackIds.indexOf(track.id) == -1) {
-                track.persist(conn);
-                persistedTrackIds.push(track.id);
+            var stream:Track = new Track(obj);
+            if (persistedStreamIds.indexOf(stream.id) == -1) {
+                stream.persist(conn);
+                persistedStreamIds.push(stream.id);
             }
         }
 
@@ -326,27 +326,27 @@ public class ConferenceController extends EventDispatcher {
         return null;
     }
 
-    public function get tracks():ArrayCollection {
-        var tracks:ArrayCollection = TrackBase.select(conn);
+    public function get streams():ArrayCollection {
+        var streams:ArrayCollection = TrackBase.select(conn);
         var dataSortField:SortField = new SortField();
         dataSortField.name = "order";
         dataSortField.numeric = true;
         var dataSort:Sort = new Sort();
         dataSort.fields = [dataSortField];
-        tracks.sort = dataSort;
-        tracks.refresh();
-        return tracks;
+        streams.sort = dataSort;
+        streams.refresh();
+        return streams;
     }
 
-    public function getTrack(id:String):Track {
+    public function getStream(id:String):Track {
         return TrackBase.selectById(conn, id);
     }
 
-    public function getTrackName(id:String, locale:String):String {
-        var track:Track = getTrack(id);
-        if(track) {
+    public function getStreamName(id:String, locale:String):String {
+        var stream:Track = getStream(id);
+        if(stream) {
             var parts:Array = locale.split("_");
-            return track.names[parts[0]];
+            return stream.names[parts[0]];
         }
         return null;
     }
@@ -373,8 +373,8 @@ public class ConferenceController extends EventDispatcher {
         return EventBase.select(conn, "date(start) = '" + day + "'");
     }
 
-    public function getEventsForTrack(track:Track):ArrayCollection {
-        return EventBase.select(conn, "trackId = '" + track.id + "'");
+    public function getEventsForStream(stream:Track):ArrayCollection {
+        return EventBase.select(conn, "trackId = '" + stream.id + "'");
     }
 
     public function getEventsForLocation(location:Location):ArrayCollection {
@@ -387,16 +387,16 @@ public class ConferenceController extends EventDispatcher {
 
     public function setRating(event:Event, rating:Number):void {
         if (!event) return;
-        if (!trackRatings.data.savedValue) {
-            trackRatings.data.savedValue = {};
+        if (!streamRatings.data.savedValue) {
+            streamRatings.data.savedValue = {};
         }
-        trackRatings.data.savedValue[event.id] = rating;
-        flushSharedObject(trackRatings);
+        streamRatings.data.savedValue[event.id] = rating;
+        flushSharedObject(streamRatings);
     }
 
     public function getRating(event:Event):Number {
-        if (event && trackRatings.data && trackRatings.data.savedValue) {
-            return trackRatings.data.savedValue[event.id];
+        if (event && streamRatings.data && streamRatings.data.savedValue) {
+            return streamRatings.data.savedValue[event.id];
         }
         return -2;
     }
@@ -431,7 +431,7 @@ public class ConferenceController extends EventDispatcher {
                 log.warn("User denied permission -- value not saved.\n");
                 break;
         }
-        trackRatings.removeEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
+        streamRatings.removeEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
     }
 
     protected function executeQuery(query:String):ArrayCollection {

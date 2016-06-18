@@ -14,17 +14,18 @@
     <![CDATA[
       import org.dukecon.controller.StreamController;
       import org.dukecon.events.ListEvent;
-      import org.dukecon.model.Event;
-
-      [Bindable]
-      protected var event:org.dukecon.model.Event;
+      import org.dukecon.model.Track;
 
       [Bindable]
       protected var streamIcon:Class;
+      [Bindable]
+      protected var streamName:String;
+
+      [Bindable]
+      protected var stream:Track;
 
       [Inject]
       public var streamController:StreamController;
-
 
       [Bindable("dataChange")]
       override public function get data():Object {
@@ -33,22 +34,23 @@
 
       override public function set data(value:Object):void {
         super.data = value;
-        event = org.dukecon.model.Event(data);
+        stream = Track(data);
         update();
       }
 
       protected function update():void {
-        if (event && streamController) {
-          streamIcon = streamController.getIconForStream(event.trackId);
+        if (stream && streamController) {
+          streamIcon = streamController.getIconForStream(stream.id);
+          streamName = stream.getName(resourceManager.localeChain[0]);
         } else {
           streamIcon = null;
+          streamName = null;
         }
         itemLabel.width = this.parent.parent.width - 168;
-        invalidateDisplayList();
       }
 
-      protected function onItemClick(evnt:MouseEvent):void {
-        dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
+      protected function onItemClick(event:MouseEvent):void {
+        dispatchEvent(new ListEvent(data, ListEvent.ITEM_SELECTED));
       }
       ]]>
   </fx:Script>
@@ -62,19 +64,10 @@
         </s:stroke>
     </s:Rect>
 
-    <s:Rect top="8" left="8" width="120" bottom="8">
-        <s:fill>
-            <s:SolidColor color="white"/>
-        </s:fill>
-        <s:stroke>
-            <s:SolidColorStroke color="black"/>
-        </s:stroke>
-    </s:Rect>
-
-    <comp:VectorImage source="{streamIcon}" top="10" left="10" width="110" bottom="10"/>
+    <comp:VectorImage source="{streamIcon}" top="8" left="8" width="120" bottom="8"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="itemLabel" text="{event.title}" styleName="talkListTitle"/>
+        <s:Label id="itemLabel" text="{streamName}" styleName="listTitle"/>
     </s:HGroup>
 
 </s:ItemRenderer>

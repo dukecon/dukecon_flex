@@ -1,0 +1,121 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 06.07.15.
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:comp="org.dukecon.components.*"
+        xmlns:parsley="http://www.spicefactory.org/parsley"
+        title="{resourceManager.getString('dukecon', 'stream.title')}"
+        creationComplete="onCreationComplete(event)">
+
+    <fx:Metadata>
+        [ResourceBundle("dukecon")]
+    </fx:Metadata>
+
+    <fx:Declarations>
+        <parsley:FastInject>
+            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
+            <parsley:Inject property="streamController" type="{StreamController}" />
+        </parsley:FastInject>
+    </fx:Declarations>
+
+    <fx:Script>
+        <![CDATA[
+      import mx.collections.ArrayCollection;
+      import mx.events.FlexEvent;
+
+      import org.dukecon.controller.ConferenceController;
+      import org.dukecon.controller.StreamController;
+      import org.dukecon.controller.StreamController;
+      import org.dukecon.events.ListEvent;
+      import org.dukecon.model.Track;
+
+      [Bindable]
+      protected var stream:Track;
+
+      [Bindable]
+      protected var streamIcon:Class;
+      [Bindable]
+      protected var streamName:String;
+
+      [Bindable]
+      protected var events:ArrayCollection;
+
+      [Inject]
+      public var conferenceController:ConferenceController;
+
+      [Inject]
+      public var streamController:StreamController;
+
+      protected function onCreationComplete(event:FlexEvent):void {
+        talkList.addEventListener(ListEvent.ITEM_SELECTED, onStreamSelected);
+      }
+
+      [Bindable("dataChange")]
+      override public function get data():Object {
+        return super.data;
+      }
+
+      override public function set data(value:Object):void {
+        super.data = value;
+        stream = Track(data);
+        update();
+      }
+
+      override protected function commitProperties():void {
+        super.commitProperties();
+        update();
+      }
+
+      protected function update():void {
+        if (stream && streamController && conferenceController) {
+          streamName = stream.getName(resourceManager.localeChain[0]);
+          streamIcon = streamController.getIconForStream(stream.id);
+          events = conferenceController.getEventsForStream(stream);
+        } else {
+          streamIcon = null;
+          streamName = null;
+          events = null;
+        }
+      }
+
+      protected function onStreamSelected(event:ListEvent):void {
+        navigator.pushView(EventView, event.data);
+      }
+      ]]>
+    </fx:Script>
+
+    <s:navigationContent>
+        <s:Button label="&lt;" click="{navigator.popView()}"/>
+    </s:navigationContent>
+
+    <s:Scroller width="100%" height="100%" horizontalScrollPolicy="off">
+        <s:VGroup width="100%" padding="10" gap="30">
+            <s:Group width="100%">
+                <s:Rect top="4" left="4" right="4" height="150" radiusX="10" radiusY="10">
+                    <s:fill>
+                        <s:SolidColor color="0x1AA3B1"/>
+                    </s:fill>
+                </s:Rect>
+
+                <s:Label text="{streamName}" top="22" left="20" width="440" styleName="title"/>
+
+                <s:Rect top="20" right="20" width="120" height="120">
+                    <s:fill>
+                        <s:SolidColor color="0xffffff"/>
+                    </s:fill>
+                    <s:stroke>
+                        <s:SolidColorStroke color="black"/>
+                    </s:stroke>
+                </s:Rect>
+
+                <comp:VectorImage source="{streamIcon}" top="22" right="22" width="116" height="116"/>
+            </s:Group>
+            <s:List id="talkList" width="100%" height="100%"
+                    itemRenderer="org.dukecon.itemrenderer.EventItemRenderer"
+                    dataProvider="{events}"/>
+        </s:VGroup>
+    </s:Scroller>
+
+</s:View>

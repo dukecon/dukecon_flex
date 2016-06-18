@@ -11,7 +11,7 @@
         <controller:LanguageController/>
         <controller:LocationController/>
         <controller:SpeakerController/>
-        <controller:TrackController/>
+        <controller:StreamController/>
         <controller:SettingsController/>
         <controller:RemoteUserPreferencesController baseUrl="{baseUrl}"/>
         <controller:LocalUserPreferencesController/>
