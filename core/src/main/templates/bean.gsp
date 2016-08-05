@@ -30,7 +30,7 @@ package ${jClass.as3Type.packageName} {<%
     public class ${jClass.as3Type.name} extends ${jClass.as3Type.name}Base {
 
         public function ${jClass.as3Type.name}(obj:Object = null) {
-            super(obj);
+            super();
         }
 <%
     ///////////////////////////////////////////////////////////////////////////

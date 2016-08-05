@@ -4,7 +4,8 @@
 -->
 <s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
                            xmlns:s="library://ns.adobe.com/flex/spark"
-                           backgroundColor="0x898989" width="80%">
+                           backgroundColor="0x898989" width="80%"
+                           resize="onResize(event)">
 
     <fx:Metadata>
         [ResourceBundle("dukecon")]
@@ -13,12 +14,17 @@
     <fx:Script>
         <![CDATA[
         import mx.core.FlexGlobals;
+        import mx.events.ResizeEvent;
 
         public static const YES:String = "yes";
         public static const NO:String = "no";
 
         [Bindable]
         public var message:String;
+
+        protected function onResize(event:ResizeEvent):void {
+            label.width = FlexGlobals.topLevelApplication.width - 60;
+        }
 
         protected function onYesClicked(event:MouseEvent):void {
             close(true, YES);
@@ -41,7 +47,7 @@
     </s:Rect>
 
     <s:VGroup width="100%" padding="20" gap="20">
-        <s:Label text="{message}" width="{FlexGlobals.topLevelApplication.width - 60}" textAlign="center"/>
+        <s:Label id="label" text="{message}" textAlign="center"/>
         <s:HGroup width="100%">
             <s:Button label="{resourceManager.getString('dukecon', 'yes')}" width="50%" click="onYesClicked(event)"/>
             <s:Button label="{resourceManager.getString('dukecon', 'no')}" width="50%" click="onNoClicked(event)"/>

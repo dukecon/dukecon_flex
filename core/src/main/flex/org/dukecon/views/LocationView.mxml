@@ -15,8 +15,8 @@
 
     <fx:Declarations>
         <parsley:FastInject>
-            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
-            <parsley:Inject property="locationController" type="{LocationController}" />
+            <parsley:Inject property="conferenceService" type="{ConferenceService}" />
+            <parsley:Inject property="locationService" type="{LocationService}" />
         </parsley:FastInject>
     </fx:Declarations>
 
@@ -25,10 +25,10 @@
         import mx.collections.ArrayCollection;
         import mx.events.FlexEvent;
 
-        import org.dukecon.controller.ConferenceController;
-        import org.dukecon.controller.LocationController;
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Location;
+        import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.LocationService;
 
         [Bindable]
         protected var location:Location;
@@ -42,10 +42,10 @@
         protected var talks:ArrayCollection;
 
         [Inject]
-        public var conferenceController:ConferenceController;
+        public var conferenceService:ConferenceService;
 
         [Inject]
-        public var locationController:LocationController;
+        public var locationService:LocationService;
 
         protected function onCreationComplete(event:FlexEvent):void {
             talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
@@ -68,10 +68,10 @@
         }
 
         protected function update():void {
-            if(location && locationController && conferenceController) {
-                locationName = location.getName(resourceManager.localeChain[0]);
-                locationIcon = locationController.getIconForLocation(location.id);
-                talks = conferenceController.getEventsForLocation(location);
+            if(location && locationService && conferenceService) {
+//                locationName = location.getName(resourceManager.localeChain[0]);
+                locationIcon = locationService.getIconForLocation(location.id);
+                talks = conferenceService.getEventsForLocation(location);
             } else {
                 locationName = null;
                 locationIcon = null;

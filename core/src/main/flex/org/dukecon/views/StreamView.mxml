@@ -15,8 +15,8 @@
 
     <fx:Declarations>
         <parsley:FastInject>
-            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
-            <parsley:Inject property="streamController" type="{StreamController}" />
+            <parsley:Inject property="conferenceService" type="{ConferenceService}" />
+            <parsley:Inject property="streamService" type="{StreamService}" />
         </parsley:FastInject>
     </fx:Declarations>
 
@@ -25,11 +25,10 @@
       import mx.collections.ArrayCollection;
       import mx.events.FlexEvent;
 
-      import org.dukecon.controller.ConferenceController;
-      import org.dukecon.controller.StreamController;
-      import org.dukecon.controller.StreamController;
       import org.dukecon.events.ListEvent;
       import org.dukecon.model.Track;
+      import org.dukecon.services.ConferenceService;
+      import org.dukecon.services.StreamService;
 
       [Bindable]
       protected var stream:Track;
@@ -43,10 +42,10 @@
       protected var events:ArrayCollection;
 
       [Inject]
-      public var conferenceController:ConferenceController;
+      public var conferenceService:ConferenceService;
 
       [Inject]
-      public var streamController:StreamController;
+      public var streamService:StreamService;
 
       protected function onCreationComplete(event:FlexEvent):void {
         talkList.addEventListener(ListEvent.ITEM_SELECTED, onStreamSelected);
@@ -69,10 +68,10 @@
       }
 
       protected function update():void {
-        if (stream && streamController && conferenceController) {
-          streamName = stream.getName(resourceManager.localeChain[0]);
-          streamIcon = streamController.getIconForStream(stream.id);
-          events = conferenceController.getEventsForStream(stream);
+        if (stream && streamService && conferenceService) {
+//          streamName = stream.getName(resourceManager.localeChain[0]);
+          streamIcon = streamService.getIconForStream(stream.id);
+          events = conferenceService.getEventsForStream(stream);
         } else {
           streamIcon = null;
           streamName = null;

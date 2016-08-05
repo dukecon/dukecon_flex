@@ -13,35 +13,35 @@
 
     <fx:Declarations>
         <parsley:FastInject injectionComplete="init()">
-            <parsley:Inject property="settingsController" type="{SettingsController}"/>
-            <parsley:Inject property="conferenceController" type="{ConferenceController}"/>
-            <parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}"/>
+            <parsley:Inject property="settingsService" type="{SettingsService}"/>
+            <parsley:Inject property="conferenceService" type="{ConferenceService}"/>
+            <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}"/-->
         </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
-                             locale="{settingsController.selectedLanguage}"
+                             locale="{settingsService.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
     </fx:Declarations>
 
     <fx:Script>
     <![CDATA[
-        import org.dukecon.controller.ConferenceController;
-        import org.dukecon.controller.LocalUserPreferencesController;
-        import org.dukecon.controller.SettingsController;
         import org.dukecon.events.ConferenceDataChangedEvent;
+        import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.SettingsService;
 
         [Inject]
         [Bindable]
-        public var settingsController:SettingsController;
+        public var settingsService:SettingsService;
 
         [Inject]
-        public var conferenceController:ConferenceController;
+        public var conferenceService:ConferenceService;
 
-        [Inject]
-        public var localUserPreferencesController:LocalUserPreferencesController;
+        /*[Inject]
+        public var localUserPreferencesController:LocalUserPreferencesController;*/
 
         [Init]
         protected function init():void {
-            conferenceController.addEventListener(
+            conferenceService.update();
+            conferenceService.addEventListener(
                     ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, handleConferenceDataChanged);
             updateLastChangesDate();
         }
@@ -52,7 +52,7 @@
         }
 
         protected function updateLastChangesDate():void {
-            var lastUpdatedDate:Date = conferenceController.lastUpdatedDate;
+            var lastUpdatedDate:Date = conferenceService.lastUpdatedDate;
             if(lastUpdatedDate) {
                 lastCahngesValue.text = timeFormatter.format(lastUpdatedDate);
             } else {
@@ -61,7 +61,7 @@
         }
 
         protected function onRefreshClicked(event:MouseEvent):void {
-            conferenceController.updateEvents();
+            conferenceService.update();
         }
 
         protected function onLogoClicked(event:MouseEvent):void {

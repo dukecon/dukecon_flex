@@ -16,7 +16,9 @@
     <name>DukeCon Client: Flex (Core-Application)</name>
 
     <properties>
-        <base-url>https://dukecon.org/javaland</base-url>
+        <base-url>http://localhost:8080/develop</base-url>
+        <!--base-url>https://dukecon.org/javaland</base-url-->
+
         <!--base-url>https://dev.dukecon.org/latest</base-url-->
         <feature.server-favorites>false</feature.server-favorites>
         <feature.event-rating>false</feature.event-rating>
@@ -42,10 +44,20 @@
                             <includeJavaClasses>
                                 <class>org.dukecon.model.*</class>
                             </includeJavaClasses>
+                            <excludeJavaClasses>
+                                <class>org.dukecon.model.annotations.*</class>
+                            </excludeJavaClasses>
                             <templates>
-                                <base-bean-template>${basedir}/src/main/templates/beanBase.gsp</base-bean-template>
-                                <bean-template>${basedir}/src/main/templates/bean.gsp</bean-template>
+                                <base-bean-template>${basedir}/src/main/templates/beanFlexORM.gsp</base-bean-template>
+                                <bean-template>${basedir}/src/main/templates/beanHelperFlexORM.gsp</bean-template>
                             </templates>
+                            <!--
+                                We want to generate different class names, so we need
+                                to provide a custom transformer to the generator.
+                            -->
+                            <extraOptions>
+                                <transformer>org.dukecon.utils.generator.FlexORMTransformer</transformer>
+                            </extraOptions>
                         </configuration>
                     </execution>
                     <execution>
@@ -206,6 +218,11 @@
                         <version>${air.version}</version>
                         <type>pom</type>
                     </dependency>
+                    <dependency>
+                        <groupId>org.dukecon</groupId>
+                        <artifactId>dukecon-flex-flexorm-generator</artifactId>
+                        <version>1.1.0-SNAPSHOT</version>
+                    </dependency>
                 </dependencies>
             </plugin>
         </plugins>
@@ -260,6 +277,20 @@
             <type>swc</type>
         </dependency>
 
+        <!-- Library for ORMapping -->
+        <dependency>
+            <groupId>org.dukecon</groupId>
+            <artifactId>dukecon-flex-airorm</artifactId>
+            <version>1.1.0-SNAPSHOT</version>
+            <type>swc</type>
+        </dependency>
+        <dependency>
+            <groupId>org.dukecon</groupId>
+            <artifactId>dukecon-flex-flexorm</artifactId>
+            <version>1.1.0-SNAPSHOT</version>
+            <type>swc</type>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.flex.flexunit</groupId>
             <artifactId>flexunit-flex</artifactId>
@@ -272,9 +303,16 @@
         <dependency>
             <groupId>org.dukecon</groupId>
             <artifactId>dukecon-server-api</artifactId>
+            <version>1.3-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.dukecon</groupId>
+            <artifactId>dukecon-flex-flexorm-generator</artifactId>
             <version>1.1.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+
     </dependencies>
 
     <profiles>

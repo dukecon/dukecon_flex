@@ -13,16 +13,16 @@
 
     <fx:Declarations>
         <parsley:FastInject>
-            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
-            <parsley:Inject property="streamController" type="{StreamController}" />
-            <parsley:Inject property="locationController" type="{LocationController}" />
-            <parsley:Inject property="languageController" type="{LanguageController}" />
-            <parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
-            <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" />
-            <parsley:Inject property="settingsController" type="{SettingsController}" />
+            <parsley:Inject property="conferenceService" type="{ConferenceService}" />
+            <parsley:Inject property="streamService" type="{StreamService}" />
+            <parsley:Inject property="locationService" type="{LocationService}" />
+            <parsley:Inject property="languageService" type="{LanguageService}" />
+            <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
+            <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" /-->
+            <parsley:Inject property="settingsService" type="{SettingsService}" />
         </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
-                             locale="{settingsController.selectedLanguage}"
+                             locale="{settingsService.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>
     </fx:Declarations>
 
@@ -34,184 +34,177 @@
 
     <fx:Script>
     <![CDATA[
-      import mx.collections.ArrayCollection;
-      import mx.core.FlexGlobals;
-      import mx.managers.PopUpManager;
+        import mx.collections.ArrayCollection;
 
-      import org.dukecon.controller.ConferenceController;
-      import org.dukecon.controller.LanguageController;
-      import org.dukecon.controller.LocalUserPreferencesController;
-      import org.dukecon.controller.LocationController;
-      import org.dukecon.controller.RemoteUserPreferencesController;
-      import org.dukecon.controller.SettingsController;
-      import org.dukecon.controller.StreamController;
-      import org.dukecon.controller.StreamController;
-      import org.dukecon.dialogs.ConfirmDialog;
-      import org.dukecon.events.ListEvent;
-      import org.dukecon.model.Speaker;
-      import org.dukecon.model.user.UserPreference;
+        import org.dukecon.events.ListEvent;
+        import org.dukecon.model.Speaker;
+        import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.LanguageService;
+        import org.dukecon.services.LocationService;
+        import org.dukecon.services.SettingsService;
+        import org.dukecon.services.StreamService;
 
-      [Bindable]
-      protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
+        [Bindable]
+        protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
 
-      [Embed(source="/star-unselected.png")]
-      [Bindable]
-      public var starUnselected:Class;
+        [Embed(source="/star-unselected.png")]
+        [Bindable]
+        public var starUnselected:Class;
 
-      [Embed(source="/star-selected.png")]
-      [Bindable]
-      public var starSelected:Class;
+        [Embed(source="/star-selected.png")]
+        [Bindable]
+        public var starSelected:Class;
 
-      [Bindable]
-      protected var event:org.dukecon.model.Event;
+        [Bindable]
+        protected var event:org.dukecon.model.Event;
 
-      [Bindable]
-      protected var streamName:String;
-      [Bindable]
-      protected var streamIcon:Class;
+        [Bindable]
+        protected var streamName:String;
+        [Bindable]
+        protected var streamIcon:Class;
 
-      [Bindable]
-      protected var timeString:String;
+        [Bindable]
+        protected var timeString:String;
 
-      [Bindable]
-      protected var locationName:String;
-      [Bindable]
-      protected var locationIcon:Class;
+        [Bindable]
+        protected var locationName:String;
+        [Bindable]
+        protected var locationIcon:Class;
 
-      [Bindable]
-      protected var languageName:String;
-      [Bindable]
-      protected var languageIcon:Class;
+        [Bindable]
+        protected var languageName:String;
+        [Bindable]
+        protected var languageIcon:Class;
 
-      [Bindable]
-      protected var speakerNames:String;
+        [Bindable]
+        protected var speakerNames:String;
 
-      [Inject]
-      public var conferenceController:ConferenceController;
+        [Inject]
+        public var conferenceService:ConferenceService;
 
-      [Inject]
-      public var streamController:StreamController;
+        [Inject]
+        public var streamService:StreamService;
 
-      [Inject]
-      public var locationController:LocationController;
+        [Inject]
+        public var locationService:LocationService;
 
-      [Inject]
-      public var languageController:LanguageController;
+        [Inject]
+        public var languageService:LanguageService;
 
-      [Inject]
-      public var localUserPreferencesController:LocalUserPreferencesController;
+        /*      [Inject]
+         public var localUserPreferencesController:LocalUserPreferencesController;
 
-      [Inject]
-      public var remoteUserPreferencesController:RemoteUserPreferencesController;
+         [Inject]
+         public var remoteUserPreferencesController:RemoteUserPreferencesController;
+         */
+        [Inject]
+        [Bindable]
+        public var settingsService:SettingsService;
 
-      [Inject]
-      [Bindable]
-      public var settingsController:SettingsController;
+        public var startTime:Number;
+        public var locationIds:ArrayCollection;
 
-      public var startTime:Number;
-      public var locationIds:ArrayCollection;
-
-      [Bindable("dataChange")]
-      override public function get data():Object {
-        return super.data;
-      }
-
-      override public function set data(value:Object):void {
-        super.data = value;
-        event = org.dukecon.model.Event(value);
-        adjustSize();
-        update();
-      }
-
-      protected function adjustSize():void {
-        var lengthInMinutes:Number = (event.end.time - event.start.time) / (1000 * 60);
-        if (lengthInMinutes < 40) {
-          currentState = "short";
-        } else if (length > 120) {
-          currentState = "long";
-        } else {
-          currentState = "normal";
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
         }
-        // Update the position of the item based on it's data.
-        x = (event.start.time - startTime) / 4000;
-        y = locationIds.getItemIndex(event.locationId) * 394;
-        width = (event.end.time - event.start.time) / 4000;
-      }
 
-      protected function update():void {
-        if (event) {
-          timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
-          locationName = conferenceController.getLocationName(event.locationId, resourceManager.localeChain[0]);
-          locationIcon = locationController.getIconForLocation(event.locationId);
-          if (event.trackId) {
-            streamName = conferenceController.getStreamName(event.trackId, resourceManager.localeChain[0]);
-            streamIcon = streamController.getIconForStream(event.trackId);
-          } else {
-            streamName = null;
-            streamIcon = null;
-          }
-          var languageId:String = event.languageId ? event.languageId : "de";
-          languageName = conferenceController.getLanguageName(languageId, resourceManager.localeChain[0]);
-          languageIcon = languageController.getIconForLanguage(event.languageId);
-          speakerNames = "";
-          for each(var speakerId:String in event.speakerIds.split(",")) {
-            var speaker:Speaker = conferenceController.getSpeaker(speakerId);
-            if (speakerNames != "") {
-              speakerNames += ", ";
+        override public function set data(value:Object):void {
+            super.data = value;
+            event = org.dukecon.model.Event(value);
+            adjustSize();
+            //update();
+        }
+
+        protected function adjustSize():void {
+/*            var lengthInMinutes:Number = (event.end.time - event.start.time) / (1000 * 60);
+            if (lengthInMinutes < 40) {
+                currentState = "short";
+            } else if (length > 120) {
+                currentState = "long";
+            } else {
+                currentState = "normal";
             }
-            if (speaker) {
-              speakerNames += speaker.name;
-              if (speaker.company) {
-                speakerNames += " (" + speaker.company + ")";
-              }
-            }
-          }
-        } else {
-          timeString = null;
-          locationName = null;
-          locationIcon = null;
-          streamName = null;
-          streamIcon = null;
-          languageName = null;
-          languageIcon = null;
-          speakerNames = null;
+            // Update the position of the item based on it's data.
+            x = (event.start.time - startTime) / 4000;
+            y = locationIds.getItemIndex(event.location.id) * 394;
+            width = (event.end.time - event.start.time) / 4000;
+*/        }
+
+        /*protected function update():void {
+         if (event) {
+         timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
+         locationName = conferenceService.getLocationName(event.location.id, resourceManager.localeChain[0]);
+         locationIcon = locationService.getIconForLocation(event.location.id);
+         if (event.track.id) {
+         streamName = conferenceService.getStreamName(event.track.id, resourceManager.localeChain[0]);
+         streamIcon = streamService.getIconForStream(event.track.id);
+         } else {
+         streamName = null;
+         streamIcon = null;
+         }
+         var languageId:String = event.languageId ? event.language.id : "de";
+         languageName = conferenceService.getLanguageName(languageId, resourceManager.localeChain[0]);
+         languageIcon = languageController.getIconForLanguage(event.language.id);
+         speakerNames = "";
+         for each(var speakerId:String in event.speakerIds.split(",")) {
+         var speaker:Speaker = conferenceService.getSpeaker(speakerId);
+         if (speakerNames != "") {
+         speakerNames += ", ";
+         }
+         if (speaker) {
+         speakerNames += speaker.name;
+         if (speaker.company) {
+         speakerNames += " (" + speaker.company + ")";
+         }
+         }
+         }
+         } else {
+         timeString = null;
+         locationName = null;
+         locationIcon = null;
+         streamName = null;
+         streamIcon = null;
+         languageName = null;
+         languageIcon = null;
+         speakerNames = null;
+         }
+
+         updateSelectionIcon();
+         }
+
+         protected function updateSelectionIcon():void {
+         if (event) {
+         favoriteImage.source = localUserPreferencesController.isEventSelected(event) ? starSelected : starUnselected;
+         } else {
+         favoriteImage.source = null;
+         }
+         }
+
+         protected function toggleSelection(evnt:MouseEvent):void {
+         var userPreference:UserPreference = new UserPreference();
+         userPreference.eventId = event.id;
+         if (localUserPreferencesController.isEventSelected(event)) {
+         localUserPreferencesController.del(userPreference);
+         } else {
+         localUserPreferencesController.add(userPreference);
+         }
+         updateSelectionIcon();
+
+         if (featureServerFavorites && !remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
+         var confirmDialog:ConfirmDialog = new ConfirmDialog();
+         confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
+         confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
+         PopUpManager.centerPopUp(confirmDialog);
+
+         remoteUserPreferencesController.infoPopupDisplayed = true;
+         }
+         }*/
+
+        protected function onMoreClicked(evnt:MouseEvent):void {
+            dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
         }
-
-        updateSelectionIcon();
-      }
-
-      protected function updateSelectionIcon():void {
-        if (event) {
-          favoriteImage.source = localUserPreferencesController.isEventSelected(event) ? starSelected : starUnselected;
-        } else {
-          favoriteImage.source = null;
-        }
-      }
-
-      protected function toggleSelection(evnt:MouseEvent):void {
-        var userPreference:UserPreference = new UserPreference();
-        userPreference.eventId = event.id;
-        if (localUserPreferencesController.isEventSelected(event)) {
-          localUserPreferencesController.del(userPreference);
-        } else {
-          localUserPreferencesController.add(userPreference);
-        }
-        updateSelectionIcon();
-
-        if (featureServerFavorites && !remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
-          var confirmDialog:ConfirmDialog = new ConfirmDialog();
-          confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
-          confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
-          PopUpManager.centerPopUp(confirmDialog);
-
-          remoteUserPreferencesController.infoPopupDisplayed = true;
-        }
-      }
-
-      protected function onMoreClicked(evnt:MouseEvent):void {
-        dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
-      }
-      ]]>
+        ]]>
   </fx:Script>
 
     <s:Rect top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10" visible="{event != null}">
@@ -246,6 +239,6 @@
         </s:VGroup>
     </s:VGroup>
 
-    <s:Image id="favoriteImage" top="20" right="20" click="toggleSelection(event)"/>
+    <!--s:Image id="favoriteImage" top="20" right="20" click="toggleSelection(event)"/-->
 
 </s:GridItemRenderer>

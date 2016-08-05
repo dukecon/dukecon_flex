@@ -14,10 +14,9 @@
 
     <fx:Declarations>
         <parsley:FastInject>
-            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
-            <parsley:Inject property="settingsController" type="{SettingsController}" />
-            <parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
-            <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" />
+            <parsley:Inject property="settingsService" type="{SettingsService}" />
+            <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
+            <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" /-->
         </parsley:FastInject>
     </fx:Declarations>
 
@@ -28,20 +27,14 @@
     <fx:Script>
         <![CDATA[
         import mx.collections.ArrayCollection;
-        import mx.events.CollectionEvent;
         import mx.events.FlexEvent;
         import mx.logging.ILogger;
         import mx.logging.Log;
         import mx.managers.PopUpManager;
 
-        import org.dukecon.controller.ConferenceController;
-        import org.dukecon.controller.LocalUserPreferencesController;
-        import org.dukecon.controller.RemoteUserPreferencesController;
-        import org.dukecon.controller.SettingsController;
         import org.dukecon.dialogs.SelectDialog;
         import org.dukecon.dialogs.YesNoDialog;
-        import org.dukecon.model.user.UserPreference;
-        import org.jboss.keycloak.flex.event.ProviderChangedEvent;
+        import org.dukecon.services.SettingsService;
 
         import spark.components.RadioButton;
         import spark.events.PopUpEvent;
@@ -52,21 +45,18 @@
         protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
 
         [Inject]
-        public var conferenceController:ConferenceController;
+        public var settingsService:SettingsService;
 
-        [Inject]
-        public var settingsController:SettingsController;
+        /*[Inject]
+         public var localUserPreferencesController:LocalUserPreferencesController;
 
-        [Inject]
-        public var localUserPreferencesController:LocalUserPreferencesController;
-
-        [Inject]
-        public var remoteUserPreferencesController:RemoteUserPreferencesController;
+         [Inject]
+         public var remoteUserPreferencesController:RemoteUserPreferencesController;*/
 
         protected var languageButtons:Array;
 
         protected function onCreationComplete(event:FlexEvent):void {
-            remoteUserPreferencesController.navigator = navigator;
+//            remoteUserPreferencesController.navigator = navigator;
 
             // Hide the settings action button.
             for each(var button:Button in navigator.actionContent) {
@@ -86,11 +76,11 @@
                 languageButtons.push(languageButton);
             }
 
-            remoteUserPreferencesController.addEventListener(ProviderChangedEvent.PROVIDER_CHANGED,
-                    function (event:ProviderChangedEvent):void {
-                        updateBinding();
-                    });
-
+            /*            remoteUserPreferencesController.addEventListener(ProviderChangedEvent.PROVIDER_CHANGED,
+             function (event:ProviderChangedEvent):void {
+             updateBinding();
+             });
+             */
             updateBinding();
         }
 
@@ -117,50 +107,52 @@
             var selectedLanguage:String = String(RadioButton(event.target).value);
 
             resourceManager.localeChain = [selectedLanguage];
-            settingsController.selectedLanguage = String(selectedLanguage);
+//            settingsService.selectedLanguage = String(selectedLanguage);
 
             log.info("Changed language to: " + selectedLanguage);
         }
 
         protected function updateBinding():void {
             // Hide the button that currently should not be displayed.
-            if (remoteUserPreferencesController.provider) {
-                var msg:String = resourceManager.getString('dukecon', 'settings.server-account.connected',
-                        [remoteUserPreferencesController.provider]);
-                boundMessage.text = msg;
-                connectForm.includeInLayout = connectForm.visible = false;
-                disconnectForm.includeInLayout = disconnectForm.visible = featureServerFavorites;
-            } else {
-                connectForm.includeInLayout = connectForm.visible = featureServerFavorites;
-                disconnectForm.includeInLayout = disconnectForm.visible = false;
-            }
+            /*            if (remoteUserPreferencesController.provider) {
+             var msg:String = resourceManager.getString('dukecon', 'settings.server-account.connected',
+             [remoteUserPreferencesController.provider]);
+             boundMessage.text = msg;
+             connectForm.includeInLayout = connectForm.visible = false;
+             disconnectForm.includeInLayout = disconnectForm.visible = featureServerFavorites;
+             } else {
+             connectForm.includeInLayout = connectForm.visible = featureServerFavorites;
+             disconnectForm.includeInLayout = disconnectForm.visible = false;
+             }
+             */
         }
 
         protected function onBindClicked(event:MouseEvent):void {
-            var localPreferences:ArrayCollection = localUserPreferencesController.list();
-            // TODO: If the readUserPreferences returns values, ask the user how to merge the data.
-            var remotePreferences:ArrayCollection = remoteUserPreferencesController.list();
-            remotePreferences.addEventListener(CollectionEvent.COLLECTION_CHANGE,
-                    function (event:CollectionEvent):void {
-                        // If the server and the client had preferences, then ask the user which
-                        // strategy should be used to merge the two:
-                        // a) delete all local preferences and use the ones read from the server
-                        // b) delete all remote preferences and the the local ones
-                        // c) merge both the local and the remote preferences and update local and
-                        //    remote
-                        trace(remotePreferences.length);
-                        if ((remotePreferences.length > 0) && (localPreferences.length > 0)) {
-                            openMergeStrategyDialog(localPreferences, remotePreferences);
-                        }
-                        if (remotePreferences.length > 0) {
-                            // Update the local preferences with the ones from the server.
-                            localUserPreferencesController.replaceAll(remotePreferences);
-                        }
-                        else if (localPreferences.length > 0) {
-                            // Send the list of preferences to the server
-                            remoteUserPreferencesController.replaceAll(localPreferences);
-                        }
-                    });
+            /*            var localPreferences:ArrayCollection = localUserPreferencesController.list();
+             // TODO: If the readUserPreferences returns values, ask the user how to merge the data.
+             var remotePreferences:ArrayCollection = remoteUserPreferencesController.list();
+             remotePreferences.addEventListener(CollectionEvent.COLLECTION_CHANGE,
+             function (event:CollectionEvent):void {
+             // If the server and the client had preferences, then ask the user which
+             // strategy should be used to merge the two:
+             // a) delete all local preferences and use the ones read from the server
+             // b) delete all remote preferences and the the local ones
+             // c) merge both the local and the remote preferences and update local and
+             //    remote
+             trace(remotePreferences.length);
+             if ((remotePreferences.length > 0) && (localPreferences.length > 0)) {
+             openMergeStrategyDialog(localPreferences, remotePreferences);
+             }
+             if (remotePreferences.length > 0) {
+             // Update the local preferences with the ones from the server.
+             localUserPreferencesController.replaceAll(remotePreferences);
+             }
+             else if (localPreferences.length > 0) {
+             // Send the list of preferences to the server
+             remoteUserPreferencesController.replaceAll(localPreferences);
+             }
+             });
+             */
         }
 
         protected function openMergeStrategyDialog(localPreferences:ArrayCollection, remotePreferences:ArrayCollection):void {
@@ -181,41 +173,42 @@
         }
 
         protected function onMergeStrategySelected(event:PopUpEvent):void {
-            if (event.data) {
-                var result:String = String(event.data.result);
-                if (result == SelectDialog.OK) {
-                    var selectedOption:String = String(event.data.selectedOption);
-                    var localPreferences:ArrayCollection = ArrayCollection(event.data.localPreferences);
-                    var remotePreferences:ArrayCollection = ArrayCollection(event.data.remotePreferences);
-                    // Depending on the users selection, apply the desired strategy.
-                    switch (selectedOption) {
-                        case "server":
-                            localUserPreferencesController.replaceAll(remotePreferences);
-                            break;
-                        case "client":
-                            remoteUserPreferencesController.replaceAll(localPreferences);
-                            break;
-                        case "merge":
-                            var preference:UserPreference;
-                            var localPreferenceIndex:Object = {};
-                            for each(preference in localPreferences) {
-                                localPreferenceIndex[preference.eventId] = preference;
-                            }
-                            for each(preference in remotePreferences) {
-                                if (localPreferenceIndex.hasOwnProperty(preference.eventId)) {
-                                    delete localPreferenceIndex[preference.eventId];
-                                } else {
-                                    localUserPreferencesController.add(preference);
-                                }
-                            }
-                            for each(var preferenceId:String in localPreferenceIndex) {
-                                preference = localPreferenceIndex[preferenceId];
-                                remoteUserPreferencesController.add(preference);
-                            }
-                            break;
-                    }
-                }
-            }
+            /*            if (event.data) {
+             var result:String = String(event.data.result);
+             if (result == SelectDialog.OK) {
+             var selectedOption:String = String(event.data.selectedOption);
+             var localPreferences:ArrayCollection = ArrayCollection(event.data.localPreferences);
+             var remotePreferences:ArrayCollection = ArrayCollection(event.data.remotePreferences);
+             // Depending on the users selection, apply the desired strategy.
+             switch (selectedOption) {
+             case "server":
+             localUserPreferencesController.replaceAll(remotePreferences);
+             break;
+             case "client":
+             remoteUserPreferencesController.replaceAll(localPreferences);
+             break;
+             case "merge":
+             var preference:UserPreference;
+             var localPreferenceIndex:Object = {};
+             for each(preference in localPreferences) {
+             localPreferenceIndex[preference.eventId] = preference;
+             }
+             for each(preference in remotePreferences) {
+             if (localPreferenceIndex.hasOwnProperty(preference.eventId)) {
+             delete localPreferenceIndex[preference.eventId];
+             } else {
+             localUserPreferencesController.add(preference);
+             }
+             }
+             for each(var preferenceId:String in localPreferenceIndex) {
+             preference = localPreferenceIndex[preferenceId];
+             remoteUserPreferencesController.add(preference);
+             }
+             break;
+             }
+             }
+             }
+             */
         }
 
         protected function onUnbindClicked(event:MouseEvent):void {
@@ -228,7 +221,7 @@
 
         protected function onUnbindConfirmDialogClosed(event:PopUpEvent):void {
             if (event.data == YesNoDialog.YES) {
-                remoteUserPreferencesController.logout();
+//                remoteUserPreferencesController.logout();
             }
         }
         ]]>

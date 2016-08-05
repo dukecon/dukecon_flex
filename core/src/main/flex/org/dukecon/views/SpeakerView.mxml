@@ -15,8 +15,8 @@
 
     <fx:Declarations>
         <parsley:FastInject>
-            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
-            <parsley:Inject property="speakerController" type="{SpeakerController}" />
+            <parsley:Inject property="conferenceService" type="{ConferenceService}" />
+            <parsley:Inject property="speakerService" type="{SpeakerService}" />
         </parsley:FastInject>
     </fx:Declarations>
 
@@ -26,10 +26,10 @@
         import mx.core.UIComponent;
         import mx.events.FlexEvent;
 
-        import org.dukecon.controller.ConferenceController;
-        import org.dukecon.controller.SpeakerController;
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Speaker;
+        import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.SpeakerService;
 
         [Bindable]
         protected var speaker:Speaker;
@@ -41,10 +41,10 @@
         protected var events:ArrayCollection;
 
         [Inject]
-        public var conferenceController:ConferenceController;
+        public var conferenceService:ConferenceService;
 
         [Inject]
-        public var speakerController:SpeakerController;
+        public var speakerService:SpeakerService;
 
         protected function onCreationComplete(event:FlexEvent):void {
             talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
@@ -67,9 +67,9 @@
         }
 
         protected function update():void {
-            if(speaker && speakerController && conferenceController) {
-                speakerPortrait = speakerController.getIconForSpeaker(speaker.name);
-                events = conferenceController.getEventsForSpeaker(speaker);
+            if(speaker && speakerService && conferenceService) {
+                speakerPortrait = speakerService.getIconForSpeaker(speaker.name);
+                events = conferenceService.getEventsForSpeaker(speaker);
             } else {
                 speakerPortrait = null;
                 events = null;

@@ -10,20 +10,20 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:FastInject property="settingsController" type="{SettingsController}" />
+        <parsley:FastInject property="settingsService" type="{SettingsService}" />
         <s:DateTimeFormatter id="formatter"
-                             locale="{settingsController.selectedLanguage}"
+                             locale="{settingsService.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
         <s:DateTimeFormatter id="dayFormatter"
-                             locale="{settingsController.selectedLanguage}"
+                             locale="{settingsService.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dayOfWeek')}"/>
     </fx:Declarations>
 
     <fx:Script>
 
 
-        import org.dukecon.controller.SettingsController;
         import org.dukecon.events.ListEvent;
+        import org.dukecon.services.SettingsService;
 
         [Bindable]
         protected var formattedData:String;
@@ -36,7 +36,7 @@
 
         [Inject]
         [Bindable]
-        public var settingsController:SettingsController;
+        public var settingsService:SettingsService;
 
         [Bindable("dataChange")]
         override public function get data():Object {

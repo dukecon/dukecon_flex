@@ -9,7 +9,8 @@
         creationComplete="onCreationComplete(event)">
 
     <fx:Declarations>
-        <parsley:FastInject property="conferenceController" type="{ConferenceController}" />
+        <parsley:FastInject property="conferenceService" type="{ConferenceService}" />
+        <parsley:FastInject property="locationService" type="{LocationService}" />
         <s:DateTimeFormatter id="formatter"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
         <s:DateTimeFormatter id="timeFormatter"
@@ -21,10 +22,11 @@
         import mx.collections.ArrayCollection;
         import mx.events.FlexEvent;
 
-        import org.dukecon.controller.ConferenceController;
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Event;
         import org.dukecon.model.Location;
+        import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.LocationService;
         import org.dukecon.utils.EventItemFactory;
 
         [Bindable]
@@ -40,7 +42,10 @@
         protected var locationIds:ArrayCollection;
 
         [Inject]
-        public var conferenceController:ConferenceController;
+        public var conferenceService:ConferenceService;
+
+        [Inject]
+        public var locationService:LocationService;
 
         protected function onCreationComplete(event:FlexEvent):void {
             grid.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
@@ -65,44 +70,44 @@
         protected function update():void {
             var event:org.dukecon.model.Event;
 
-            if (dateString && conferenceController) {
+            if (dateString && conferenceService) {
                 var matches:Array = dateString.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
                 var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
                 formattedDate = formatter.format(date);
 
-                var talksForDay:ArrayCollection = conferenceController.getEventsForDay(dateString);
-                var locations:ArrayCollection = conferenceController.locations;
+                var talksForDay:ArrayCollection = conferenceService.getEventsForDay(dateString);
+                var locations:ArrayCollection = locationService.locations;
                 var locationUsage:Object = {};
 
                 // Find out the time range in which all events are.
                 dayStart = NaN;
                 for each(event in talksForDay) {
-                    if (event.end.time - event.start.time > 0) {
+/*                    if (event.end.time - event.start.time > 0) {
                         if ((isNaN(dayStart)) || (dayStart > event.start.time)) {
                             dayStart = event.start.time;
                         }
                     }
-                    // Keep track of the used locations.
-                    if(!locationUsage.hasOwnProperty(event.locationId)) {
-                        locationUsage[event.locationId] = 0;
+*/                    // Keep track of the used locations.
+                    if(!locationUsage.hasOwnProperty(event.location.id)) {
+                        locationUsage[event.location.id] = 0;
                     }
-                    locationUsage[event.locationId] += 1;
+                    locationUsage[event.location.id] += 1;
                 }
 
                 locationIds = new ArrayCollection();
                 for each(var location:Location in locations) {
                     // Filter out locations without talks.
                     if(locationUsage.hasOwnProperty(location.id) &&
-                            Number(locationUsage[event.locationId]) > 0) {
+                            Number(locationUsage[event.location.id]) > 0) {
                         locationIds.addItem(location.id);
                     }
                 }
 
                 for each(event in talksForDay) {
-                    if (event.end.time - event.start.time > 0) {
+/*                    if (event.end.time - event.start.time > 0) {
                         dataProvider.addItem(event);
                     }
-                }
+*/                }
             } else {
                 formattedDate = null;
             }

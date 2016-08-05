@@ -13,10 +13,14 @@
     <fx:Script>
         <![CDATA[
         import mx.events.FlexEvent;
+        import mx.logging.ILogger;
+        import mx.logging.Log;
 
         import org.jboss.keycloak.flex.event.BrowserEvent;
         import org.jboss.keycloak.flex.event.SocialLoginEvent;
         import org.jboss.keycloak.flex.util.KeycloakToken;
+
+        protected static var log:ILogger = Log.getLogger(getQualifiedClassName(SocialLoginView).replace("::", "."));
 
         [Bindable]
         protected var url:String;
@@ -58,6 +62,8 @@
         }
 
         protected function onBrowserLocationChanged(event:BrowserEvent):void {
+            log.debug("Changed SocialLoginView location: " + event.newUrl);
+            browser.url = "javascript:document.title = document.getElementsByTagName('html')[0].innerHTML;";
             // If we were directed back to the Keycloak server, we'll take over again.
             if (KeycloakToken.getHostName(event.newUrl) == SocialLoginEvent(data).keycloakHost) {
                 closeView();

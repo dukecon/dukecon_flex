@@ -7,14 +7,14 @@
                 click="onItemClick(event)">
 
     <fx:Declarations>
-        <parsley:FastInject property="speakerController" type="{SpeakerController}" />
+        <parsley:FastInject property="speakerService" type="{SpeakerService}" />
     </fx:Declarations>
 
     <fx:Script>
     <![CDATA[
-        import org.dukecon.controller.SpeakerController;
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Speaker;
+        import org.dukecon.services.SpeakerService;
 
         [Bindable]
         protected var speaker:Speaker;
@@ -23,7 +23,7 @@
         protected var speakerIcon:Class;
 
         [Inject]
-        public var speakerController:SpeakerController;
+        public var speakerService:SpeakerService;
 
         [Bindable("dataChange")]
         override public function get data():Object {
@@ -37,8 +37,8 @@
         }
 
         protected function update():void {
-            if (speaker && speakerController) {
-                speakerIcon = speakerController.getIconForSpeaker(speaker.name);
+            if (speaker && speakerService) {
+                speakerIcon = speakerService.getIconForSpeaker(speaker.name);
             } else {
                 speakerIcon = null;
             }

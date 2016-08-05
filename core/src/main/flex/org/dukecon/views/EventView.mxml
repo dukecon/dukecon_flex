@@ -13,12 +13,13 @@
 
     <fx:Declarations>
         <parsley:FastInject>
-            <parsley:Inject property="conferenceController" type="{ConferenceController}" />
-            <parsley:Inject property="streamController" type="{StreamController}" />
-            <parsley:Inject property="languageController" type="{LanguageController}" />
-            <parsley:Inject property="locationController" type="{LocationController}" />
-            <parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
-            <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" />
+            <parsley:Inject property="conferenceService" type="{ConferenceService}" />
+            <parsley:Inject property="speakerService" type="{SpeakerService}" />
+            <parsley:Inject property="streamController" type="{StreamService}" />
+            <parsley:Inject property="languageController" type="{LanguageService}" />
+            <parsley:Inject property="locationController" type="{LocationService}" />
+            <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
+            <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" /-->
         </parsley:FastInject>
         <s:DateTimeFormatter id="startTimeFormatter"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
@@ -29,165 +30,166 @@
 
     <fx:Script>
         <![CDATA[
-      import mx.core.FlexGlobals;
-      import mx.core.UIComponent;
-      import mx.events.ItemClickEvent;
-      import mx.managers.PopUpManager;
+        import mx.core.UIComponent;
+        import mx.events.ItemClickEvent;
 
-      import org.dukecon.controller.ConferenceController;
-      import org.dukecon.controller.LanguageController;
-      import org.dukecon.controller.LocationController;
-      import org.dukecon.controller.RemoteUserPreferencesController;
-      import org.dukecon.controller.StreamController;
-      import org.dukecon.controller.StreamController;
-      import org.dukecon.controller.LocalUserPreferencesController;
-      import org.dukecon.dialogs.ConfirmDialog;
-      import org.dukecon.model.Event;
-      import org.dukecon.model.Speaker;
-      import org.dukecon.model.user.UserPreference;
+        import org.dukecon.model.Event;
+        import org.dukecon.model.Speaker;
+        import org.dukecon.model.user.UserPreference;
+        import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.LanguageService;
+        import org.dukecon.services.LocationService;
+        import org.dukecon.services.RatingService;
+        import org.dukecon.services.SpeakerService;
+        import org.dukecon.services.StreamService;
 
-      [Bindable]
-      protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
+        [Bindable]
+        protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
 
-      [Bindable]
-      protected var featureEventRating:Boolean = FEATURE::eventRating;
+        [Bindable]
+        protected var featureEventRating:Boolean = FEATURE::eventRating;
 
-      [Embed(source="/star-unselected.png")]
-      [Bindable]
-      public var starUnselected:Class;
+        [Embed(source="/star-unselected.png")]
+        [Bindable]
+        public var starUnselected:Class;
 
-      [Embed(source="/star-selected.png")]
-      [Bindable]
-      public var starSelected:Class;
+        [Embed(source="/star-selected.png")]
+        [Bindable]
+        public var starSelected:Class;
 
-      [Bindable]
-      protected var event:org.dukecon.model.Event;
+        [Bindable]
+        protected var event:org.dukecon.model.Event;
 
-      [Bindable]
-      protected var selectedIcon:Class;
+        [Bindable]
+        protected var selectedIcon:Class;
 
-      [Bindable]
-      protected var streamIcon:Class;
+        [Bindable]
+        protected var streamIcon:Class;
 
-      [Bindable]
-      protected var speakers:String;
+        [Bindable]
+        protected var speakers:String;
 
-      [Bindable]
-      protected var locationName:String;
+        [Bindable]
+        protected var locationName:String;
 
-      [Bindable]
-      protected var streamName:String;
+        [Bindable]
+        protected var streamName:String;
 
-      [Inject]
-      public var conferenceController:ConferenceController;
+        [Inject]
+        public var conferenceService:ConferenceService;
 
-      [Inject]
-      public var locationController:LocationController;
+        [Inject]
+        public var speakerService:SpeakerService;
 
-      [Inject]
-      public var streamController:StreamController;
+        [Inject]
+        public var locationService:LocationService;
 
-      [Inject]
-      public var languageController:LanguageController;
+        [Inject]
+        public var streamService:StreamService;
 
-      [Inject]
-      public var localUserPreferencesController:LocalUserPreferencesController;
+        [Inject]
+        public var languageService:LanguageService;
 
-      [Inject]
-      public var remoteUserPreferencesController:RemoteUserPreferencesController;
+        [Inject]
+        public var ratingService:RatingService;
 
-      [Bindable("dataChange")]
-      override public function get data():Object {
-        return super.data;
-      }
 
-      override public function set data(value:Object):void {
-        super.data = value;
-        event = org.dukecon.model.Event(data);
-        update();
-      }
+        /*      [Inject]
+         public var localUserPreferencesController:LocalUserPreferencesController;
 
-      override protected function commitProperties():void {
-        super.commitProperties();
-        update();
-      }
+         [Inject]
+         public var remoteUserPreferencesController:RemoteUserPreferencesController;
+         */
+        [Bindable("dataChange")]
+        override public function get data():Object {
+            return super.data;
+        }
 
-      protected function update():void {
-        if (event && conferenceController && streamController && languageController) {
-          updateSelectionIcon();
-          if (event) {
-            streamIcon = streamController.getIconForStream(event.trackId);
-            languageIcon.source = languageController.getIconForLanguage(event.languageId);
-            locationMap.source = locationController.getMapForLocation(event.locationId);
-          } else {
-            streamIcon = null;
-            languageIcon.source = null;
-            locationMap.source = null;
-          }
-          speakers = "";
-          if (event.speakerIds) {
-            for each(var speakerId:String in event.speakerIds.split(",")) {
-              var speaker:Speaker = conferenceController.getSpeaker(speakerId);
-              if (speaker) {
-                if (speakers.length > 0) {
-                  speakers += ", ";
+        override public function set data(value:Object):void {
+            super.data = value;
+            event = org.dukecon.model.Event(data);
+            update();
+        }
+
+        override protected function commitProperties():void {
+            super.commitProperties();
+            update();
+        }
+
+        protected function update():void {
+            if (event && speakerService && streamService && languageService) {
+                updateSelectionIcon();
+                if (event) {
+                    streamIcon = streamService.getIconForStream(event.track.id);
+                    languageIcon.source = languageService.getIconForLanguage(event.language.id);
+                    locationMap.source = locationService.getMapForLocation(event.location.id);
+                } else {
+                    streamIcon = null;
+                    languageIcon.source = null;
+                    locationMap.source = null;
                 }
-                speakers += speaker.name;
-                if (speaker.company) {
-                  speakers += " (" + speaker.company + ")";
+                speakers = "";
+                if (event.speakers) {
+                    for each(var speaker:Speaker in event.speakers) {
+                        if (speakers.length > 0) {
+                            speakers += ", ";
+                        }
+                        speakers += speaker.name;
+                        if (speaker.company) {
+                            speakers += " (" + speaker.company + ")";
+                        }
+                    }
                 }
-              }
+                title = startTimeFormatter.format(event.start) + " - " + endTimeFormatter.format(event.end);
+                ratingGroup.selectedValue = ratingService.getRating(event);
+                locationName = locationService.getLocationName(event.location.id, resourceManager.localeChain[0]);
+                if (event.track.id) {
+                    streamName = streamService.getStreamName(event.track.id, resourceManager.localeChain[0]);
+                } else {
+                    streamName = null;
+                }
+            } else {
+                streamIcon = null;
+                streamName = null;
+                languageIcon = null;
+                speakers = null;
+                locationName = null;
             }
-          }
-          title = startTimeFormatter.format(event.start) + " - " + endTimeFormatter.format(event.end);
-          ratingGroup.selectedValue = conferenceController.getRating(event);
-          locationName = conferenceController.getLocationName(event.locationId, resourceManager.localeChain[0]);
-          if (event.trackId) {
-            streamName = conferenceController.getStreamName(event.trackId, resourceManager.localeChain[0]);
-          } else {
-            streamName = null;
-          }
-        } else {
-          streamIcon = null;
-          streamName = null;
-          languageIcon = null;
-          speakers = null;
-          locationName = null;
         }
-      }
 
-      protected function updateSelectionIcon():void {
-        if (event) {
-          selectedIcon = localUserPreferencesController.isEventSelected(event) ? starSelected : starUnselected;
-        } else {
-          selectedIcon = null;
+        protected function updateSelectionIcon():void {
+            if (event) {
+//          selectedIcon = localUserPreferencesController.isEventSelected(event) ? starSelected : starUnselected;
+            } else {
+                selectedIcon = null;
+            }
         }
-      }
 
-      protected function toggleSelection(evnt:MouseEvent):void {
-        var userPreference:UserPreference = new UserPreference();
-        userPreference.eventId = event.id;
-        if (localUserPreferencesController.isEventSelected(event)) {
-          localUserPreferencesController.del(userPreference);
-        } else {
-          localUserPreferencesController.add(userPreference);
+        protected function toggleSelection(evnt:MouseEvent):void {
+            var userPreference:UserPreference = new UserPreference();
+            userPreference.eventId = event.id;
+            /*        if (localUserPreferencesController.isEventSelected(event)) {
+             localUserPreferencesController.del(userPreference);
+             } else {
+             localUserPreferencesController.add(userPreference);
+             }
+             updateSelectionIcon();
+
+             if (featureServerFavorites && !remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
+             var confirmDialog:ConfirmDialog = new ConfirmDialog();
+             confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
+             confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
+             PopUpManager.centerPopUp(confirmDialog);
+
+             remoteUserPreferencesController.infoPopupDisplayed = true;
+             }
+             */
         }
-        updateSelectionIcon();
 
-        if (featureServerFavorites && !remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
-          var confirmDialog:ConfirmDialog = new ConfirmDialog();
-          confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
-          confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
-          PopUpManager.centerPopUp(confirmDialog);
-
-          remoteUserPreferencesController.infoPopupDisplayed = true;
+        protected function onRatingChanged(evnt:ItemClickEvent):void {
+//        conferenceController.setRating(event, Number(ratingGroup.selectedValue))
         }
-      }
-
-      protected function onRatingChanged(evnt:ItemClickEvent):void {
-        conferenceController.setRating(event, Number(ratingGroup.selectedValue))
-      }
-      ]]>
+        ]]>
     </fx:Script>
 
     <s:navigationContent>

@@ -7,14 +7,14 @@
                 click="onItemClick(event)">
 
     <fx:Declarations>
-        <parsley:FastInject property="streamController" type="{StreamController}" />
+        <parsley:FastInject property="streamService" type="{StreamService}" />
     </fx:Declarations>
 
     <fx:Script>
     <![CDATA[
-      import org.dukecon.controller.StreamController;
       import org.dukecon.events.ListEvent;
       import org.dukecon.model.Event;
+      import org.dukecon.services.StreamService;
 
       [Bindable]
       protected var event:org.dukecon.model.Event;
@@ -23,7 +23,7 @@
       protected var streamIcon:Class;
 
       [Inject]
-      public var streamController:StreamController;
+      public var streamService:StreamService;
 
 
       [Bindable("dataChange")]
@@ -38,8 +38,8 @@
       }
 
       protected function update():void {
-        if (event && streamController) {
-          streamIcon = streamController.getIconForStream(event.trackId);
+        if (event && streamService) {
+          streamIcon = streamService.getIconForStream(event.track.id);
         } else {
           streamIcon = null;
         }

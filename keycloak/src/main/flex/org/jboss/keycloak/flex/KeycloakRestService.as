@@ -242,7 +242,8 @@ public class KeycloakRestService extends EventDispatcher {
 
     protected function onHTTPCompleteEvent(token:KeycloakToken, event:Event):void {
         var request:URLRequest;
-        log.debug("State = " + token.status);
+        log.debug("State = " + getStateName(token.state));
+        log.debug("Status = " + token.status);
         if((token.status == 302) || (token.status == 307)) {
             log.debug("Redirect-To = " + token.redirectUrl);
         }
@@ -476,6 +477,22 @@ public class KeycloakRestService extends EventDispatcher {
             request.requestHeaders = [new URLRequestHeader("Cookie", cookieHeader)];
         }
         return request;
+    }
+
+    protected function getStateName(stateId:Number):String {
+        switch(stateId) {
+            case 10:
+                return "STATE_CALL_REST_SERVICE";
+            case 20:
+                return "STATE_CONTACT_KEYCLOAK_SERVER";
+            case 30:
+                return "STATE_LOGIN_USING_SOCIAL_PROVIDER";
+            case 40:
+                return "STATE_LOGIN_AT_REST_SERVICE";
+            case 50:
+                return "STATE_CALL_REST_SERVICE_AFTER_LOGIN";
+        }
+        return "- UNKNOWN_STATE -";
     }
 
 }

@@ -3,18 +3,21 @@
   Created by christoferdutz on 08.09.15.
 -->
 <local:Object xmlns:fx="http://ns.adobe.com/mxml/2009"
-              xmlns:controller="org.dukecon.controller.*"
-              xmlns:local="*">
+              xmlns:services="org.dukecon.services.*"
+              xmlns:local="*" xmlns:fpa="org.dukecon.fpa.*">
 
     <fx:Declarations>
-        <controller:ConferenceController baseUrl="{baseUrl}"/>
-        <controller:LanguageController/>
-        <controller:LocationController/>
-        <controller:SpeakerController/>
-        <controller:StreamController/>
-        <controller:SettingsController/>
-        <controller:RemoteUserPreferencesController baseUrl="{baseUrl}"/>
-        <controller:LocalUserPreferencesController/>
+        <!-- Simple implementation of some JPA-Like entity mapping (FlexPersistenceApi) -->
+        <fpa:FpaEntityManager/>
+        <!-- Shared connection to the BlazeDS backend -->
+        <services:ServerConnection baseUrl="{baseUrl}"/>
+        <!-- Service for accessing conference data -->
+        <services:ConferenceService/>
+        <services:EventService/>
+        <services:LocationService/>
+        <services:SpeakerService/>
+        <services:StreamService/>
+        <services:SettingsService/>
     </fx:Declarations>
 
     <fx:Script>

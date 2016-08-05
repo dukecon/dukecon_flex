@@ -13,7 +13,7 @@
 
     <fx:Declarations>
         <parsley:FastInject injectionComplete="init();">
-            <parsley:Inject property="conferenceController" type="{ConferenceController}"/>
+            <parsley:Inject property="conferenceService" type="{ConferenceService}"/>
         </parsley:FastInject>
     </fx:Declarations>
 
@@ -21,25 +21,25 @@
     <![CDATA[
         import mx.collections.ArrayCollection;
 
-        import org.dukecon.controller.ConferenceController;
         import org.dukecon.events.ConferenceDataChangedEvent;
         import org.dukecon.events.ListEvent;
+        import org.dukecon.services.ConferenceService;
 
         [Bindable]
         protected var listData:ArrayCollection;
 
         [Inject]
-        public var conferenceController:ConferenceController;
+        public var conferenceService:ConferenceService;
 
         [Init]
         public function init():void {
-            listData = conferenceController.days;
+//            listData = conferenceService.selectedConference.days;
             list.addEventListener(ListEvent.ITEM_SELECTED, onDaySelected);
         }
 
         [MessageHandler]
         public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
-            listData = conferenceController.days;
+//            listData = conferenceService.selectedConference.days;
         }
 
         protected function onDaySelected(event:ListEvent):void {

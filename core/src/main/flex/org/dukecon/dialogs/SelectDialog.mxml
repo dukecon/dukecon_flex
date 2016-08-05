@@ -4,7 +4,8 @@
 -->
 <s:SkinnablePopUpContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
                            xmlns:s="library://ns.adobe.com/flex/spark"
-                           backgroundColor="0x898989" width="80%">
+                           backgroundColor="0x898989" width="80%"
+                           resize="onResize(event)">
 
     <fx:Metadata>
         [ResourceBundle("dukecon")]
@@ -14,6 +15,7 @@
         <![CDATA[
         import mx.collections.ArrayCollection;
         import mx.core.FlexGlobals;
+        import mx.events.ResizeEvent;
 
         public static const OK:String = "ok";
         public static const CANCEL:String = "cancel";
@@ -37,6 +39,10 @@
         public function set optionsResourcePrefix(value:String):void {
             _optionsResourcePrefix = value;
             // TODO: Eventually update the options labels.
+        }
+
+        protected function onResize(event:ResizeEvent):void {
+            label.width = FlexGlobals.topLevelApplication.width - 60;
         }
 
         protected function onOkClicked(event:MouseEvent):void {
@@ -84,7 +90,7 @@
     </s:Rect>
 
     <s:VGroup width="100%" padding="20" gap="20">
-        <s:Label text="{message}" width="{FlexGlobals.topLevelApplication.width - 60}" textAlign="center"/>
+        <s:Label id="label" text="{message}" textAlign="center"/>
         <s:List id="selection" dataProvider="{options}" labelFunction="labelFunction" width="100%" minHeight="30"/>
         <s:HGroup width="100%">
             <s:Button label="{resourceManager.getString('dukecon', 'ok')}" width="50%"
