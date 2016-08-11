@@ -24,12 +24,12 @@ public class FlexORMTransformer extends JavaAs3GroovyTransformer {
 
     @Override
     protected String getOutputFileSuffix(JavaAs3Input input, GroovyTemplate template) {
-        return template.isBase()?"":"Helper";
+        return "";
     }
 
     @Override
     protected JavaAs3Output[] getOutputs(JavaAs3Input input) throws IOException, TemplateUriException {
-        return super.getOutputs(input);
+        return new JavaAs3Output[] {super.getOutputs(input)[0]};
     }
 
 }
