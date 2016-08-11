@@ -106,12 +106,16 @@ public class ${jClass.as3Type.name}<%
             if(jProperty.isAnnotationPresent(org.dukecon.model.annotations.Relation)) {
                 if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.ONE_TO_ONE) { %>
     [ManyToOne]<%
-                } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.ONE_TO_MANY) {
+                } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.ONE_TO_MANY && jClass.as3Type.name == "Conference") {
                     if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType() != null) { %>
+    [OneToMany(type='${jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType().getCanonicalName()}', fkColumn='conference_id', constrain='false')]<%
+                    } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType() != null) { %>
     [OneToMany(type='${jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType().getCanonicalName()}')]<%
                     } else { %>
     [OneToMany]<%
                     }
+                } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.MANY_TO_ONE && jProperty.name == 'conference') { %>
+    [ManyToOne(inverse='true')]<%
                 } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.MANY_TO_ONE) { %>
     [ManyToOne]<%
                 } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.MANY_TO_MANY) {

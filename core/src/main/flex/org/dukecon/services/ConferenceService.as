@@ -13,11 +13,7 @@ import mx.rpc.remoting.RemoteObject;
 import nz.co.codec.flexorm.EntityManager;
 
 import org.dukecon.fpa.FpaEntityManager;
-import org.dukecon.model.Audience;
 import org.dukecon.model.Conference;
-import org.dukecon.model.Event;
-import org.dukecon.model.EventType;
-import org.dukecon.model.Language;
 import org.dukecon.model.Location;
 import org.dukecon.model.Speaker;
 import org.dukecon.model.Track;
@@ -71,29 +67,8 @@ public class ConferenceService extends EventDispatcher {
     }
 
     private function onListResult(resultEvent:ResultEvent):void {
+        var em:EntityManager = EntityManager.instance;
         for each(var conference:Conference in resultEvent.result) {
-            var em:EntityManager = EntityManager.instance;
-            for each(var audience:Audience in conference.audiences) {
-                em.save(audience);
-            }
-            for each(var eventType:EventType in conference.eventTypes) {
-                em.save(eventType);
-            }
-            for each(var language:Language in conference.languages) {
-                em.save(language);
-            }
-            for each(var location:Location in conference.locations) {
-                em.save(location);
-            }
-            for each(var speaker:Speaker in conference.speakers) {
-                em.save(speaker);
-            }
-            for each(var track:Track in conference.tracks) {
-                em.save(track);
-            }
-            for each(var event:Event in conference.events) {
-                em.save(event);
-            }
             em.save(conference);
         }
     }
