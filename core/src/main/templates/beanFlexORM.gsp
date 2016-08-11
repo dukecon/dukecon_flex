@@ -126,7 +126,7 @@ public class ${jClass.as3Type.name}<%
     [Transient]<%
             }
             if(jProperty.as3Type.name == "ListCollectionView") { %>
-public function get ${jProperty.name}():ArrayCollection {
+    public function get ${jProperty.name}():ArrayCollection {
         return _${jProperty.name};
     }<%
             } else if(jProperty.as3Type.name == "IMap") { %>
