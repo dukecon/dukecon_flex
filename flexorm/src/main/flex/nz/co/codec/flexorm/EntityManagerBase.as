@@ -1,12 +1,13 @@
 package nz.co.codec.flexorm
 {
     import flash.data.SQLConnection;
+    import flash.events.SQLEvent;
     import flash.utils.Dictionary;
     import flash.utils.getDefinitionByName;
     import flash.utils.getQualifiedClassName;
-
+    
     import mx.collections.ArrayCollection;
-
+    
     import nz.co.codec.flexorm.command.InsertCommand;
     import nz.co.codec.flexorm.command.SQLParameterisedCommand;
     import nz.co.codec.flexorm.command.UpdateCommand;
@@ -43,16 +44,20 @@ package nz.co.codec.flexorm
 
         public function EntityManagerBase()
         {
-            _schema = DEFAULT_SCHEMA;
-            _prefs = {};
-            _prefs.namingStrategy = NamingStrategy.UNDERSCORE_NAMES;
-            _prefs.syncSupport = false;
-            _prefs.auditable = true;
-            _prefs.markForDeletion = true;
-            _debugLevel = 0;
-            _entityMap = {};
-            clearCache();
+        	init();   
         }
+		
+		private function init():void {
+			_schema = DEFAULT_SCHEMA;
+			_prefs = {};
+			_prefs.namingStrategy = NamingStrategy.UNDERSCORE_NAMES;
+			_prefs.syncSupport = false;
+			_prefs.auditable = true;
+			_prefs.markForDeletion = true;
+			_debugLevel = 0;
+			_entityMap = {};
+			clearCache();	
+		}
 
         public function get schema():String
         {
@@ -62,7 +67,11 @@ package nz.co.codec.flexorm
         public function set sqlConnection(value:SQLConnection):void
         {
             _sqlConnection = value;
-            _introspector = new EntityIntrospector(_schema, value, _entityMap, _debugLevel, _prefs);
+
+			if(_sqlConnection != null)
+				_sqlConnection.addEventListener(SQLEvent.CLOSE, onSqlConnectionClose);
+			
+			_introspector = new EntityIntrospector(_schema, value, _entityMap, _debugLevel, _prefs);
         }
 
         public function get sqlConnection():SQLConnection
@@ -256,20 +265,29 @@ package nz.co.codec.flexorm
             }
         }
 
-        protected function setInsertTimestampParams(insertCommand:InsertCommand):void
+        protected function setInsertTimestampParams(insertCommand:InsertCommand, obj:Object):void
         {
         	if (_prefs.syncSupport || _prefs.auditable)
         	{
-	            insertCommand.setParam("createdAt", new Date());
-	            insertCommand.setParam("updatedAt", new Date());
+				var createdAt:Date = new Date();
+				var updatedAt:Date = new Date();
+				
+				if (obj.hasOwnProperty("createdAt")) obj["createdAt"] = createdAt;
+	            insertCommand.setParam("createdAt", createdAt);
+				
+				if (obj.hasOwnProperty("updatedAt")) obj["updatedAt"] = updatedAt;
+	            insertCommand.setParam("updatedAt", updatedAt);
 	        }
         }
 
-        protected function setUpdateTimestampParams(updateCommand:UpdateCommand):void
+        protected function setUpdateTimestampParams(updateCommand:UpdateCommand, obj:Object):void
         {
         	if (_prefs.syncSupport || _prefs.auditable)
         	{
-	            updateCommand.setParam("updatedAt", new Date());
+				var updatedAt:Date = new Date();
+				
+				if (obj.hasOwnProperty("updatedAt")) obj["updatedAt"] = updatedAt;
+	            updateCommand.setParam("updatedAt", updatedAt);
 	        }
         }
 
@@ -367,6 +385,11 @@ package nz.co.codec.flexorm
         {
             return ((id is int && id > 0) || (id is String && id != null));
         }
+		
+		protected function onSqlConnectionClose( e : SQLEvent ) :void
+		{
+			this.init();
+		}   
 
     }
 }

@@ -13,6 +13,7 @@ package nz.co.codec.flexorm
         public static const TEXT:String = "text";
 
         public static const STRING:String = "string";
-
+		
+		public static const BLOB:String = "blob";
     }
 }

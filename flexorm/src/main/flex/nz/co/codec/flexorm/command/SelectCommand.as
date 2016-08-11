@@ -1,18 +1,18 @@
 package nz.co.codec.flexorm.command
 {
-    import flash.data.SQLConnection;
-    import flash.events.SQLEvent;
-    import flash.utils.getQualifiedClassName;
+import flash.data.SQLConnection;
+import flash.events.SQLEvent;
+import flash.utils.getQualifiedClassName;
 
-    import mx.utils.StringUtil;
+import mx.utils.StringUtil;
 
-    import nz.co.codec.flexorm.criteria.Criteria;
-    import nz.co.codec.flexorm.criteria.ICondition;
-    import nz.co.codec.flexorm.criteria.IFilter;
-    import nz.co.codec.flexorm.criteria.Junction;
-    import nz.co.codec.flexorm.criteria.Sort;
+import nz.co.codec.flexorm.criteria.Criteria;
+import nz.co.codec.flexorm.criteria.ICondition;
+import nz.co.codec.flexorm.criteria.IFilter;
+import nz.co.codec.flexorm.criteria.Junction;
+import nz.co.codec.flexorm.criteria.Sort;
 
-    public class SelectCommand extends SQLParameterisedCommand
+public class SelectCommand extends SQLParameterisedCommand
     {
         private var _joins:Object;
 
@@ -205,8 +205,9 @@ package nz.co.codec.flexorm.command
                     sql += " inner join ";
                 }
             }
-            if (len > 1)
+            if (len > 1 && (sql.indexOf(" and ") == sql.length - 5)) {
                 sql = sql.substring(0, sql.length-5); // remove last ' and '
+            }
             if (_filters.length > 0)
             {
                 sql += " where ";
@@ -233,10 +234,10 @@ package nz.co.codec.flexorm.command
                 sql += " order by ";
                 for each(var sort:Sort in _sorts)
                 {
-                    sql += StringUtil.substitute("t{0}.{1} and ",
+                    sql += StringUtil.substitute("t{0}.{1} , ",
                             tables.indexOf(ICondition(sort).table), sort);
                 }
-                sql = sql.substring(0, sql.length-5); // remove last ' and '
+                sql = sql.substring(0, sql.length-3); // remove last ' , '
             }
 
             _statement.text = sql;

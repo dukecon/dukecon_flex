@@ -641,7 +641,7 @@ package nz.co.codec.flexorm
             }
             setFieldParams(insertCommand, obj, entity);
             setManyToOneAssociationParams(insertCommand, obj, entity);
-            setInsertTimestampParams(insertCommand);
+            setInsertTimestampParams(insertCommand, obj);
 
             if (entity.isSuperEntity())
             {
@@ -763,7 +763,7 @@ package nz.co.codec.flexorm
             setIdentityParams(updateCommand, obj, entity);
             setFieldParams(updateCommand, obj, entity);
             setManyToOneAssociationParams(updateCommand, obj, entity);
-            setUpdateTimestampParams(updateCommand);
+            setUpdateTimestampParams(updateCommand, obj);
 
             if ((args.a is OneToManyAssociation) && entity.equals(args.associatedEntity))
             {

@@ -88,22 +88,25 @@ package nz.co.codec.flexorm.criteria
             return this;
         }
 
-        public function addGreaterThanCondition(property:String, str:String):Criteria
+        public function addGreaterThanCondition(property:String, value:Object):Criteria
         {
             var column:Object = _entity.getColumn(property);
             if (column)
             {
-                _filters.push(new GreaterThanCondition(column.table, column.column, str));
+                _filters.push(new GreaterThanCondition(column.table, column.column, property));
+                _params[property] = value;
             }
             return this;
         }
 
-        public function addLessThanCondition(property:String, str:String):Criteria
+        public function addLessThanCondition(property:String, value:Object):Criteria
         {
+			//TODO: what if the column is not found?
             var column:Object = _entity.getColumn(property);
             if (column)
             {
-                _filters.push(new LessThanCondition(column.table, column.column, str));
+                _filters.push(new LessThanCondition(column.table, column.column, property));
+				_params[property] = value;
             }
             return this;
         }

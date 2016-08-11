@@ -354,6 +354,15 @@ package nz.co.codec.flexorm.metamodel
                 {
                     return { table: table, column: field.column };
                 }
+				else if (property == "createdAt" || property == "updatedAt" )
+				{
+					return { table: table, column: "created_at" };
+				}
+				else if (property == "updatedAt" )
+				{
+					return { table: table, column: "updated_at" };	
+				}
+						
             }
             if (superEntity)
                 return superEntity.getColumn(property);

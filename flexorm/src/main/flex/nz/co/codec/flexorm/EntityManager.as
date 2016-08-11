@@ -1,7 +1,9 @@
 package nz.co.codec.flexorm
 {
     import flash.data.SQLConnection;
-    import flash.errors.SQLError;
+import flash.data.SQLResult;
+import flash.data.SQLStatement;
+import flash.errors.SQLError;
     import flash.filesystem.File;
     import flash.utils.getDefinitionByName;
     import flash.utils.getQualifiedClassName;
@@ -368,6 +370,7 @@ package nz.co.codec.flexorm
             return instance;
         }
 
+		//FIXME: there seems to be an endless loop when using  a self referencing entity
         private function loadEntityWithInheritance(entity:Entity, idMap:Object):Object
         {
             var selectCommand:SelectCommand = entity.selectCommand;
@@ -656,7 +659,7 @@ package nz.co.codec.flexorm
             }
             setFieldParams(insertCommand, obj, entity);
             setManyToOneAssociationParams(insertCommand, obj, entity);
-            setInsertTimestampParams(insertCommand);
+            setInsertTimestampParams(insertCommand, obj);
 
             if (entity.isSuperEntity())
             {
@@ -770,7 +773,7 @@ package nz.co.codec.flexorm
             setIdentityParams(updateCommand, obj, entity);
             setFieldParams(updateCommand, obj, entity);
             setManyToOneAssociationParams(updateCommand, obj, entity);
-            setUpdateTimestampParams(updateCommand);
+            setUpdateTimestampParams(updateCommand, obj);
 
             if ((args.a is OneToManyAssociation) && entity.equals(args.associatedEntity))
             {
@@ -1577,5 +1580,31 @@ package nz.co.codec.flexorm
             return instance;
         }
 
+
+        /**
+         * Executes a SQL SELECT query.
+         *
+         * @param sql The text of the SQL statement to execute.
+         * @param parameters An Array whose entries contains the values of the parameters that are used in executing the SQL statement.
+         *
+         * @return If the query was a Select statement the resulting data will be returned, otherwise the rows affected as int.
+         */
+        public function query(sql:String, ...parameters:Array):Object
+        {
+            var stmt:SQLStatement = new SQLStatement();
+            stmt.sqlConnection = sqlConnection;
+            stmt.text = sql;
+
+            if (parameters.length == 1 && parameters[0] is Array)
+                parameters = parameters[0];
+
+            for (var i:int = 0; i < parameters.length; i++)
+                stmt.parameters[i] = parameters[i];
+
+            stmt.execute();
+            var result:SQLResult = stmt.getResult();
+
+            return sql.toUpperCase().indexOf("SELECT ") == 0 ? result.data || [] : result.rowsAffected;
+        }
     }
 }

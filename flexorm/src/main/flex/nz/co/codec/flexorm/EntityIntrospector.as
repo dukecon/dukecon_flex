@@ -1296,7 +1296,7 @@ package nz.co.codec.flexorm
         }
 
         private function getClass(asType:String):Class
-        {
+        {		
             return getDefinitionByName(asType) as Class;
         }
 
@@ -1328,6 +1328,9 @@ package nz.co.codec.flexorm
                 case "Boolean":
                     return SQLType.BOOLEAN;
                     break;
+				case "flash.utils::ByteArray" || "ByteArray":
+					return SQLType.BLOB;
+					break;
                 default:
                     return SQLType.TEXT;
             }
