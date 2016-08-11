@@ -6,6 +6,9 @@ package nz.co.codec.flexorm.metamodel
 
         private var _rgt:int = 1;
 
+        public function HierarchicalObject() {
+        }
+
         public function set lft(value:int):void
         {
             _lft = value;
