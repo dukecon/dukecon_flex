@@ -94,11 +94,7 @@ public class ConferenceService extends EventDispatcher {
             for each(var event:Event in conference.events) {
                 em.save(event);
             }
-            var res:* = em.load(Audience, 1);
-            trace(res);
-            res = em.load(Event, 509632);
-            trace(res);
-            //em.save(conference);
+            em.save(conference);
         }
     }
 
