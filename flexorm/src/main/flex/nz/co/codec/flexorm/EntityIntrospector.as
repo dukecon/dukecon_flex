@@ -160,6 +160,10 @@ package nz.co.codec.flexorm
                 }
                 entity.createSynCommand.execute();
             }
+            for each(entity in createSequence)
+            {
+                entity.createSynCommand.executeTrigger();
+            }
 
             // create association tables last
             for each(var command:CreateSynCommand in associationTableCreateCommands)

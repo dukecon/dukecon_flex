@@ -146,7 +146,10 @@ package nz.co.codec.flexorm.command
                 debug();
 
             _statement.execute();
+        }
 
+        public function executeTrigger():void
+        {
             // Create foreign key constraint triggers
             if (!_created)
             {
