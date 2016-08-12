@@ -54,13 +54,15 @@ package nz.co.codec.flexorm.command
                 }
                 sql = sql.substring(0, sql.length - 5); // remove last ' and '
             }
+            sql += ";";
+            sql += SQL_STATEMENT_SEPARATOR;
             _statement.text = sql;
             _changed = false;
         }
 
         public function toString():String
         {
-            return "UPDATE " + _table + ": " + _statement.text;
+            return "UPDATE " + _table + ": " + getStatementText();
         }
 
     }

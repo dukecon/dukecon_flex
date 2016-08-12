@@ -208,6 +208,7 @@
                     <keepAs3Metadatas>
                         <name>ManagedEvents</name>
                         <name>MessageHandler</name>
+                        <name>OneToOne</name>
                     </keepAs3Metadatas>
                 </configuration>
 

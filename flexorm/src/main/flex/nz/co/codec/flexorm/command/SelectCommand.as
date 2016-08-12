@@ -1,18 +1,21 @@
 package nz.co.codec.flexorm.command
 {
-import flash.data.SQLConnection;
-import flash.events.SQLEvent;
-import flash.utils.getQualifiedClassName;
+    import flash.data.SQLConnection;
+    import flash.events.SQLEvent;
+    import flash.utils.getQualifiedClassName;
+    
+    import mx.utils.StringUtil;
+    
+    import nz.co.codec.flexorm.criteria.Criteria;
+    import nz.co.codec.flexorm.criteria.DottedRelationCondition;
+    import nz.co.codec.flexorm.criteria.ICondition;
+    import nz.co.codec.flexorm.criteria.IFilter;
+    import nz.co.codec.flexorm.criteria.Junction;
+    import nz.co.codec.flexorm.criteria.SQLFunction;
+    import nz.co.codec.flexorm.criteria.Sort;
+    import nz.co.codec.flexorm.util.StringUtils;
 
-import mx.utils.StringUtil;
-
-import nz.co.codec.flexorm.criteria.Criteria;
-import nz.co.codec.flexorm.criteria.ICondition;
-import nz.co.codec.flexorm.criteria.IFilter;
-import nz.co.codec.flexorm.criteria.Junction;
-import nz.co.codec.flexorm.criteria.Sort;
-
-public class SelectCommand extends SQLParameterisedCommand
+    public class SelectCommand extends SQLParameterisedCommand
     {
         private var _joins:Object;
 
@@ -85,6 +88,7 @@ public class SelectCommand extends SQLParameterisedCommand
 
         public function setCriteria(crit:Criteria):void
         {
+            _joinFilters = crit.joinFilters;
             _filters = crit.filters;
             _sorts = crit.sorts;
 
@@ -93,6 +97,15 @@ public class SelectCommand extends SQLParameterisedCommand
             {
                 setParam(param, params[param]);
             }
+
+            for each (var jFilter:IFilter in joinFilters)
+            {
+                if (jFilter is DottedRelationCondition)
+                {
+                    mergeJoins(DottedRelationCondition(jFilter).joins);
+                }
+            }
+
             _changed = true;
         }
 
@@ -169,7 +182,7 @@ public class SelectCommand extends SQLParameterisedCommand
                 tables.push(table);
                 for (var column:String in _columns[table])
                 {
-                    sql += StringUtil.substitute("t{0}.{1},", i, column);
+					sql += StringUtil.substitute("t{0}.{1} as {1},", i, column); 
                 }
                 i++;
                 columnsAdded = true;
@@ -200,15 +213,18 @@ public class SelectCommand extends SQLParameterisedCommand
                         sql += StringUtil.substitute(" on t{0}.{1}=t{2}.{3} and ", i-1, _joins[tables[i]][fk], i, fk);
                     }
                 }
+				if (len > 1 && StringUtils.endsWith(sql, " and "))
+                {
+                    sql = sql.substring(0, sql.length - 5); // remove last ' and '
+                }
+
                 if (i < len-1)
                 {
                     sql += " inner join ";
                 }
             }
-            if (len > 1 && (sql.indexOf(" and ") == sql.length - 5)) {
-                sql = sql.substring(0, sql.length-5); // remove last ' and '
-            }
-            if (_filters.length > 0)
+
+            if (_filters.length > 0 || _joinFilters.length > 0)
             {
                 sql += " where ";
                 for each(var filter:IFilter in _filters)
@@ -221,10 +237,23 @@ public class SelectCommand extends SQLParameterisedCommand
                                     return tables.indexOf(table);
                                 }));
                     }
-                    else
+                    else if (filter is SQLFunction)
                     {
-                        sql += StringUtil.substitute("t{0}.{1} and ",
-                                tables.indexOf(ICondition(filter).table), filter);
+                        sql += StringUtil.substitute("{0} and ", 
+								SQLFunction(filter).getString(tables.indexOf(table)));
+                    }
+                    else if (filter is ICondition)
+                    {
+                        sql += StringUtil.substitute("t{0}.{1} and ", 
+								tables.indexOf(ICondition(filter).table), String(filter));
+                    }
+                }
+
+                for each (var jFilter:IFilter in _joinFilters)
+                {
+                    if (jFilter is DottedRelationCondition)
+                    {
+                        sql += StringUtil.substitute("t{0}.{1} and ", tables.indexOf(DottedRelationCondition(jFilter).table), String(jFilter));
                     }
                 }
                 sql = sql.substring(0, sql.length-5); // remove last ' and '
@@ -240,6 +269,7 @@ public class SelectCommand extends SQLParameterisedCommand
                 sql = sql.substring(0, sql.length-3); // remove last ' , '
             }
 
+            sql += SQL_STATEMENT_SEPARATOR;
             _statement.text = sql;
             _changed = false;
         }
@@ -264,7 +294,7 @@ public class SelectCommand extends SQLParameterisedCommand
 
         public function toString():String
         {
-            return "SELECT " + _statement.text;
+            return "SELECT: " + getStatementText();
         }
 
     }

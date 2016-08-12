@@ -10,6 +10,8 @@ package nz.co.codec.flexorm.command
     import mx.utils.StringUtil;
 
     import nz.co.codec.flexorm.metamodel.IDStrategy;
+    import nz.co.codec.flexorm.util.CollectionHelper;
+    import nz.co.codec.flexorm.util.StringUtils;
 
     public class CreateSynCommand extends SQLCommand
     {
@@ -19,13 +21,13 @@ package nz.co.codec.flexorm.command
 
         private var _idColumn:String;
 
-        public function CreateSynCommand(
-            sqlConnection:SQLConnection,
-            schema:String,
-            table:String,
-            debugLevel:int=0)
+        private var _isTableCreationWanted:Boolean;
+
+        public function CreateSynCommand(sqlConnection:SQLConnection, schema:String, table:String, debugLevel:int = 0
+                                         , isTableCreationWanted:Boolean = true)
         {
             super(sqlConnection, schema, table, debugLevel);
+            _isTableCreationWanted = isTableCreationWanted;
             _created = false;
         }
 
@@ -78,8 +80,14 @@ package nz.co.codec.flexorm.command
             {
                 sql = buildCreateSQL();
             }
-            if (sql)
-                _statement.text = sql;
+
+            if (sql && !_isTableCreationWanted)
+            {
+                throw new Error("Database table '" + _table + "' would require changes which is not desired!");
+            }
+
+            _statement.text = sql ? sql : "";
+
             _changed = false;
         }
 
@@ -87,19 +95,24 @@ package nz.co.codec.flexorm.command
         {
             try
             {
-                _sqlConnection.loadSchema(SQLTableSchema, _table);
+                // @NOTE: SQLite does not distinguish between uppercase/lowercase table names,
+                // however _sqlConnection.loadSchema(SQLTableSchema, _table) would do so
+                _sqlConnection.loadSchema(SQLTableSchema);
                 var schemaResult:SQLSchemaResult = _sqlConnection.getSchemaResult();
-                if (schemaResult.tables.length > 0)
+                for (var i:int = 0; i < schemaResult.tables.length; i++)
                 {
-                    var existingColumns:ArrayCollection = new ArrayCollection();
-                    for each(var column:SQLColumnSchema in schemaResult.tables[0].columns)
-                    {
-                        if (!column.primaryKey)
-                        {
-                            existingColumns.addItem(column.name);
-                        }
-                    }
-                    return existingColumns;
+                    if (StringUtils.stringsEqualCaseIgnored(schemaResult.tables[i].name, _table))
+					{
+						var existingColumns:ArrayCollection = new ArrayCollection();
+                        for each (var column:SQLColumnSchema in schemaResult.tables[i].columns)
+						{
+							if (!column.primaryKey)
+							{
+								existingColumns.addItem(column.name);
+							}
+						}
+						return existingColumns;
+					}
                 }
             }
             catch (e:SQLError) { }
@@ -111,11 +124,16 @@ package nz.co.codec.flexorm.command
             var sql:String = "";
             for (var column:String in _columns)
             {
-                if (!existingColumns.contains(column) && column != _idColumn)
+                if (column != _idColumn)	// cannot add idColumns later on
                 {
-                    sql += StringUtil.substitute("alter table {0}.{1} add {2} {3};",
-                           _schema, _table, column, _columns[column].type);
-                }
+                    // @NOTE: SQLite does not distinguish between uppercase/lowercase table names,
+                    // existingColumns.contains(column) would not check for different cases
+                    if (!CollectionHelper.itemIsContainedInListCaseIgnored(column, existingColumns))
+					{
+						sql += StringUtil.substitute("alter table {0}.{1} add {2} {3};" + SQL_STATEMENT_SEPARATOR,
+							   _schema, _table, column, _columns[column].type);
+					}
+				}
             }
             return (sql.length > 0)? sql : null;
         }
@@ -130,7 +148,8 @@ package nz.co.codec.flexorm.command
             {
                 sql += StringUtil.substitute("{0} {1},", column, _columns[column].type);
             }
-            sql = sql.substring(0, sql.length - 1) + ")"; // remove last comma
+            sql = sql.substring(0, sql.length - 1) + ");"; // remove last comma
+            sql += SQL_STATEMENT_SEPARATOR;
             return sql;
         }
 
@@ -142,10 +161,7 @@ package nz.co.codec.flexorm.command
             if (!_statement.text) // if _statement.text == null || ""
                 return;
 
-            if (_debugLevel > 0)
-                debug();
-
-            _statement.execute();
+			executeSqlStatements();
         }
 
         public function executeTrigger():void
@@ -153,6 +169,7 @@ package nz.co.codec.flexorm.command
             // Create foreign key constraint triggers
             if (!_created)
             {
+                // you almost always get here - only if the table was changed and columns existed previously prevents this
                 for (var column:String in _columns)
                 {
                     var constraint:Object = _columns[column].constraint;
@@ -168,7 +185,7 @@ package nz.co.codec.flexorm.command
 
         public function toString():String
         {
-            return "CREATE " + _table + ": " + _statement.text;
+            return "CREATE " + _table + ": " + getStatementText();
         }
 
     }

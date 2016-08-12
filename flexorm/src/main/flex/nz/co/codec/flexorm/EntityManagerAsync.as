@@ -293,7 +293,7 @@ package nz.co.codec.flexorm
                             items.push(
                             {
                                 associatedEntity: associatedEntity,
-                                index           : row[a.indexColumn],
+                                index           : getDbColumn(row, a.indexColumn),
                                 row             : row
                             });
                         }
@@ -337,7 +337,7 @@ package nz.co.codec.flexorm
                     items.push(
                     {
                         associatedEntity: subEntity,
-                        index           : row[a.indexColumn],
+                        index           : getDbColumn(row, a.indexColumn),
                         row             : row
                     });
                 }
@@ -479,9 +479,18 @@ package nz.co.codec.flexorm
                     trace("Key of type '" + keyEntity.name +
                           "' not specified as an identifier for '" + entity.name + "'. ");
 
-                    for each(var a:Association in entity.manyToOneAssociations)
+                    for each (var aOto:Association in entity.oneToOneAssociations)
                     {
-                        if (keyEntity.equals(a.associatedEntity))
+                        if (keyEntity.equals(aOto.associatedEntity))
+                        {
+                            trace("Key type '" + keyEntity.name + "' is used in a one-to-one association, so will allow. ");
+                            match = true;
+                            break;
+                        }
+                    }
+                    for each (var aMto:Association in entity.manyToOneAssociations)
+                    {
+                        if (keyEntity.equals(aMto.associatedEntity))
                         {
                             trace("Key type '" + keyEntity.name +
                                   "' is used in a many-to-one association, so will allow. ");
@@ -631,6 +640,7 @@ package nz.co.codec.flexorm
             q:BlockingExecutor,
             args:SaveRecursiveArgs):void
         {
+            saveOneToOneAssociations(obj, entity, q.branchNonBlocking());
             saveManyToOneAssociations(obj, entity, q.branchNonBlocking());
             if (entity.superEntity)
             {
@@ -640,6 +650,7 @@ package nz.co.codec.flexorm
                 createItem(entity.superEntity.insertCommand.clone(), obj, entity.superEntity, q, args);
             }
             setFieldParams(insertCommand, obj, entity);
+            setOneToOneAssociationParams(insertCommand, obj, entity);
             setManyToOneAssociationParams(insertCommand, obj, entity);
             setInsertTimestampParams(insertCommand, obj);
 
@@ -675,18 +686,18 @@ package nz.co.codec.flexorm
             }
             if (args.a == null)
             {
-                for each(var a:OneToManyAssociation in entity.oneToManyInverseAssociations)
+                for each(var aOtm:OneToManyAssociation in entity.oneToManyInverseAssociations)
                 {
-                    if (a.indexed)
+                    if (aOtm.indexed)
                     {
                          // specified by client code
-                        if ((a.ownerEntity.cls == args.ownerClass) && args.indexValue)
+                        if ((aOtm.ownerEntity.cls == args.ownerClass) && args.indexValue)
                         {
-                            insertCommand.setParam(a.indexProperty, args.indexValue);
+                            insertCommand.setParam(aOtm.indexProperty, args.indexValue);
                         }
                         else
                         {
-                            insertCommand.setParam(a.indexProperty, 0);
+                            insertCommand.setParam(aOtm.indexProperty, 0);
                         }
                     }
                 }
@@ -757,11 +768,13 @@ package nz.co.codec.flexorm
             q:BlockingExecutor,
             args:SaveRecursiveArgs):void
         {
+            saveOneToOneAssociations(obj, entity, q.branchNonBlocking());
             saveManyToOneAssociations(obj, entity, q.branchNonBlocking());
             if (entity.superEntity)
                 updateItem(entity.superEntity.updateCommand.clone(), obj, entity.superEntity, q, args);
             setIdentityParams(updateCommand, obj, entity);
             setFieldParams(updateCommand, obj, entity);
+            setOneToOneAssociationParams(updateCommand, obj, entity);
             setManyToOneAssociationParams(updateCommand, obj, entity);
             setUpdateTimestampParams(updateCommand, obj);
 
@@ -773,18 +786,18 @@ package nz.co.codec.flexorm
             }
             if (args.a == null)
             {
-                for each(var a:OneToManyAssociation in entity.oneToManyInverseAssociations)
+                for each(var aOtm:OneToManyAssociation in entity.oneToManyInverseAssociations)
                 {
-                    if (a.indexed)
+                    if (aOtm.indexed)
                     {
                          // specified by client code
-                        if ((a.ownerEntity.cls == args.ownerClass) && args.indexValue)
+                        if ((aOtm.ownerEntity.cls == args.ownerClass) && args.indexValue)
                         {
-                            updateCommand.setParam(a.indexProperty, args.indexValue);
+                            updateCommand.setParam(aOtm.indexProperty, args.indexValue);
                         }
                         else
                         {
-                            updateCommand.setParam(a.indexProperty, 0);
+                            updateCommand.setParam(aOtm.indexProperty, 0);
                         }
                     }
                 }
@@ -812,41 +825,52 @@ package nz.co.codec.flexorm
             }
         }
 
+        private function saveOneToOneAssociations(obj:Object, entity:Entity, executor:NonBlockingExecutor):void
+        {
+            for each (var aOto:Association in entity.oneToOneAssociations)
+            {
+                var value:Object = obj[aOto.property];
+
+                if (value && !aOto.inverse && isCascadeSave(aOto))
+                    saveItem(value, executor.branchBlocking(), new SaveRecursiveArgs());
+            }
+        }
+
         private function saveManyToOneAssociations(obj:Object, entity:Entity, executor:NonBlockingExecutor):void
         {
-            for each(var a:Association in entity.manyToOneAssociations)
+            for each(var aMto:Association in entity.manyToOneAssociations)
             {
-                var value:Object = obj[a.property];
-                if (value && !a.inverse && isCascadeSave(a))
+                var value:Object = obj[aMto.property];
+                if (value && !aMto.inverse && isCascadeSave(aMto))
                     saveItem(value, executor.branchBlocking(), new SaveRecursiveArgs());
             }
         }
 
         private function saveOneToManyAssociations(obj:Object, entity:Entity, idMap:Object, executor:NonBlockingExecutor):void
         {
-            for each (var a:OneToManyAssociation in entity.oneToManyAssociations)
+            for each (var aOtm:OneToManyAssociation in entity.oneToManyAssociations)
             {
                 if (!entity.hasCompositeKey())
                 {
-                    idMap = getIdentityMap(a.fkProperty, obj[entity.pk.property]);
+                    idMap = getIdentityMap(aOtm.fkProperty, obj[entity.pk.property]);
                 }
-                var value:IList = obj[a.property];
-                if (value && !a.inverse && (!a.lazy || !(value is LazyList) || LazyList(value).loaded) && isCascadeSave(a))
+                var value:IList = obj[aOtm.property];
+                if (value && !aOtm.inverse && (!aOtm.lazy || !(value is LazyList) || LazyList(value).loaded) && isCascadeSave(aOtm))
                 {
                     for (var i:int = 0; i < value.length; i++)
                     {
                         var item:Object = value.getItemAt(i);
                         var q:BlockingExecutor = executor.branchBlocking();
                         var itemEntity:Entity = getEntityForObject(item, q);
-                        var associatedEntity:Entity = a.getAssociatedEntity(itemEntity);
+                        var associatedEntity:Entity = aOtm.getAssociatedEntity(itemEntity);
                         if (associatedEntity)
                         {
                             var args:SaveRecursiveArgs = new SaveRecursiveArgs();
-                            args.a = a;
+                            args.a = aOtm;
                             args.associatedEntity = associatedEntity;
                             args.hasCompositeKey = entity.hasCompositeKey();
                             args.idMap = idMap;
-                            if (a.indexed)
+                            if (aOtm.indexed)
                                 args.indexValue = i;
 
                             saveItem(item, q, args);
@@ -886,7 +910,7 @@ package nz.co.codec.flexorm
                     var existing:Array = [];
                     for each(var row:Object in data)
                     {
-                        existing.push(getIdentityMapFromAssociation(row, a.associatedEntity));
+                    	existing.push(getIdentityMapFromMtmAssociation(row, a));
                     }
 
                     var map:Object;
@@ -1036,6 +1060,7 @@ package nz.co.codec.flexorm
             setIdentityParams(deleteCommand, obj, entity);
             q.add(deleteCommand);
             removeEntity(entity.superEntity, obj, q);
+            removeOneToOneAssociations(entity, obj, q.branchNonBlocking());
             removeManyToOneAssociations(entity, obj, q.branchNonBlocking());
         }
 
@@ -1044,53 +1069,66 @@ package nz.co.codec.flexorm
         // to effect any cascade delete of associations of the removed object.
         private function removeOneToManyAssociations(entity:Entity, obj:Object, executor:NonBlockingExecutor):void
         {
-            for each(var a:OneToManyAssociation in entity.oneToManyAssociations)
+            for each(var aOtm:OneToManyAssociation in entity.oneToManyAssociations)
             {
-                if (isCascadeDelete(a))
+                if (isCascadeDelete(aOtm))
                 {
-                    if (a.multiTyped)
+                    if (aOtm.multiTyped)
                     {
-                        for each(var type:AssociatedType in a.associatedTypes)
+                        for each(var type:AssociatedType in aOtm.associatedTypes)
                         {
                             removeEntity(type.associatedEntity, obj, executor.branchBlocking());
                         }
                     }
                     else
                     {
-                        var deleteCommand:DeleteCommand = a.deleteCommand;
+                        var deleteCommand:DeleteCommand = aOtm.deleteCommand;
                         if (entity.hasCompositeKey())
                         {
                             setIdentityParams(deleteCommand, obj, entity);
                         }
                         else
                         {
-                            deleteCommand.setParam(a.fkProperty, obj[entity.pk.property]);
+                            deleteCommand.setParam(aOtm.fkProperty, obj[entity.pk.property]);
                         }
                         executor.add(deleteCommand);
                     }
                 }
                 else // set the FK to 0
                 {
-                    var updateCommand:UpdateCommand = a.updateFKAfterDeleteCommand;
+                    var updateCommand:UpdateCommand = aOtm.updateFKAfterDeleteCommand;
                     if (entity.hasCompositeKey())
                     {
                         setIdentityParams(updateCommand, obj, entity);
                     }
                     else
                     {
-                        updateCommand.setParam(a.fkProperty, obj[entity.pk.property]);
+                        updateCommand.setParam(aOtm.fkProperty, obj[entity.pk.property]);
                     }
                     executor.add(updateCommand);
                 }
             }
         }
 
+        private function removeOneToOneAssociations(entity:Entity, obj:Object, executor:NonBlockingExecutor):void
+        {
+            for each (var aOto:Association in entity.oneToOneAssociations)
+            {
+                var value:Object = obj[aOto.property];
+
+                if (value && isCascadeDelete(aOto))
+                {
+                    removeObject(value, executor.branchBlocking());
+                }
+            }
+        }
+
         private function removeManyToOneAssociations(entity:Entity, obj:Object, executor:NonBlockingExecutor):void
         {
-            for each(var a:Association in entity.manyToOneAssociations)
+            for each(var aMto:Association in entity.manyToOneAssociations)
             {
-                var value:Object = obj[a.property];
-                if (value && isCascadeDelete(a))
+                var value:Object = obj[aMto.property];
+                if (value && isCascadeDelete(aMto))
                 {
                     removeObject(value, executor.branchBlocking());
                 }
@@ -1119,13 +1157,26 @@ package nz.co.codec.flexorm
             var instance:Object = new entity.cls();
             for each(var f:Field in entity.fields)
             {
-                instance[f.property] = row[f.column];
+                if (f.type == SQLType.DATE)
+                {
+                    // Views return a Number or String instead of a Date (which cannot be cast to Date type)
+                    instance[f.property] = ConvertToDate(getDbColumn(row, f.column));
+                }
+                else
+                {
+                    instance[f.property] = getDbColumn(row, f.column);
+                }
             }
             loadSuperProperties(instance, row, entity, q);
             var executor:NonBlockingExecutor = q.branchNonBlocking();
-            for each(var a:Association in entity.manyToOneAssociations)
+
+            for each (var aOto:Association in entity.oneToOneAssociations)
             {
-                setManyToOneAssociation(instance, row, a, executor.branchBlocking());
+                setOneToOneAssociation(instance, row, aOto, executor.branchBlocking());
+            }
+            for each (var aMto:Association in entity.manyToOneAssociations)
+            {
+                setManyToOneAssociation(instance, row, aMto, executor.branchBlocking());
             }
 
             // Must be after keys on instance has been loaded, which includes:
@@ -1174,7 +1225,7 @@ package nz.co.codec.flexorm
 
             var idMap:Object = entity.hasCompositeKey() ?
                 getIdentityMapFromRow(row, superEntity) :
-                getIdentityMap(superEntity.fkProperty, row[entity.pk.column]);
+                getIdentityMap(superEntity.fkProperty, getDbColumn(row, entity.pk.column));
 
             var superInstance:Object = getCachedValue(superEntity, idMap);
             if (superInstance == null)
@@ -1200,6 +1251,11 @@ package nz.co.codec.flexorm
                     instance[f.property] = superInstance[f.property];
 //                }
             }
+
+            for each (var oto:Association in superEntity.oneToOneAssociations)
+            {
+                instance[oto.property] = superInstance[oto.property];
+            }
             for each(var mto:Association in superEntity.manyToOneAssociations)
             {
                 instance[mto.property] = superInstance[mto.property];
@@ -1211,6 +1267,49 @@ package nz.co.codec.flexorm
             for each(var mtm:Association in superEntity.manyToManyAssociations)
             {
                 instance[mtm.property] = superInstance[mtm.property];
+            }
+        }
+
+        private function setOneToOneAssociation(instance:Object, row:Object, a:Association, q:BlockingExecutor):void
+        {
+            var associatedEntity:Entity = a.associatedEntity;
+            var value:Object = null;
+
+            if (!associatedEntity.isSuperEntity())
+            {
+                value = getCachedAssociationValue(a, row);
+            }
+
+            if (value)
+            {
+                instance[a.property] = value;
+            }
+            else
+            {
+                var idMap:Object = null;
+
+                if (associatedEntity.hasCompositeKey())
+                {
+                    idMap = getIdentityMapFromAssociation(row, associatedEntity);
+                }
+                else
+                {
+                    var id:* = getDbColumn(row, a.fkColumn);
+
+                    if (idAssigned(id))
+                    {
+                        idMap = getIdentityMap(associatedEntity.fkProperty, id);
+                    }
+                }
+
+                if (idMap)
+                {
+                    loadComplexEntity(associatedEntity, idMap, q.branchBlocking());
+                    q.addFunction(function(data:Object):void
+                    {
+                        instance[a.property] = data.data;
+                    });
+                }
             }
         }
 
@@ -1239,7 +1338,7 @@ package nz.co.codec.flexorm
                 }
                 else
                 {
-                    var id:* = row[a.fkColumn];
+                    var id:* = getDbColumn(row, a.fkColumn);
                     if (idAssigned(id))
                     {
                         idMap = getIdentityMap(associatedEntity.fkProperty, id);
@@ -1265,7 +1364,7 @@ package nz.co.codec.flexorm
         {
             var idMap:Object = entity.hasCompositeKey() ?
                 getIdentityMapFromRow(row, entity) :
-                getIdentityMap(a.fkProperty, row[entity.pk.column]);
+                getIdentityMap(a.fkProperty, getDbColumn(row, entity.pk.column));
             // Lazy Loading not supported using the Asynchronous API yet
 //			if (a.lazy)
 //			{

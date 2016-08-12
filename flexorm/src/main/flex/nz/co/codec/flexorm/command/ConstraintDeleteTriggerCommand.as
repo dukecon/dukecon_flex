@@ -16,13 +16,16 @@ package nz.co.codec.flexorm.command
             debugLevel:int=0)
         {
             super(sqlConnection, schema, table, debugLevel);
-            _statement.text = StringUtil.substitute("create trigger fkd_{1}_{2} before delete on {0}.{3} for each row begin select raise(rollback, 'delete on table \"{3}\" violates foreign key constraint \"fkd_{1}_{2}\"') where (select t.{2} from {0}.{1} t where t.{2}=old.{4}) is not null; end;",
+            
+            var sql:String = StringUtil.substitute("create trigger fkd_{1}_{2} before delete on {0}.{3} for each row begin select raise(rollback, 'delete on table \"{3}\" violates foreign key constraint \"fkd_{1}_{2}\"') where (select t.{2} from {0}.{1} t where t.{2}=old.{4}) is not null; end;",
                 schema, table, column, constraintTable, constraintColumn);
+            sql += SQL_STATEMENT_SEPARATOR;
+            _statement.text = sql
         }
 
         public function toString():String
         {
-            return "CREATE FK CONSTRAINT DELETE TRIGGER: " + _statement.text;
+            return "CREATE FK CONSTRAINT DELETE TRIGGER: " + getStatementText();
         }
 
     }

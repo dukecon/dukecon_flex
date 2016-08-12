@@ -22,6 +22,7 @@ package nz.co.codec.flexorm
     import nz.co.codec.flexorm.command.UpdateNestedSetsLeftBoundaryCommand;
     import nz.co.codec.flexorm.command.UpdateNestedSetsRightBoundaryCommand;
     import nz.co.codec.flexorm.criteria.SQLCondition;
+	import nz.co.codec.flexorm.criteria.SQLFunction;
     import nz.co.codec.flexorm.criteria.Sort;
     import nz.co.codec.flexorm.metamodel.AssociatedType;
     import nz.co.codec.flexorm.metamodel.Association;
@@ -31,6 +32,7 @@ package nz.co.codec.flexorm
     import nz.co.codec.flexorm.metamodel.IDStrategy;
     import nz.co.codec.flexorm.metamodel.IHierarchicalObject;
     import nz.co.codec.flexorm.metamodel.Identity;
+    import nz.co.codec.flexorm.metamodel.JoinColumns;
     import nz.co.codec.flexorm.metamodel.Key;
     import nz.co.codec.flexorm.metamodel.ManyToManyAssociation;
     import nz.co.codec.flexorm.metamodel.OneToManyAssociation;
@@ -154,11 +156,17 @@ package nz.co.codec.flexorm
             var entity:Entity;
             for each(entity in createSequence)
             {
-                for each(var a:ManyToManyAssociation in entity.manyToManyAssociations)
+				if (entity.isTableCreationWanted)
                 {
-                    associationTableCreateCommands.push(a.createSynCommand);
-                }
-                entity.createSynCommand.execute();
+					for each(var aMtm:ManyToManyAssociation in entity.manyToManyAssociations)
+					{
+                        if (!aMtm.associationTableIsView)
+                        {
+							associationTableCreateCommands.push(aMtm.createSynCommand);
+						}
+					}
+					entity.createSynCommand.execute();
+				}
             }
             for each(entity in createSequence)
             {
@@ -166,6 +174,7 @@ package nz.co.codec.flexorm
             }
 
             // create association tables last
+            // array is not filled with entities, where entity.isTableCreationWanted=false
             for each(var command:CreateSynCommand in associationTableCreateCommands)
             {
                 command.execute();
@@ -174,10 +183,10 @@ package nz.co.codec.flexorm
             // create indexes
             for each(entity in createSequence)
             {
-                for each(var indexCommand:CreateIndexCommand in entity.indexCommands)
-                {
-                    indexCommand.execute();
-                }
+				for each(var indexCommand:CreateIndexCommand in entity.indexCommands)
+				{
+					indexCommand.execute();
+				}
             }
 
             if (_prefs.syncSupport && !metaTableCreated)
@@ -189,14 +198,21 @@ package nz.co.codec.flexorm
             var associationTableCreateCommands:Array = [];
             for each(var entity:Entity in createSequence)
             {
-                for each(var a:ManyToManyAssociation in entity.manyToManyAssociations)
+				if (entity.isTableCreationWanted)
                 {
-                    associationTableCreateCommands.push(a.createAsynCommand);
-                }
-                executor.add(entity.createAsynCommand);
+					for each(var aMtm:ManyToManyAssociation in entity.manyToManyAssociations)
+					{
+                        if (!aMtm.associationTableIsView)
+                        {
+							associationTableCreateCommands.push(aMtm.createAsynCommand);
+						}
+					}
+					executor.add(entity.createAsynCommand);
+				}
             }
 
             // create association tables last
+            // array is not filled with entities, where entity.isTableCreationWanted=false
             for each(var command:CreateAsynCommand in associationTableCreateCommands)
             {
                 executor.add(command);
@@ -287,6 +303,16 @@ package nz.co.codec.flexorm
             if (new cls() is IHierarchicalObject)
                 entity.hierarchical = true;
 
+			entity.isView = StringUtils.parseBoolean(xml.metadata.(@name == Tags.ELEM_TABLE).arg.(@key == Tags.ATTR_IS_VIEW).@value.toString()
+                                                          , false);
+
+            entity.isTableCreationWanted = StringUtils.parseBoolean(xml.metadata.(@name == Tags.ELEM_TABLE).arg.(@key == Tags.ATTR_CREATE_TABLE)
+                                            .@value.toString()
+                                                                    , true) && !entity.isView;
+            entity.isIndexCreationWanted = StringUtils.parseBoolean(xml.metadata.(@name == Tags.ELEM_TABLE).arg.(@key == Tags.ATTR_INDEXED)
+                                            .@value.toString()
+                                                                    , true) && !entity.isView;
+
             var qname:String = getQualifiedClassName(cls);
             var i:int = qname.indexOf("::");
             var pkg:String = (i > 0) ? qname.substring(0, i) : null;
@@ -298,10 +324,15 @@ package nz.co.codec.flexorm
             var variables:XMLList = xml.accessor;
             for each(var v:Object in variables)
             {
-                // Skip properties of superclass
+                // Skip properties of superclass (if its not a MappedSuperclass)
                 var declaredBy:String = v.@declaredBy.toString();
                 if (declaredBy.search(new RegExp(entity.className, "i")) == -1)
-                    continue;
+                {
+                    if (!entity.isSuperEntityAMappedSuperclass) // is handled in superclass otherwise
+                    {
+                        continue;
+                    }
+                }
 
                 var type:Class = getClass(v.@type); // associated object class
                 var typeQName:String = getQualifiedClassName(type);
@@ -313,6 +344,10 @@ package nz.co.codec.flexorm
                 if (v.metadata.(@name == Tags.ELEM_COLUMN).length() > 0)
                 {
                     column = extractColumn(v, entity, property);
+                }
+                else if (v.metadata.(@name == Tags.ELEM_ONE_TO_ONE).length() > 0)
+                {
+                    extractOneToOneAssociation(v, entity, property);
                 }
                 else if (v.metadata.(@name == Tags.ELEM_MANY_TO_ONE).length() > 0)
                 {
@@ -336,6 +371,7 @@ package nz.co.codec.flexorm
                 // if type is in the same package as cls
                 else if (typePkg == pkg) // then infer many-to-one association
                 {
+                    extractInferredOneToOneAssociation(entity, type, property);
                     extractInferredManyToOneAssociation(entity, type, property);
                 }
 
@@ -346,7 +382,6 @@ package nz.co.codec.flexorm
                 {
                     extractInferredOneToManyAssociation(entity, type, property);
                 }
-
                 else
                 {
                     column = usingCamelCaseNames() ?
@@ -438,19 +473,38 @@ package nz.co.codec.flexorm
                 }
             }
 
+			// @NOTE: need to default to "false" because it would change behaviour of existing programs otherwise
+			var inheritsFromSuperclass: Boolean = StringUtils.parseBoolean(xml.metadata.(@name == Tags.ELEM_TABLE).arg.(@key == Tags
+								.ATTR_INHERITS_FROM_SUPERCLASS).@value.toString()
+															 , false);
+			if (inheritsFromSuperclass) {
+				inheritsFrom = superType;
+			}
+
             // if superType has the same package as entity and is not Object
             if (((pkg == superPkg) && (superType != "Object")) || (superType == inheritsFrom))
             {
                 var cls:Class = getClass(superType);
-                var cn:String = getClassName(cls);
-                var superEntity:Entity = _entityMap[cn];
-                if (superEntity == null)
+                
+                var superXml:XML = describeType(new cls());
+
+                if (superXml.metadata.(@name == Tags.ELEM_MAPPED_SUPERCLASS).length() > 0)
                 {
-                    superEntity = getEntity(cls, cn);
-                    deferred.push(cls);
+                    entity.isSuperEntityAMappedSuperclass = true;
+                    trace('mapped super class found:' + cn);
                 }
-                superEntity.addSubEntity(entity);
-                entity.addDependency(superEntity);
+                else
+                {
+	                var cn:String = getClassName(cls);
+	                var superEntity:Entity = _entityMap[cn];
+	                if (superEntity == null)
+	                {
+	                    superEntity = getEntity(cls, cn);
+	                    deferred.push(cls);
+	                }
+	                superEntity.addSubEntity(entity);
+	                entity.addDependency(superEntity);
+                }
             }
         }
 
@@ -471,13 +525,66 @@ package nz.co.codec.flexorm
             return column;
         }
 
+        private function extractOneToOneAssociation(v:Object, entity:Entity, property:String):void
+        {
+            var metadata:XMLList = v.metadata.(@name == Tags.ELEM_ONE_TO_ONE);
+            var fkColumn:String = StringUtil.trim(metadata.arg.(@key == Tags.ATTR_NAME).@value.toString());
+            var cascadeType:String = StringUtil.trim(metadata.arg.(@key == Tags.ATTR_CASCADE).@value.toString());
+            var inverse:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_INVERSE).@value.toString(), false);
+            var constrain:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_CONSTRAIN).@value.toString(), true) && !entity.isView;
+
+            var type:Class = getClass(v.@type); // associated object class
+            var cn:String = getClassName(type); // class name of associated object
+            var associatedEntity:Entity = _entityMap[cn];
+
+            if (associatedEntity == null)
+            {
+                associatedEntity = getEntity(type, cn);
+                deferred.push(type);
+            }
+
+            var fkProperty:String;
+
+            if (fkColumn == null || fkColumn.length == 0)
+            {
+                fkColumn = associatedEntity.fkColumn;
+                fkProperty = associatedEntity.fkProperty;
+            }
+            else
+            {
+                // As there may be more than one Many-to-one association of the
+                // same type
+                fkProperty = StringUtils.camelCase(fkColumn);
+            }
+
+            if (v.metadata.(@name == Tags.ELEM_ID).length() > 0)
+            {
+                entity.addKey(new CompositeKey({property: property, associatedEntity: associatedEntity}));
+                cascadeType = CascadeType.NONE;
+                missingKey = false;
+            }
+
+            var associationIsHierarchical:Boolean = false;
+
+            if (new associatedEntity.cls() is IHierarchicalObject)
+            {
+                entity.parentProperty = property;
+                associationIsHierarchical = true;
+            }
+
+            entity.addOneToOneAssociation(new Association({property: property, fkColumn: fkColumn, fkProperty: fkProperty
+                                                           , associatedEntity: associatedEntity, cascadeType: cascadeType, inverse: inverse
+                                                           , constrain: constrain, hierarchical: associationIsHierarchical}));
+            entity.addDependency(associatedEntity);
+        }
+
         private function extractManyToOneAssociation(v:Object, entity:Entity, property:String):void
         {
             var metadata:XMLList = v.metadata.(@name == Tags.ELEM_MANY_TO_ONE);
             var fkColumn:String = StringUtil.trim(metadata.arg.(@key == Tags.ATTR_NAME).@value.toString());
             var cascadeType:String = StringUtil.trim(metadata.arg.(@key == Tags.ATTR_CASCADE).@value.toString());
             var inverse:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_INVERSE).@value.toString(), false);
-            var constrain:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_CONSTRAIN).@value.toString(), true);
+            var constrain:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_CONSTRAIN).@value.toString(), true) && !entity.isView;
 
             var type:Class = getClass(v.@type); // associated object class
             var cn:String = getClassName(type); // class name of associated object
@@ -533,6 +640,31 @@ package nz.co.codec.flexorm
             entity.addDependency(associatedEntity);
         }
 
+        private function extractInferredOneToOneAssociation(entity:Entity, type:Class, property:String):void
+        {
+            var cn:String = getClassName(type); // classname of associated object
+            var associatedEntity:Entity = _entityMap[cn];
+
+            if (associatedEntity == null)
+            {
+                associatedEntity = getEntity(type, cn);
+                deferred.push(type);
+            }
+
+            var associationIsHierarchical:Boolean = false;
+
+            if (new associatedEntity.cls() is IHierarchicalObject)
+            {
+                entity.parentProperty = property;
+                associationIsHierarchical = true;
+            }
+
+            entity.addOneToOneAssociation(new Association({property: property, fkColumn: associatedEntity.fkColumn
+                                                           , fkProperty: associatedEntity.fkProperty, associatedEntity: associatedEntity
+                                                           , hierarchical: associationIsHierarchical}));
+            entity.addDependency(associatedEntity);
+        }
+
         private function extractInferredManyToOneAssociation(entity:Entity, type:Class, property:String):void
         {
             var cn:String = getClassName(type);// classname of associated object
@@ -572,7 +704,7 @@ package nz.co.codec.flexorm
             var cascadeType:String = StringUtil.trim(metadata.arg.(@key == Tags.ATTR_CASCADE).@value.toString());
             var lazy:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_LAZY).@value.toString(), false);
             var inverse:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_INVERSE).@value.toString(), false);
-            var constrain:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_CONSTRAIN).@value.toString(), true);
+            var constrain:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_CONSTRAIN).@value.toString(), true) && !entity.isView;
             var indexed:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_INDEXED).@value.toString(), false);
             var indexColumn:String = StringUtil.trim(metadata.arg.(@key == Tags.ATTR_INDEX_COLUMN).@value.toString());
             var indexProperty:String = null;
@@ -679,14 +811,27 @@ package nz.co.codec.flexorm
             var type:Class = getClass(metadata.arg.(@key == Tags.ATTR_TYPE).@value);
             var cascadeType:String = StringUtil.trim(metadata.arg.(@key == Tags.ATTR_CASCADE).@value.toString());
             var lazy:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_LAZY).@value.toString(), false);
-            var constrain:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_CONSTRAIN).@value.toString(), true);
-            var indexed:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_INDEXED).@value.toString(), false);
+
+            var associationTableIsView:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_TABLE_IS_VIEW).@value.toString(), false);
+
+            var constrain:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_CONSTRAIN).@value.toString(), true) &&
+                                        !associationTableIsView;
+            var indexed:Boolean = StringUtils.parseBoolean(metadata.arg.(@key == Tags.ATTR_INDEXED).@value.toString(), false) &&
+                                        !associationTableIsView;
             var indexColumn:String = StringUtil.trim(metadata.arg.(@key == Tags.ATTR_INDEX_COLUMN).@value.toString());
-            var indexProperty:String = null;
+            var indexProperty:String = null;			
+			var tableName:String = StringUtil.trim(metadata.arg.(@key == Tags.ATTR_TABLE).@value.toString());
 
             var cn:String = getClassName(type);
             var associationTable:String = c_n + "_" + Inflector.pluralize(StringUtils.underscore(cn).toLowerCase());
 
+			if (tableName) {
+				associationTable = tableName;	
+			}
+			else {
+				associationTable = c_n + "_" + Inflector.pluralize(StringUtils.underscore(cn).toLowerCase());	
+			}
+			
             if (indexed && (indexColumn == null || indexColumn.length == 0))
             {
                 indexColumn = c_n + "_idx";
@@ -708,10 +853,18 @@ package nz.co.codec.flexorm
                 deferred.push(type);
             }
 
+            var joinColumns:JoinColumns = new JoinColumns();
+            joinColumns.fillJoinColumns(metadata.arg.(@key == Tags.ATTR_JOIN_COLUMNS).@value.toString(), entity.fkProperty);
+            var inverseJoinColumns:JoinColumns = new JoinColumns();
+            inverseJoinColumns.fillJoinColumns(metadata.arg.(@key == Tags.ATTR_INVERSE_JOIN_COLUMNS).@value.toString(), associatedEntity.fkProperty);
+
             var a:ManyToManyAssociation = new ManyToManyAssociation(
             {
                 property        : property,
                 associationTable: associationTable,
+				associationTableIsView: associationTableIsView,
+                joinColumns: joinColumns,
+                inverseJoinColumns: inverseJoinColumns, 
                 associatedEntity: associatedEntity,
                 cascadeType     : cascadeType,
                 lazy            : lazy,
@@ -816,8 +969,16 @@ package nz.co.codec.flexorm
             var insertCommand:InsertCommand = new InsertCommand(_sqlConnection, _schema, table, _debugLevel);
             var updateCommand:UpdateCommand = new UpdateCommand(_sqlConnection, _schema, table, _prefs.syncSupport, _debugLevel);
             var deleteCommand:DeleteCommand = new DeleteCommand(_sqlConnection, _schema, table, _debugLevel);
-            var createSynCommand:CreateSynCommand = new CreateSynCommand(_sqlConnection, _schema, table, _debugLevel);
-            var createAsynCommand:CreateAsynCommand = new CreateAsynCommand(_sqlConnection, _schema, table, _debugLevel);
+            var createSynCommand:CreateSynCommand = new CreateSynCommand(_sqlConnection
+                                                                         , _schema
+                                                                         , table
+                                                                         , _debugLevel
+                                                                         , entity.isTableCreationWanted);
+            var createAsynCommand:CreateAsynCommand = new CreateAsynCommand(_sqlConnection
+                                                                            , _schema
+                                                                            , table
+                                                                            , _debugLevel
+                                                                            , entity.isTableCreationWanted);
             var markForDeletionCommand:UpdateCommand = new UpdateCommand(_sqlConnection, _schema, table, false, _debugLevel);
 
             // ************************************************
@@ -932,7 +1093,7 @@ package nz.co.codec.flexorm
 	            insertCommand.addColumn("marked_for_deletion", "markedForDeletion");
 	            createSynCommand.addColumn("marked_for_deletion", SQLType.BOOLEAN);
 	            createAsynCommand.addColumn("marked_for_deletion", SQLType.BOOLEAN);
-	            selectAllCommand.addSQLCondition("marked_for_deletion<>true");
+				selectAllCommand.addSQLFunction("ifnull(" + SQLFunction.TABLENAME_PLACEHOLDER + ".marked_for_deletion,false)<>true");
 	            markForDeletionCommand.addColumn("marked_for_deletion", "markedForDeletion");
 	            markForDeletionCommand.setParam("markedForDeletion", true);
 	    	}
@@ -947,21 +1108,22 @@ package nz.co.codec.flexorm
 
             var associatedEntity:Entity;
 
-            for each(var a:Association in entity.manyToOneAssociations)
+            for each (var aOto:Association in entity.oneToOneAssociations)
             {
-                associatedEntity = a.associatedEntity;
+                associatedEntity = aOto.associatedEntity;
                 indexName = indexTableName + "_" + associatedEntity.tableSingular + "_idx";
                 createIndexCommand = new CreateIndexCommand(_sqlConnection, _schema, table, indexName, _debugLevel);
 
                 if (associatedEntity.hasCompositeKey())
                 {
-                    for each(identity in associatedEntity.identities)
+                    for each (identity in associatedEntity.identities)
                     {
                         idSQLType = getSQLTypeForID(identity.strategy);
                         selectCommand.addColumn(identity.fkColumn, identity.fkProperty);
                         insertCommand.addColumn(identity.fkColumn, identity.fkProperty);
                         updateCommand.addColumn(identity.fkColumn, identity.fkProperty);
-                        if (a.constrain)
+
+                        if (aOto.constrain)
                         {
                             createSynCommand.addForeignKey(identity.fkColumn, idSQLType, associatedEntity.table, identity.column);
                             createAsynCommand.addForeignKey(identity.fkColumn, idSQLType, associatedEntity.table, identity.column);
@@ -977,20 +1139,71 @@ package nz.co.codec.flexorm
                 else
                 {
                     idSQLType = getSQLTypeForID(associatedEntity.pk.strategy);
-                    selectCommand.addColumn(a.fkColumn, a.fkProperty);
-                    insertCommand.addColumn(a.fkColumn, a.fkProperty);
-                    updateCommand.addColumn(a.fkColumn, a.fkProperty);
-                    if (a.constrain)
+                    selectCommand.addColumn(aOto.fkColumn, aOto.fkProperty);
+                    insertCommand.addColumn(aOto.fkColumn, aOto.fkProperty);
+                    updateCommand.addColumn(aOto.fkColumn, aOto.fkProperty);
+
+                    if (aOto.constrain)
                     {
-                        createSynCommand.addForeignKey(a.fkColumn, idSQLType, associatedEntity.table, associatedEntity.pk.column);
-                        createAsynCommand.addForeignKey(a.fkColumn, idSQLType, associatedEntity.table, associatedEntity.pk.column);
+                        createSynCommand.addForeignKey(aOto.fkColumn, idSQLType, associatedEntity.table, associatedEntity.pk.column);
+                        createAsynCommand.addForeignKey(aOto.fkColumn, idSQLType, associatedEntity.table, associatedEntity.pk.column);
                     }
                     else
                     {
-                        createSynCommand.addColumn(a.fkColumn, idSQLType);
-                        createAsynCommand.addColumn(a.fkColumn, idSQLType);
+                        createSynCommand.addColumn(aOto.fkColumn, idSQLType);
+                        createAsynCommand.addColumn(aOto.fkColumn, idSQLType);
                     }
-                    createIndexCommand.addIndex(a.fkColumn);
+                    createIndexCommand.addIndex(aOto.fkColumn);
+                }
+                indexCommands.push(createIndexCommand);
+            }
+
+            for each (var aMto:Association in entity.manyToOneAssociations)
+            {
+                associatedEntity = aMto.associatedEntity;
+                indexName = indexTableName + "_" + associatedEntity.tableSingular + "_idx";
+                createIndexCommand = new CreateIndexCommand(_sqlConnection, _schema, table, indexName, _debugLevel);
+
+                if (associatedEntity.hasCompositeKey())
+                {
+                    for each(identity in associatedEntity.identities)
+                    {
+                        idSQLType = getSQLTypeForID(identity.strategy);
+                        selectCommand.addColumn(identity.fkColumn, identity.fkProperty);
+                        insertCommand.addColumn(identity.fkColumn, identity.fkProperty);
+                        updateCommand.addColumn(identity.fkColumn, identity.fkProperty);
+
+                        if (aMto.constrain)
+                        {
+                            createSynCommand.addForeignKey(identity.fkColumn, idSQLType, associatedEntity.table, identity.column);
+                            createAsynCommand.addForeignKey(identity.fkColumn, idSQLType, associatedEntity.table, identity.column);
+                        }
+                        else
+                        {
+                            createSynCommand.addColumn(identity.fkColumn, idSQLType);
+                            createAsynCommand.addColumn(identity.fkColumn, idSQLType);
+                        }
+                        createIndexCommand.addIndex(identity.fkColumn);
+                    }
+                }
+                else
+                {
+                    idSQLType = getSQLTypeForID(associatedEntity.pk.strategy);
+                    selectCommand.addColumn(aMto.fkColumn, aMto.fkProperty);
+                    insertCommand.addColumn(aMto.fkColumn, aMto.fkProperty);
+                    updateCommand.addColumn(aMto.fkColumn, aMto.fkProperty);
+
+                    if (aMto.constrain)
+                    {
+                        createSynCommand.addForeignKey(aMto.fkColumn, idSQLType, associatedEntity.table, associatedEntity.pk.column);
+                        createAsynCommand.addForeignKey(aMto.fkColumn, idSQLType, associatedEntity.table, associatedEntity.pk.column);
+                    }
+                    else
+                    {
+                        createSynCommand.addColumn(aMto.fkColumn, idSQLType);
+                        createAsynCommand.addColumn(aMto.fkColumn, idSQLType);
+                    }
+                    createIndexCommand.addIndex(aMto.fkColumn);
                 }
                 indexCommands.push(createIndexCommand);
             }
@@ -1156,14 +1369,17 @@ package nz.co.codec.flexorm
             entity.selectServerKeyMapCommand = selectServerKeyMapCommand;
             entity.selectUpdatedCommand = selectUpdatedCommand;
             entity.updateVersionCommand = updateVersionCommand;
-            entity.indexCommands = indexCommands;
+
+			if (entity.isIndexCreationWanted) {
+				entity.indexCommands = indexCommands;
+			}
         }
 
         private function buildOneToManySQLCommands(entity:Entity):void
         {
-            for each(var a:OneToManyAssociation in entity.oneToManyAssociations)
+            for each(var aOtm:OneToManyAssociation in entity.oneToManyAssociations)
             {
-                for each(var type:AssociatedType in a.associatedTypes)
+                for each(var type:AssociatedType in aOtm.associatedTypes)
                 {
                     var associatedEntity:Entity = type.associatedEntity;
                     var selectCommand:SelectCommand = new SelectCommand(_sqlConnection, _schema, associatedEntity.table, _debugLevel);
@@ -1176,7 +1392,7 @@ package nz.co.codec.flexorm
                         associatedEntity.selectCommand = new SelectCommand(_sqlConnection, _schema, associatedEntity.table, _debugLevel);
                         associatedEntity.selectCommand.columns = selectCommand.columns;
                     }
-                    selectCommand.addSort(a.indexColumn);
+                    selectCommand.addSort(aOtm.indexColumn);
                     if (entity.hasCompositeKey())
                     {
                         for each(var identity:Identity in entity.identities)
@@ -1186,7 +1402,7 @@ package nz.co.codec.flexorm
                     }
                     else
                     {
-                        selectCommand.addFilter(a.fkColumn, a.fkProperty);
+                        selectCommand.addFilter(aOtm.fkColumn, aOtm.fkProperty);
                     }
                     type.selectCommand = selectCommand;
                 }
@@ -1195,10 +1411,11 @@ package nz.co.codec.flexorm
 
         private function buildManyToManySQLCommands(entity:Entity, indexName:String, indexCommands:Array, createIndexCmd:CreateIndexCommand):void
         {
-            for each(var a:ManyToManyAssociation in entity.manyToManyAssociations)
+            for each(var aMtm:ManyToManyAssociation in entity.manyToManyAssociations)
             {
-                var associationTable:String = a.associationTable;
-                var associatedEntity:Entity = a.associatedEntity;
+                var associationTable:String = aMtm.associationTable;
+                var associatedEntity:Entity = aMtm.associatedEntity;
+                var associationTableIsView:Boolean = aMtm.associationTableIsView;
 
                 var selectManyToManyCommand:SelectCommand = new SelectCommand(_sqlConnection, _schema, associatedEntity.table, _debugLevel);
                 if (associatedEntity.selectCommand)
@@ -1215,22 +1432,30 @@ package nz.co.codec.flexorm
                 var selectManyToManyKeysCommand:SelectCommand = new SelectCommand(_sqlConnection, _schema, associationTable, _debugLevel);
                 var insertCommand:InsertCommand = new InsertCommand(_sqlConnection, _schema, associationTable, _debugLevel);
                 var deleteCommand:DeleteCommand = new DeleteCommand(_sqlConnection, _schema, associationTable, _debugLevel);
-                var createSynCommand:CreateSynCommand = new CreateSynCommand(_sqlConnection, _schema, associationTable, _debugLevel);
-                var createAsynCommand:CreateAsynCommand = new CreateAsynCommand(_sqlConnection, _schema, associationTable, _debugLevel);
+                var createSynCommand:CreateSynCommand = new CreateSynCommand(_sqlConnection
+                                                                             , _schema
+                                                                             , associationTable
+                                                                             , _debugLevel
+                                                                             , entity.isTableCreationWanted && !associationTableIsView);
+                var createAsynCommand:CreateAsynCommand = new CreateAsynCommand(_sqlConnection
+                                                                                , _schema
+                                                                                , associationTable
+                                                                                , _debugLevel
+                                                                                , entity.isTableCreationWanted && !associationTableIsView);
                 var updateCommand:UpdateCommand = null;
 
-                if (a.indexed)
+                if (aMtm.indexed && !associationTableIsView)
                 {
-                    selectManyToManyCommand.addSort(a.indexColumn, Sort.ASC, associationTable);
-                    insertCommand.addColumn(a.indexColumn, a.indexProperty);
-                    createSynCommand.addColumn(a.indexColumn, SQLType.INTEGER);
-                    createAsynCommand.addColumn(a.indexColumn, SQLType.INTEGER);
+                    selectManyToManyCommand.addSort(aMtm.indexColumn, Sort.ASC, associationTable);
+                    insertCommand.addColumn(aMtm.indexColumn, aMtm.indexProperty);
+                    createSynCommand.addColumn(aMtm.indexColumn, SQLType.INTEGER);
+                    createAsynCommand.addColumn(aMtm.indexColumn, SQLType.INTEGER);
                     updateCommand = new UpdateCommand(_sqlConnection, _schema, associationTable, _prefs.syncSupport, _debugLevel);
-                    updateCommand.addColumn(a.indexColumn, a.indexProperty);
+                    updateCommand.addColumn(aMtm.indexColumn, aMtm.indexProperty);
 
-                    indexName = Inflector.singularize(associationTable) + "_" + a.indexColumn;
+                    indexName = Inflector.singularize(associationTable) + "_" + aMtm.indexColumn;
                     var createManyToManyIndexCommand:CreateIndexCommand = new CreateIndexCommand(_sqlConnection, _schema, associationTable, indexName, _debugLevel);
-                    createManyToManyIndexCommand.addIndex(a.indexColumn);
+                    createManyToManyIndexCommand.addIndex(aMtm.indexColumn);
                     indexCommands.push(createManyToManyIndexCommand);
                 }
                 indexName = Inflector.singularize(associationTable) + "_key_idx";
@@ -1239,63 +1464,76 @@ package nz.co.codec.flexorm
                 var identity:Identity;
                 var idSQLType:String;
 
+                // dont use identity.fkColumn in ManyToMany Relations, use joinColumns & inverseJoinColumns instead
+                // in case they were not explicitly defined, use identity.fkColumn (as previous implementation)
+                aMtm.inverseJoinColumns.AddMissingJoinColumnsFromIdenties(associatedEntity.identities);
+                aMtm.joinColumns.AddMissingJoinColumnsFromIdenties(entity.identities);
+
+                var joinColumnName:String;
+
                 for each(identity in associatedEntity.identities)
                 {
-                    selectManyToManyCommand.addJoin(associationTable, identity.column, identity.fkColumn);
-                    insertCommand.addColumn(identity.fkColumn, identity.fkProperty);
-                    deleteCommand.addFilter(identity.fkColumn, identity.fkProperty);
-                    selectManyToManyKeysCommand.addColumn(identity.fkColumn, identity.fkProperty);
+                    joinColumnName = aMtm.inverseJoinColumns.getColumnNameFromFkProperty(identity.fkProperty);
+                    selectManyToManyCommand.addJoin(associationTable, identity.column, joinColumnName);
+                    insertCommand.addColumn(joinColumnName, identity.fkProperty);
+                    deleteCommand.addFilter(joinColumnName, identity.fkProperty);
+                    selectManyToManyKeysCommand.addColumn(joinColumnName, identity.fkProperty);
                     idSQLType = getSQLTypeForID(identity.strategy);
-                    if (a.constrain)
+                    if (aMtm.constrain)
                     {
-                        createSynCommand.addForeignKey(identity.fkColumn, idSQLType, associatedEntity.table, identity.column);
-                        createAsynCommand.addForeignKey(identity.fkColumn, idSQLType, associatedEntity.table, identity.column);
+                        createSynCommand.addForeignKey(joinColumnName, idSQLType, associatedEntity.table, identity.column);
+                        createAsynCommand.addForeignKey(joinColumnName, idSQLType, associatedEntity.table, identity.column);
                     }
                     else
                     {
-                        createSynCommand.addColumn(identity.fkColumn, idSQLType);
-                        createAsynCommand.addColumn(identity.fkColumn, idSQLType);
+                        createSynCommand.addColumn(joinColumnName, idSQLType);
+                        createAsynCommand.addColumn(joinColumnName, idSQLType);
                     }
-                    if (a.indexed)
+                    if (aMtm.indexed)
                     {
-                        updateCommand.addFilter(identity.fkColumn, identity.fkProperty);
+                        updateCommand.addFilter(joinColumnName, identity.fkProperty);
                     }
-                    createIndexCmd.addIndex(identity.fkColumn);
+                    createIndexCmd.addIndex(joinColumnName);
                 }
 
                 // entity == mtm.ownerEntity
                 for each(identity in entity.identities)
                 {
-                    selectManyToManyCommand.addFilter(identity.fkColumn, identity.fkProperty, associationTable);
-                    insertCommand.addColumn(identity.fkColumn, identity.fkProperty);
-                    deleteCommand.addFilter(identity.fkColumn, identity.fkProperty);
-                    selectManyToManyKeysCommand.addFilter(identity.fkColumn, identity.fkProperty);
+                    joinColumnName = aMtm.joinColumns.getColumnNameFromFkProperty(identity.fkProperty);
+                    selectManyToManyCommand.addFilter(joinColumnName, identity.fkProperty, associationTable);
+                    insertCommand.addColumn(joinColumnName, identity.fkProperty);
+                    deleteCommand.addFilter(joinColumnName, identity.fkProperty);
+                    selectManyToManyKeysCommand.addFilter(joinColumnName, identity.fkProperty);
                     idSQLType = getSQLTypeForID(identity.strategy);
-                    if (a.constrain)
+                    if (aMtm.constrain)
                     {
-                        createSynCommand.addForeignKey(identity.fkColumn, idSQLType, entity.table, identity.column);
-                        createAsynCommand.addForeignKey(identity.fkColumn, idSQLType, entity.table, identity.column);
+                        createSynCommand.addForeignKey(joinColumnName, idSQLType, entity.table, identity.column);
+                        createAsynCommand.addForeignKey(joinColumnName, idSQLType, entity.table, identity.column);
                     }
                     else
                     {
-                        createSynCommand.addColumn(identity.fkColumn, idSQLType);
-                        createAsynCommand.addColumn(identity.fkColumn, idSQLType);
+                        createSynCommand.addColumn(joinColumnName, idSQLType);
+                        createAsynCommand.addColumn(joinColumnName, idSQLType);
                     }
-                    if (a.indexed)
+                    if (aMtm.indexed)
                     {
-                        updateCommand.addFilter(identity.fkColumn, identity.fkProperty);
+                        updateCommand.addFilter(joinColumnName, identity.fkProperty);
                     }
-                    createIndexCmd.addIndex(identity.fkColumn);
+                    createIndexCmd.addIndex(joinColumnName);
                 }
-                indexCommands.push(createIndexCmd);
 
-                a.selectCommand = selectManyToManyCommand;
-                a.selectManyToManyKeysCommand = selectManyToManyKeysCommand;
-                a.insertCommand = insertCommand;
-                a.updateCommand = updateCommand;
-                a.deleteCommand = deleteCommand;
-                a.createSynCommand = createSynCommand;
-                a.createAsynCommand = createAsynCommand;
+                if (!associationTableIsView)
+                {
+					indexCommands.push(createIndexCmd);
+				}
+
+                aMtm.selectCommand = selectManyToManyCommand;
+                aMtm.selectManyToManyKeysCommand = selectManyToManyKeysCommand;
+                aMtm.insertCommand = insertCommand;
+                aMtm.updateCommand = updateCommand;
+                aMtm.deleteCommand = deleteCommand;
+                aMtm.createSynCommand = createSynCommand;
+                aMtm.createAsynCommand = createAsynCommand;
             }
         }
 
@@ -1407,9 +1645,6 @@ package nz.co.codec.flexorm
             return entity;
         }
 
-
-
-
         /**
          * Sandbox feature: requires persistence of metadata such as in the
          * database. TODO remove constructors with arguments from metamodel
@@ -1471,6 +1706,9 @@ package nz.co.codec.flexorm
                     if ("Object" == cn)
                     {
                         associatedEntity = loadMetadataForObject(value, property, root);
+                        entity.addOneToOneAssociation(new Association({property: property, associatedEntity: associatedEntity
+                                                                       , fkColumn: associatedEntity.fkColumn
+                                                                       , fkProperty: associatedEntity.fkProperty}));
                         entity.addManyToOneAssociation(new Association(
                         {
                             property        : property,

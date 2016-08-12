@@ -13,6 +13,7 @@ package nz.co.codec.flexorm.command
     import nz.co.codec.flexorm.BlockingExecutor;
     import nz.co.codec.flexorm.EntityEvent;
     import nz.co.codec.flexorm.metamodel.IDStrategy;
+    import nz.co.codec.flexorm.util.StringUtils;
 
     public class CreateAsynCommand extends SQLCommand
     {
@@ -20,13 +21,13 @@ package nz.co.codec.flexorm.command
 
         private var _pk:String;
 
-        public function CreateAsynCommand(
-            sqlConnection:SQLConnection,
-            schema:String,
-            table:String,
-            debugLevel:int=0)
+        private var _isTableCreationWanted:Boolean;
+
+        public function CreateAsynCommand(sqlConnection:SQLConnection, schema:String, table:String, debugLevel:int = 0
+                                         , isTableCreationWanted:Boolean = true)
         {
             super(sqlConnection, schema, table, debugLevel);
+            _isTableCreationWanted = isTableCreationWanted;
             _created = false;
         }
 
@@ -71,14 +72,13 @@ package nz.co.codec.flexorm.command
             {
                 _sqlConnection.addEventListener(SQLEvent.SCHEMA, loadSchemaResultHandler);
                 _sqlConnection.addEventListener(SQLErrorEvent.ERROR, loadSchemaErrorHandler);
-                _sqlConnection.loadSchema(SQLTableSchema, _table);
+				// @NOTE: SQLite does not distinguish between uppercase/lowercase table names, 
+				// however _sqlConnection.loadSchema(SQLTableSchema, _table) would do so
+                _sqlConnection.loadSchema(SQLTableSchema);
             }
             else
             {
-                if (_debugLevel > 0)
-                    debug();
-
-                _statement.execute();
+            	executeSqlStatements();
             }
         }
 
@@ -88,17 +88,18 @@ package nz.co.codec.flexorm.command
             _sqlConnection.removeEventListener(SQLErrorEvent.ERROR, loadSchemaErrorHandler);
             _changed = false;
             var existingColumns:ArrayCollection = getExistingColumns(_sqlConnection.getSchemaResult());
-            if (existingColumns.length > 0)
+            if (existingColumns != null && existingColumns.length > 0)
             {
                 _created = true;
                 var sql:String = buildAlterSQL(existingColumns);
                 if (sql)
                 {
+					if (!_isTableCreationWanted)
+		            {
+		                throw new Error("Database table '" + _table + "' would require changes which is not desired!");
+		            }
                     _statement.text = sql;
-                    if (_debugLevel > 0)
-                        debug();
-
-                    _statement.execute();
+					executeSqlStatements();
                 }
                 else
                 // no new columns defined
@@ -122,16 +123,14 @@ package nz.co.codec.flexorm.command
             _responded = true;
         }
 
-        private function loadSchemaErrorHandler(event:SQLErrorEvent):void
+        private function loadSchemaErrorHandler(event:SQLErrorEvent = null):void
         {
             _sqlConnection.removeEventListener(SQLEvent.SCHEMA, loadSchemaResultHandler);
             _sqlConnection.removeEventListener(SQLErrorEvent.ERROR, loadSchemaErrorHandler);
             _statement.text = buildCreateSQL();
             _changed = false;
-            if (_debugLevel > 0)
-                debug();
-
-            _statement.execute();
+            
+            executeSqlStatements();
         }
 
         override protected function respond(event:SQLEvent):void
@@ -163,16 +162,26 @@ package nz.co.codec.flexorm.command
 
         private function getExistingColumns(schemaResult:SQLSchemaResult):ArrayCollection
         {
-            var existingColumns:ArrayCollection = new ArrayCollection();
             // should have the one table requested or the errorHandler is called
-            for each(var column:SQLColumnSchema in schemaResult.tables[0].columns)
-            {
-                if (!column.primaryKey)
-                {
-                    existingColumns.addItem(column.name);
-                }
-            }
-            return existingColumns;
+			for (var i:int = 0; i < schemaResult.tables.length; i++)
+			{
+				if (StringUtils.stringsEqualCaseIgnored(schemaResult.tables[i].name, _table))
+				{
+					var existingColumns:ArrayCollection = new ArrayCollection();
+
+					for each (var column:SQLColumnSchema in schemaResult.tables[i].columns)
+					{
+						if (!column.primaryKey)
+						{
+							existingColumns.addItem(column.name);
+						}
+					}
+					return existingColumns;
+				}
+			}
+			// call fault handler (which creates the database table)
+			loadSchemaErrorHandler();
+			return null;
         }
 
         private function buildAlterSQL(existingColumns:ArrayCollection):String
@@ -182,7 +191,7 @@ package nz.co.codec.flexorm.command
             {
                 if (!existingColumns.contains(column))
                 {
-                    sql += StringUtil.substitute("alter table {0} add {1} {2};",
+                    sql += StringUtil.substitute("alter table {0} add {1} {2};" + SQL_STATEMENT_SEPARATOR,
                             _table, column, _columns[column].type);
                 }
             }
@@ -199,13 +208,14 @@ package nz.co.codec.flexorm.command
             {
                 sql += StringUtil.substitute("{0} {1},", column, _columns[column].type);
             }
-            sql = sql.substring(0, sql.length - 1) + ")"; // remove last comma
+            sql = sql.substring(0, sql.length - 1) + ");"; // remove last comma
+            sql += SQL_STATEMENT_SEPARATOR;
             return sql;
         }
 
         public function toString():String
         {
-            return "CREATE " + _table + ": " + _statement.text;
+            return "CREATE " + _table + ": " + getStatementText();
         }
 
     }

@@ -5,18 +5,21 @@ package nz.co.codec.flexorm.command
     import flash.events.SQLErrorEvent;
     import flash.events.SQLEvent;
     import flash.utils.getQualifiedClassName;
-
+    
     import mx.rpc.IResponder;
-
+    
     import nz.co.codec.flexorm.EntityErrorEvent;
     import nz.co.codec.flexorm.EntityEvent;
     import nz.co.codec.flexorm.ICommand;
     import nz.co.codec.flexorm.criteria.EqualsCondition;
     import nz.co.codec.flexorm.criteria.IFilter;
     import nz.co.codec.flexorm.criteria.SQLCondition;
+    import nz.co.codec.flexorm.criteria.SQLFunction;
 
     public class SQLCommand implements ICommand
     {
+        public static const SQL_STATEMENT_SEPARATOR:String = ";;\nNext Statement: ";
+
         protected var _sqlConnection:SQLConnection;
 
         protected var _schema:String;
@@ -32,6 +35,8 @@ package nz.co.codec.flexorm.command
         protected var _columns:Object;
 
         protected var _filters:Array;
+
+        protected var _joinFilters:Array;
 
         protected var _responder:IResponder;
 
@@ -49,6 +54,7 @@ package nz.co.codec.flexorm.command
             _responded = false;
             _columns = {};
             _filters = [];
+            _joinFilters = [];
         }
 
         public function set responder(value:IResponder):void
@@ -132,16 +138,34 @@ package nz.co.codec.flexorm.command
             _filters.push(filter);
         }
 
+        public function addJoinFilterObject(filter:IFilter):void
+        {
+            _joinFilters.push(filter);
+        }
+
         public function addEqualsCondition(table:String, column:String, param:String):void
         {
             if (table && column && param)
             {
-                _filters.push(new EqualsCondition(table, column, param));
+                addFilterObject(new EqualsCondition(table, column, param));
             }
             else
             {
                 throw new Error("Null argument supplied to "
-                    + getQualifiedClassName(this) + ".addEqualsCondition ");
+                    + getQualifiedClassName(this) + ".addEqualsCondition.");
+            }
+            _changed = true;
+        }
+
+        public function addSQLFunction(sql:String):void
+        {
+            if (sql)
+            {
+                addFilterObject(new SQLFunction(_table, sql));
+            }
+            else
+            {
+                throw new Error("Null argument supplied to " + getQualifiedClassName(this) + ".addSQLFunction ");
             }
             _changed = true;
         }
@@ -150,12 +174,12 @@ package nz.co.codec.flexorm.command
         {
             if (sql)
             {
-                _filters.push(new SQLCondition(_table, sql));
+                addFilterObject(new SQLCondition(_table, sql));
             }
             else
             {
                 throw new Error("Null argument supplied to "
-                    + getQualifiedClassName(this) + ".addSQLCondition ");
+                    + getQualifiedClassName(this) + ".addSQLCondition.");
             }
             _changed = true;
         }
@@ -163,6 +187,11 @@ package nz.co.codec.flexorm.command
         public function get filters():Array
         {
             return _filters;
+        }
+
+        public function get joinFilters():Array
+        {
+            return _joinFilters;
         }
 
         // abstract
@@ -173,10 +202,65 @@ package nz.co.codec.flexorm.command
             if (_changed)
                 prepareStatement();
 
+            executeSqlStatements();
+        }
+
+        protected function executeSqlStatements():void
+        {
             if (_debugLevel > 0)
                 debug();
 
-            _statement.execute();
+            // it is not allowed to run multiple statements in SQLite with one execute(), so we split it up
+            var statementArray:Array = getStatementsArray();
+            var statementCount:uint = statementArray.length;
+
+            for (var i:int = 0; i < statementCount; i++)
+            {
+                var sqlStatement:String = statementArray[i];
+
+                _statement.text = sqlStatement;
+                _statement.execute();
+            }
+        }
+
+        protected function getStatementText():String
+        {
+            var statementArray:Array = getStatementsArray();
+            var statementCount:uint = statementArray.length;
+            var res:String = "";
+
+            for (var i:int = 0; i < statementCount; i++)
+            {
+                var sqlStatement:String = statementArray[i];
+
+                if (i > 0)
+                {
+                    res += "\n";
+                }
+                res += sqlStatement;
+            }
+            return res;
+        }
+
+        // creates a copy of the statements (not containing empty elements)
+        protected function getStatementsArray():Array
+        {
+            var statementArray:Array = _statement.text.split(SQL_STATEMENT_SEPARATOR);
+            var statementCount:uint = statementArray.length;
+            var res:Array = [];
+
+            for (var i:int = 0; i < statementCount; i++)
+            {
+                var sqlStatement:String = statementArray[i];
+
+                if (sqlStatement == "")
+                {
+                    // skip empty statements (i.e. last Array element)
+                    continue;
+                }
+                res.push(sqlStatement);
+            }
+            return res;
         }
 
         protected function set debugLevel(value:int):void

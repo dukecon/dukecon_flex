@@ -1,9 +1,9 @@
 package nz.co.codec.flexorm
 {
     import flash.data.SQLConnection;
-import flash.data.SQLResult;
-import flash.data.SQLStatement;
-import flash.errors.SQLError;
+	import flash.data.SQLResult;
+	import flash.data.SQLStatement;
+	import flash.errors.SQLError;
     import flash.filesystem.File;
     import flash.utils.getDefinitionByName;
     import flash.utils.getQualifiedClassName;
@@ -44,13 +44,7 @@ import flash.errors.SQLError;
 
         public static function get instance():EntityManager
         {
-            if (_instance == null)
-            {
-                localInstantiation = true;
-                _instance = new EntityManager();
-                localInstantiation = false;
-            }
-            return _instance;
+            return getInstance();
         }
 
         public static function getInstance():EntityManager
@@ -219,7 +213,7 @@ import flash.errors.SQLError;
                             items.push(
                             {
                                 associatedEntity: subEntity,
-                                index           : row[a.indexColumn],
+                                index           : getDbColumn(row, a.indexColumn),
                                 row             : row
                             });
                         }
@@ -232,7 +226,7 @@ import flash.errors.SQLError;
                         items.push(
                         {
                             associatedEntity: associatedEntity,
-                            index           : row[a.indexColumn],
+                            index           : getDbColumn(row, a.indexColumn),
                             row             : row
                         });
                     }
@@ -454,9 +448,18 @@ import flash.errors.SQLError;
                     trace("Key of type '" + keyEntity.name +
                           "' not specified as an identifier for '" + entity.name + "'. ");
 
-                    for each(var a:Association in entity.manyToOneAssociations)
+                    for each (var aOto:Association in entity.oneToOneAssociations)
                     {
-                        if (keyEntity.equals(a.associatedEntity))
+                        if (keyEntity.equals(aOto.associatedEntity))
+                        {
+                            trace("Key type '" + keyEntity.name + "' is used in a one-to-one association, so will allow. ");
+                            match = true;
+                            break;
+                        }
+                    }
+                    for each (var aMto:Association in entity.manyToOneAssociations)
+                    {
+                        if (keyEntity.equals(aMto.associatedEntity))
                         {
                             trace("Key type '" + keyEntity.name +
                                   "' is used in a many-to-one association, so will allow. ");
@@ -645,6 +648,7 @@ import flash.errors.SQLError;
 
         private function createItem(obj:Object, entity:Entity, args:SaveRecursiveArgs):void
         {
+            saveOneToOneAssociations(obj, entity);
             saveManyToOneAssociations(obj, entity);
             var insertCommand:InsertCommand = entity.insertCommand;
             if (entity.superEntity)
@@ -658,6 +662,7 @@ import flash.errors.SQLError;
                 createItem(obj, entity.superEntity, args);
             }
             setFieldParams(insertCommand, obj, entity);
+            setOneToOneAssociationParams(insertCommand, obj, entity);
             setManyToOneAssociationParams(insertCommand, obj, entity);
             setInsertTimestampParams(insertCommand, obj);
 
@@ -688,9 +693,9 @@ import flash.errors.SQLError;
             }
             if (args.a == null)
             {
-                for each(var a:OneToManyAssociation in entity.oneToManyInverseAssociations)
+                for each(var aOtm:OneToManyAssociation in entity.oneToManyInverseAssociations)
                 {
-                    if (a.hierarchical)
+                    if (aOtm.hierarchical)
                     {
                         if (args.lft == -1)
                         {
@@ -702,16 +707,16 @@ import flash.errors.SQLError;
                         insertCommand.setParam("rgt", args.lft + 1);
                         args.lft++;
                     }
-                    else if (a.indexed)
+                    else if (aOtm.indexed)
                     {
                          // specified from client code
-                        if ((a.ownerEntity.cls == args.ownerClass) && args.indexValue)
+                        if ((aOtm.ownerEntity.cls == args.ownerClass) && args.indexValue)
                         {
-                            insertCommand.setParam(a.indexProperty, args.indexValue);
+                            insertCommand.setParam(aOtm.indexProperty, args.indexValue);
                         }
                         else
                         {
-                            insertCommand.setParam(a.indexProperty, 0);
+                            insertCommand.setParam(aOtm.indexProperty, 0);
                         }
                     }
                 }
@@ -767,11 +772,13 @@ import flash.errors.SQLError;
             if (obj == null || entity == null)
                 return;
 
+            saveOneToOneAssociations(obj, entity);
             saveManyToOneAssociations(obj, entity);
             updateItem(obj, entity.superEntity, args);
             var updateCommand:UpdateCommand = entity.updateCommand;
             setIdentityParams(updateCommand, obj, entity);
             setFieldParams(updateCommand, obj, entity);
+            setOneToOneAssociationParams(updateCommand, obj, entity);
             setManyToOneAssociationParams(updateCommand, obj, entity);
             setUpdateTimestampParams(updateCommand, obj);
 
@@ -788,9 +795,9 @@ import flash.errors.SQLError;
             }
             if (args.a == null)
             {
-                for each(var a:OneToManyAssociation in entity.oneToManyInverseAssociations)
+                for each(var aOtm:OneToManyAssociation in entity.oneToManyInverseAssociations)
                 {
-                    if (a.hierarchical)
+                    if (aOtm.hierarchical)
                     {
                         var node:IHierarchicalObject = IHierarchicalObject(obj);
                         if (!args.rootEval)
@@ -810,16 +817,16 @@ import flash.errors.SQLError;
                         setNestedSetParams(updateCommand, node, args, entity);
                         args.lft++;
                     }
-                    else if (a.indexed)
+                    else if (aOtm.indexed)
                     {
                          // specified from client code
-                        if ((a.ownerEntity.cls == args.ownerClass) && args.indexValue)
+                        if ((aOtm.ownerEntity.cls == args.ownerClass) && args.indexValue)
                         {
-                            updateCommand.setParam(a.indexProperty, args.indexValue);
+                            updateCommand.setParam(aOtm.indexProperty, args.indexValue);
                         }
                         else
                         {
-                            updateCommand.setParam(a.indexProperty, 0);
+                            updateCommand.setParam(aOtm.indexProperty, 0);
                         }
                     }
                 }
@@ -921,17 +928,36 @@ import flash.errors.SQLError;
             updateLeftBoundaryCommand.execute();
         }
 
+        private function saveOneToOneAssociations(obj:Object, entity:Entity):void
+        {
+            for each (var aOto:Association in entity.oneToOneAssociations)
+            {
+                var value:Object = obj[aOto.property];
+
+                if (value && !aOto.inverse && isCascadeSave(aOto))
+                {
+                    var args:SaveRecursiveArgs = new SaveRecursiveArgs();
+
+                    if (isDynamicObject(value))
+                    {
+                        args.name = aOto.property;
+                    }
+                    saveItem(value, args);
+                }
+            }
+        }
+
         private function saveManyToOneAssociations(obj:Object, entity:Entity):void
         {
-            for each(var a:Association in entity.manyToOneAssociations)
+            for each(var aMto:Association in entity.manyToOneAssociations)
             {
-                var value:Object = obj[a.property];
-                if (value && !a.inverse && isCascadeSave(a))
+                var value:Object = obj[aMto.property];
+                if (value && !aMto.inverse && isCascadeSave(aMto))
                 {
                     var args:SaveRecursiveArgs = new SaveRecursiveArgs();
                     if (isDynamicObject(value))
                     {
-                        args.name = a.property;
+                        args.name = aMto.property;
                     }
                     saveItem(value, args);
                 }
@@ -945,14 +971,14 @@ import flash.errors.SQLError;
             {
                 idMap = getIdentityMapFromInstance(obj, entity);
             }
-            for each(var a:OneToManyAssociation in entity.oneToManyAssociations)
+            for each(var aOtm:OneToManyAssociation in entity.oneToManyAssociations)
             {
-                var value:IList = obj[a.property];
-                if (value && !a.inverse && (!a.lazy || !(value is LazyList) || LazyList(value).loaded) && isCascadeSave(a))
+                var value:IList = obj[aOtm.property];
+                if (value && !aOtm.inverse && (!aOtm.lazy || !(value is LazyList) || LazyList(value).loaded) && isCascadeSave(aOtm))
                 {
                     if (!entity.hasCompositeKey())
                     {
-                        idMap = getIdentityMap(a.fkProperty, obj[entity.pk.property]);
+                        idMap = getIdentityMap(aOtm.fkProperty, obj[entity.pk.property]);
                     }
                     for (var i:int = 0; i < value.length; i++)
                     {
@@ -961,23 +987,23 @@ import flash.errors.SQLError;
                         var itemCN:String = getClassName(itemClass);
 
                         var itemEntity:Entity = (OBJECT_TYPE == itemCN) ?
-                            getEntityForDynamicObject(item, a.property) :
+                            getEntityForDynamicObject(item, aOtm.property) :
                             getEntity(itemClass);
 
-                        var associatedEntity:Entity = a.getAssociatedEntity(itemEntity);
+                        var associatedEntity:Entity = aOtm.getAssociatedEntity(itemEntity);
                         if (associatedEntity)
                         {
-                            args.a = a;
+                            args.a = aOtm;
                             args.idMap = idMap;
                             args.associatedEntity = associatedEntity;
-                            if (a.indexed && !a.hierarchical)
+                            if (aOtm.indexed && !aOtm.hierarchical)
                                 args.indexValue = i;
 
                             if (associatedEntity.isDynamicObject())
-                                args.name = a.property;
+                                args.name = aOtm.property;
 
                             saveItem(item, args);
-                            if (a.hierarchical)
+                            if (aOtm.hierarchical)
                                 args.lft++;
                         }
                         else
@@ -996,35 +1022,35 @@ import flash.errors.SQLError;
 
         private function saveManyToManyAssociations(obj:Object, entity:Entity):void
         {
-            for each(var a:ManyToManyAssociation in entity.manyToManyAssociations)
+            for each(var aMtm:ManyToManyAssociation in entity.manyToManyAssociations)
             {
-                var value:IList = obj[a.property];
-                if (value && (!a.lazy || LazyList(value).loaded))
+                var value:IList = obj[aMtm.property];
+                if (value && (!aMtm.lazy || LazyList(value).loaded))
                 {
                     var idMap:Object = getIdentityMapFromInstance(obj, entity);
 
-                    var selectExistingCommand:SelectCommand = a.selectManyToManyKeysCommand;
+                    var selectExistingCommand:SelectCommand = aMtm.selectManyToManyKeysCommand;
                     setIdentityParams(selectExistingCommand, obj, entity);
                     selectExistingCommand.execute();
 
                     var existing:Array = [];
                     for each(var row:Object in selectExistingCommand.result)
                     {
-                        existing.push(getIdentityMapFromAssociation(row, a.associatedEntity));
+                        existing.push(getIdentityMapFromMtmAssociation(row, aMtm));
                     }
 
                     var map:Object;
                     for (var i:int = 0; i < value.length; i++)
                     {
                         var item:Object = value.getItemAt(i);
-                        var itemIdMap:Object = getIdentityMapFromInstance(item, a.associatedEntity);
+                        var itemIdMap:Object = getIdentityMapFromInstance(item, aMtm.associatedEntity);
 
                         var isLinked:Boolean = false;
                         var k:int = 0;
                         for each(map in existing)
                         {
                             isLinked = true;
-                            for each(var identity:Identity in a.associatedEntity.identities)
+                            for each(var identity:Identity in aMtm.associatedEntity.identities)
                             {
                                 if (itemIdMap[identity.fkProperty] != map[identity.fkProperty])
                                 {
@@ -1039,14 +1065,14 @@ import flash.errors.SQLError;
 
                         if (isLinked) // then no need to create the associationTable
                         {
-                            if (isCascadeSave(a))
+                            if (isCascadeSave(aMtm))
                             {
-                                if (a.indexed)
+                                if (aMtm.indexed)
                                 {
-                                    var updateCommand:UpdateCommand = a.updateCommand;
+                                    var updateCommand:UpdateCommand = aMtm.updateCommand;
                                     setIdentMapParams(updateCommand, idMap);
                                     setIdentMapParams(updateCommand, itemIdMap);
-                                    updateCommand.setParam(a.indexProperty, i);
+                                    updateCommand.setParam(aMtm.indexProperty, i);
                                     updateCommand.execute();
                                 }
                                 saveItem(item, new SaveRecursiveArgs());
@@ -1055,17 +1081,17 @@ import flash.errors.SQLError;
                         }
                         else
                         {
-                            var insertCommand:InsertCommand = a.insertCommand;
-                            if (isCascadeSave(a))
+                            var insertCommand:InsertCommand = aMtm.insertCommand;
+                            if (isCascadeSave(aMtm))
                             {
                                 // insert link in associationTable after
                                 // inserting the associated entity instance
                                 var args:SaveRecursiveArgs = new SaveRecursiveArgs();
-                                args.a = a;
-                                args.associatedEntity = a.associatedEntity;
+                                args.a = aMtm;
+                                args.associatedEntity = aMtm.associatedEntity;
                                 args.idMap = idMap;
                                 args.mtmInsertCommand = insertCommand;
-                                if (a.indexed)
+                                if (aMtm.indexed)
                                     args.indexValue = i;
 
                                 saveItem(item, args);
@@ -1074,8 +1100,8 @@ import flash.errors.SQLError;
                             {
                                 setIdentMapParams(insertCommand, idMap);
                                 setIdentMapParams(insertCommand, itemIdMap);
-                                if (a.indexed)
-                                    insertCommand.setParam(a.indexProperty, i);
+                                if (aMtm.indexed)
+                                    insertCommand.setParam(aMtm.indexProperty, i);
 
                                 insertCommand.execute();
                             }
@@ -1085,7 +1111,7 @@ import flash.errors.SQLError;
                     for each(map in existing)
                     {
                         // delete link from associationTable
-                        var deleteCommand:DeleteCommand = a.deleteCommand;
+                        var deleteCommand:DeleteCommand = aMtm.deleteCommand;
                         setIdentMapParams(deleteCommand, idMap);
                         setIdentMapParams(deleteCommand, map);
                         deleteCommand.execute();
@@ -1181,6 +1207,7 @@ import flash.errors.SQLError;
             deleteCommand.execute();
 
             removeEntityRecursive(entity.superEntity, obj);
+            removeOneToOneAssociations(entity, obj);
             removeManyToOneAssociations(entity, obj);
         }
 
@@ -1203,45 +1230,45 @@ import flash.errors.SQLError;
 
         private function removeOneToManyAssociations(entity:Entity, obj:Object):void
         {
-            for each(var a:OneToManyAssociation in entity.oneToManyAssociations)
+            for each(var aOtm:OneToManyAssociation in entity.oneToManyAssociations)
             {
-                if (isCascadeDelete(a))
+                if (isCascadeDelete(aOtm))
                 {
-                    if (a.multiTyped)
+                    if (aOtm.multiTyped)
                     {
-                        for each(var type:AssociatedType in a.associatedTypes)
+                        for each(var type:AssociatedType in aOtm.associatedTypes)
                         {
                             removeEntityRecursive(type.associatedEntity, obj);
                         }
                     }
                     else
                     {
-                        var deleteCommand:DeleteCommand = a.deleteCommand;
+                        var deleteCommand:DeleteCommand = aOtm.deleteCommand;
                         if (entity.hasCompositeKey())
                         {
                             setIdentityParams(deleteCommand, obj, entity);
                         }
                         else
                         {
-                            deleteCommand.setParam(a.fkProperty, obj[entity.pk.property]);
+                            deleteCommand.setParam(aOtm.fkProperty, obj[entity.pk.property]);
                         }
                         deleteCommand.execute();
                     }
                 }
                 else // set the FK to 0
                 {
-                    var updateCommand:UpdateCommand = a.updateFKAfterDeleteCommand;
+                    var updateCommand:UpdateCommand = aOtm.updateFKAfterDeleteCommand;
                     if (entity.hasCompositeKey())
                     {
                         setIdentityParams(updateCommand, obj, entity);
                     }
                     else
                     {
-                        updateCommand.setParam(a.fkProperty, obj[entity.pk.property]);
+                        updateCommand.setParam(aOtm.fkProperty, obj[entity.pk.property]);
                     }
                     updateCommand.execute();
 
-                    if (a.hierarchical) // make any children root nodes
+                    if (aOtm.hierarchical) // make any children root nodes
                     {
                         // Moves children to beyond right boundary to create
                         // new root nodes by default
@@ -1252,12 +1279,25 @@ import flash.errors.SQLError;
             }
         }
 
+        private function removeOneToOneAssociations(entity:Entity, obj:Object):void
+        {
+            for each (var aOto:Association in entity.oneToOneAssociations)
+            {
+                var value:Object = obj[aOto.property];
+
+                if (value && isCascadeDelete(aOto))
+                {
+                    removeObject(value);
+                }
+            }
+        }
+
         private function removeManyToOneAssociations(entity:Entity, obj:Object):void
         {
-            for each(var a:Association in entity.manyToOneAssociations)
+            for each(var aMto:Association in entity.manyToOneAssociations)
             {
-                var value:Object = obj[a.property];
-                if (value && isCascadeDelete(a))
+                var value:Object = obj[aMto.property];
+                if (value && isCascadeDelete(aMto))
                 {
                     removeObject(value);
                 }
@@ -1295,9 +1335,18 @@ import flash.errors.SQLError;
             }
             for each(var f:Field in entity.fields)
             {
-                instance[f.property] = row[f.column];
+                if (f.type == SQLType.DATE)
+                {
+                    // Views return a Number or String instead of a Date (which cannot be cast to Date type)
+                    instance[f.property] = ConvertToDate(getDbColumn(row, f.column));
+                }
+                else
+                {
+                    instance[f.property] = getDbColumn(row, f.column);
+                }
             }
             setSuperProperties(instance, row, entity, target, parent);
+            setOneToOneAssociations(instance, row, entity, target, parent);
             setManyToOneAssociations(instance, row, entity, target, parent);
 
             // Must be after keys on instance has been loaded, which includes:
@@ -1331,7 +1380,7 @@ import flash.errors.SQLError;
 
             var idMap:Object = entity.hasCompositeKey() ?
                 getIdentityMapFromRow(row, superEntity) :
-                getIdentityMap(superEntity.fkProperty, row[entity.pk.column]);
+                getIdentityMap(superEntity.fkProperty, getDbColumn(row, entity.pk.column));
 
             var superInstance:Object = getCachedValue(superEntity, idMap);
             if (superInstance == null)
@@ -1349,6 +1398,11 @@ import flash.errors.SQLError;
                     instance[f.property] = superInstance[f.property];
 //                }
             }
+
+            for each (var oto:Association in superEntity.oneToOneAssociations)
+            {
+                instance[oto.property] = superInstance[oto.property];
+            }
             for each(var mto:Association in superEntity.manyToOneAssociations)
             {
                 instance[mto.property] = superInstance[mto.property];
@@ -1363,28 +1417,81 @@ import flash.errors.SQLError;
             }
         }
 
-        private function setManyToOneAssociations(instance:Object, row:Object, entity:Entity, target:Entity, parent:Entity):void
+        private function setOneToOneAssociations(instance:Object, row:Object, entity:Entity, target:Entity, parent:Entity):void
         {
-            for each(var a:Association in entity.manyToOneAssociations)
+            for each (var aOto:Association in entity.oneToOneAssociations)
             {
-                var associatedEntity:Entity = a.associatedEntity;
+                var associatedEntity:Entity = aOto.associatedEntity;
                 var value:Object = null;
 
                 // Skip lookup of super instances in the cache, otherwise the
                 // loading of subtype associations will get bypassed, unless
                 // the association is hierarchical, in which case the whole
                 // hierarchy has already been loaded.
-                if (a.hierarchical && parent)
+                if (aOto.hierarchical && parent)
                 {
-                    value = getCachedValue(parent, getIdentityMap(parent.fkProperty, row[a.fkColumn]));
+                    value = getCachedValue(parent, getIdentityMap(parent.fkProperty, getDbColumn(row, aOto.fkColumn)));
                 }
                 else if (entity.equals(target))
                 {
-                    value = getCachedAssociationValue(a, row);
+                    value = getCachedAssociationValue(aOto, row);
+                }
+
+                if (value)
+                {
+                    instance[aOto.property] = value;
+                }
+                else
+                {
+                    var idMap:Object = null;
+
+                    if (associatedEntity.hasCompositeKey())
+                    {
+                        idMap = getIdentityMapFromAssociation(row, associatedEntity);
+                    }
+                    else
+                    {
+                        var id:* = getDbColumn(row, aOto.fkColumn);
+
+                        if (idAssigned(id))
+                        {
+                            idMap = getIdentityMap(associatedEntity.fkProperty, id);
+                        }
+                    }
+
+                    if (idMap)
+                    {
+                        // May return no result if a.ownerEntity (FK) has been
+                        // deleted and the association was not set to
+                        // 'cascade-delete'
+                        instance[aOto.property] = loadEntityWithInheritance(associatedEntity, idMap);
+                    }
+                }
+            }
+        }
+
+        private function setManyToOneAssociations(instance:Object, row:Object, entity:Entity, target:Entity, parent:Entity):void
+        {
+            for each(var aMto:Association in entity.manyToOneAssociations)
+            {
+                var associatedEntity:Entity = aMto.associatedEntity;
+                var value:Object = null;
+
+                // Skip lookup of super instances in the cache, otherwise the
+                // loading of subtype associations will get bypassed, unless
+                // the association is hierarchical, in which case the whole
+                // hierarchy has already been loaded.
+                if (aMto.hierarchical && parent)
+                {
+                    value = getCachedValue(parent, getIdentityMap(parent.fkProperty, getDbColumn(row, aMto.fkColumn)));
+                }
+                else if (entity.equals(target))
+                {
+                    value = getCachedAssociationValue(aMto, row);
                 }
                 if (value)
                 {
-                    instance[a.property] = value;
+                    instance[aMto.property] = value;
                 }
                 else
                 {
@@ -1395,7 +1502,7 @@ import flash.errors.SQLError;
                     }
                     else
                     {
-                        var id:* = row[a.fkColumn];
+                        var id:* = getDbColumn(row, aMto.fkColumn);
                         if (idAssigned(id))
                         {
                             idMap = getIdentityMap(associatedEntity.fkProperty, id);
@@ -1403,10 +1510,10 @@ import flash.errors.SQLError;
                     }
                     if (idMap)
                     {
-                        // May return no result if a.ownerEntity (FK) has been
+                        // May return no result if aMto.ownerEntity (FK) has been
                         // deleted and the association was not set to
                         // 'cascade-delete'
-                        instance[a.property] = loadEntityWithInheritance(associatedEntity, idMap);
+                        instance[aMto.property] = loadEntityWithInheritance(associatedEntity, idMap);
                     }
                 }
             }
@@ -1414,27 +1521,27 @@ import flash.errors.SQLError;
 
         private function setOneToManyAssociations(instance:Object, row:Object, entity:Entity):void
         {
-            for each(var a:OneToManyAssociation in entity.oneToManyAssociations)
+            for each(var aOtm:OneToManyAssociation in entity.oneToManyAssociations)
             {
                 var idMap:Object = entity.hasCompositeKey() ?
                     getIdentityMapFromRow(row, entity) :
-                    getIdentityMap(a.fkProperty, row[entity.pk.column]);
-                if (a.lazy)
+                    getIdentityMap(aOtm.fkProperty, getDbColumn(row, entity.pk.column));
+                if (aOtm.lazy)
                 {
-                    var lazyList:LazyList = new LazyList(this, a, idMap);
+                    var lazyList:LazyList = new LazyList(this, aOtm, idMap);
                     var value:ArrayCollection = new ArrayCollection();
                     value.list = lazyList;
-                    instance[a.property] = value;
+                    instance[aOtm.property] = value;
                     lazyList.initialise();
                 }
                 else
                 {
-                    if (a.hierarchical)
+                    if (aOtm.hierarchical)
                     {
-                        var parentId:int = row[entity.pk.column];
+                        var parentId:int = getDbColumn(row, entity.pk.column);
                         if (!nestedSetsLoaded) // one-time event for root
                         {
-                            for each(var type:AssociatedType in a.associatedTypes)
+                            for each(var type:AssociatedType in aOtm.associatedTypes)
                             {
                                 var parentEntity:Entity = entity.isSuperEntity() ?
                                     getEntity(getDefinitionByName(row.entity_type) as Class) :
@@ -1443,39 +1550,40 @@ import flash.errors.SQLError;
                             }
                         }
                         // Recursive (hierarchical) entities can't have composite keys.
-                        instance[a.property] = getCachedChildren(parentId);
+                        instance[aOtm.property] = getCachedChildren(parentId);
                     }
                     else
-                    instance[a.property] = loadOneToManyAssociationRecursive(a, idMap);
+                    instance[aOtm.property] = loadOneToManyAssociationRecursive(aOtm, idMap);
                 }
             }
         }
 
         private function setManyToManyAssociations(instance:Object, row:Object, entity:Entity):void
         {
-            for each(var a:ManyToManyAssociation in entity.manyToManyAssociations)
+            for each(var aMtm:ManyToManyAssociation in entity.manyToManyAssociations)
             {
-                if (a.lazy)
+                if (aMtm.lazy)
                 {
-                    var lazyList:LazyList = new LazyList(this, a, getIdentityMapFromRow(row, entity));
+                    var lazyList:LazyList = new LazyList(this, aMtm, getIdentityMapFromRow(row, entity));
                     var value:ArrayCollection = new ArrayCollection();
                     value.list = lazyList;
-                    instance[a.property] = value;
+                    instance[aMtm.property] = value;
                     lazyList.initialise();
                 }
                 else
                 {
-                    instance[a.property] = selectManyToManyAssociation(a, row);
+                    instance[aMtm.property] = selectManyToManyAssociation(aMtm, row);
                 }
             }
         }
 
-        private function selectManyToManyAssociation(a:ManyToManyAssociation, row:Object):ArrayCollection
+        private function selectManyToManyAssociation(aMtm:ManyToManyAssociation, row:Object):ArrayCollection
         {
-            var selectCommand:SelectCommand = a.selectCommand;
-            setIdentMapParams(selectCommand, getIdentityMapFromRow(row, a.ownerEntity));
+            var selectCommand:SelectCommand = aMtm.selectCommand;
+            var idMap:Object = getIdentityMapFromRow(row, aMtm.ownerEntity);
+            setIdentMapParams(selectCommand, idMap);
             selectCommand.execute();
-            return typeArray(selectCommand.result, a.associatedEntity);
+            return typeArray(selectCommand.result, aMtm.associatedEntity);
         }
 
         public function createCriteria(cls:Class):Criteria
@@ -1606,5 +1714,6 @@ import flash.errors.SQLError;
 
             return sql.toUpperCase().indexOf("SELECT ") == 0 ? result.data || [] : result.rowsAffected;
         }
+
     }
 }

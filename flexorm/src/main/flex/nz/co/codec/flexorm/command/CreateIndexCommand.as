@@ -36,14 +36,15 @@ package nz.co.codec.flexorm.command
             {
                 sql += StringUtil.substitute("{0} asc,", column);
             }
-            sql = sql.substr(0, sql.length - 1) + ")"; // remove last comma
+            sql = sql.substr(0, sql.length - 1) + ");"; // remove last comma
+            sql += SQL_STATEMENT_SEPARATOR;
             _statement.text = sql;
             _changed = false;
         }
 
         public function toString():String
         {
-            return "INDEX: " + _statement.text;
+            return "INDEX: " + getStatementText();
         }
 
     }

@@ -8,7 +8,8 @@ package nz.co.codec.flexorm.metamodel
 
         public var selectCommand:SelectCommand;
 
-        public function AssociatedType() {
+        public function AssociatedType()
+        {
         }
 
     }

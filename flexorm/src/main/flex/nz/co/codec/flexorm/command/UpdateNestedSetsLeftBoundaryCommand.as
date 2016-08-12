@@ -9,12 +9,15 @@ package nz.co.codec.flexorm.command
         public function UpdateNestedSetsLeftBoundaryCommand(sqlConnection:SQLConnection, schema:String, table:String, debugLevel:int=0)
         {
             super(sqlConnection, schema, table, debugLevel);
-            _statement.text = StringUtil.substitute("update {0}.{1} set lft=lft+:inc where lft>=:lft", schema, table);
+            
+            var sql:String = StringUtil.substitute("update {0}.{1} set lft=lft+:inc where lft>=:lft;", schema, table);
+            sql += SQL_STATEMENT_SEPARATOR;
+            _statement.text = sql;
         }
 
         public function toString():String
         {
-            return "UPDATE NESTED SETS LEFT BOUNDARY " + _table + ": " + _statement.text;
+            return "UPDATE NESTED SETS LEFT BOUNDARY " + _table + ": " + getStatementText();
         }
 
     }

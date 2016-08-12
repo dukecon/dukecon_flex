@@ -35,7 +35,8 @@ package nz.co.codec.flexorm.command
                 sql += StringUtil.substitute("{0},", column);
                 values += StringUtil.substitute("{0},", _columns[column]);
             }
-            sql = sql.substring(0, sql.length-1) + values.substring(0, values.length-1) + ")";
+            sql = sql.substring(0, sql.length-1) + values.substring(0, values.length-1) + ");";
+            sql += SQL_STATEMENT_SEPARATOR;
             _statement.text = sql;
             _changed = false;
         }
@@ -69,7 +70,7 @@ package nz.co.codec.flexorm.command
 
         public function toString():String
         {
-            return "INSERT " + _table + ": " + _statement.text;
+            return "INSERT " + _table + ": " + getStatementText();
         }
 
     }

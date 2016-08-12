@@ -34,6 +34,12 @@ package nz.co.codec.flexorm.metamodel
 
         public var markForDeletionCommand:UpdateCommand;
 
+		public var isView:Boolean;
+
+        public var isTableCreationWanted:Boolean;
+
+        public var isIndexCreationWanted:Boolean;	// NOTE: this belongs to the entity, not the relation
+
         public var createSynCommand:CreateSynCommand;
 
         public var createAsynCommand:CreateAsynCommand;
@@ -51,6 +57,8 @@ package nz.co.codec.flexorm.metamodel
         public var identities:Array;
 
         public var superEntity:Entity;
+
+        public var isSuperEntityAMappedSuperclass:Boolean;
 
         public var hierarchical:Boolean;
 
@@ -88,6 +96,8 @@ package nz.co.codec.flexorm.metamodel
 
         private var _fields:Array;
 
+        private var _oneToOneAssociations:Array;
+
         private var _manyToOneAssociations:Array;
 
         private var _oneToManyAssociations:Array;
@@ -107,9 +117,14 @@ package nz.co.codec.flexorm.metamodel
         public function Entity()
         {
             _isSuperEntity = false;
+            isSuperEntityAMappedSuperclass = false;
+            isTableCreationWanted = true;
+            isIndexCreationWanted = true;
+ 			isView = false;
             _keys = [];
             _subEntities = [];
             _fields = [];
+            _oneToOneAssociations = [];
             _manyToOneAssociations = [];
             _oneToManyAssociations = [];
             _oneToManyInverseAssociations = [];
@@ -358,22 +373,66 @@ package nz.co.codec.flexorm.metamodel
 				{
 					return { table: table, column: "created_at" };
 				}
+				/* dead code
 				else if (property == "updatedAt" )
 				{
 					return { table: table, column: "updated_at" };	
 				}
-						
+				*/	
             }
             if (superEntity)
                 return superEntity.getColumn(property);
             return null;
         }
 
+        public function getAssociation(property:String):Association
+        {
+        	for each (var aMto:Association in manyToOneAssociations)
+            {
+            	if (aMto.property == property) {
+            		return aMto;
+            	}
+            }
+        	for each (var aOto:Association in oneToOneAssociations)
+            {
+            	if (aOto.property == property) {
+            		return aOto;
+            	}
+            }
+        	for each (var aMtm:Association in manyToManyAssociations)
+            {
+            	if (aMtm.property == property) {
+            		return aMtm;
+            	}
+            }
+        	return null;
+        }
+
+        public function set oneToOneAssociations(value:Array):void
+        {
+            for each (var aOto:Association in value)
+            {
+                aOto.ownerEntity = this;
+            }
+            _oneToOneAssociations = value;
+        }
+
+        public function addOneToOneAssociation(value:Association):void
+        {
+            value.ownerEntity = this;
+            _oneToOneAssociations.push(value);
+        }
+
+        public function get oneToOneAssociations():Array
+        {
+            return _oneToOneAssociations;
+        }
+		
         public function set manyToOneAssociations(value:Array):void
         {
-            for each (var a:Association in value)
+            for each (var aMto:Association in value)
             {
-                a.ownerEntity = this;
+                aMto.ownerEntity = this;
             }
             _manyToOneAssociations = value;
         }
@@ -391,9 +450,9 @@ package nz.co.codec.flexorm.metamodel
 
         public function set oneToManyAssociations(value:Array):void
         {
-            for each (var a:OneToManyAssociation in value)
+            for each (var aOtm:OneToManyAssociation in value)
             {
-                a.ownerEntity = this;
+                aOtm.ownerEntity = this;
             }
             _oneToManyAssociations = value;
         }
@@ -415,9 +474,9 @@ package nz.co.codec.flexorm.metamodel
          */
         public function set oneToManyInverseAssociations(value:Array):void
         {
-            for each (var a:OneToManyAssociation in value)
+            for each (var aOtm:OneToManyAssociation in value)
             {
-                a.ownerEntity = this;
+                aOtm.ownerEntity = this;
             }
             _oneToManyInverseAssociations = value;
         }
@@ -435,9 +494,9 @@ package nz.co.codec.flexorm.metamodel
 
         public function set manyToManyAssociations(value:Array):void
         {
-            for each (var a:ManyToManyAssociation in value)
+            for each (var aMtm:ManyToManyAssociation in value)
             {
-                a.ownerEntity = this;
+                aMtm.ownerEntity = this;
             }
             _manyToManyAssociations = value;
         }
@@ -455,9 +514,9 @@ package nz.co.codec.flexorm.metamodel
 
         public function set manyToManyInverseAssociations(value:Array):void
         {
-            for each (var a:ManyToManyAssociation in value)
+            for each (var aMtm:ManyToManyAssociation in value)
             {
-                a.ownerEntity = this;
+                aMtm.ownerEntity = this;
             }
             _manyToManyInverseAssociations = value;
         }

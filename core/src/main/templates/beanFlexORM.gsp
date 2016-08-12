@@ -76,6 +76,8 @@ public class ${jClass.as3Type.name}<%
     private var _${jProperty.name}:ArrayCollection;<%
         } else if(jProperty.as3Type.name == "IMap") { %>
     private var _${jProperty.name}:Object;<%
+        } else if(jProperty.as3Type.name == "LocalDateTime") { %>
+    private var _${jProperty.name}:Date;<%
         } else { %>
     private var _${jProperty.name}:${jProperty.as3Type.name};<%
         }
@@ -104,30 +106,31 @@ public class ${jClass.as3Type.name}<%
             }
             // If the property was annotated with "Relation", add some metadata to the getter
             if(jProperty.isAnnotationPresent(org.dukecon.model.annotations.Relation)) {
-                if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.ONE_TO_ONE) { %>
-    [ManyToOne]<%
-                } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.ONE_TO_MANY && jClass.as3Type.name == "Conference") {
+                if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.ONE_TO_ONE) {
+                    if(jProperty.name == 'metaData') { %>
+    [OneToOne(cascade='all', orphanRemoval='true')]<%
+                    } else if(jProperty.name == 'defaultLanguage') { %>
+    [OneToOne(name='default_language_id', constrain='false', cascade='none')]<%
+                    }
+                } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.ONE_TO_MANY && (jClass.as3Type.name == "Conference" || jClass.as3Type.name == "MetaData")) {
                     if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType() != null) { %>
-    [OneToMany(type='${jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType().getCanonicalName()}', fkColumn='conference_id', constrain='false')]<%
+    [OneToMany(type='${jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType().getCanonicalName()}', cascade='save-update', indexed='true', orphanRemoval='true')]<%
                     } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType() != null) { %>
     [OneToMany(type='${jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType().getCanonicalName()}')]<%
                     } else { %>
     [OneToMany]<%
                     }
-                } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.MANY_TO_ONE && jProperty.name == 'conference') { %>
-    [ManyToOne(inverse='true')]<%
+                } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.MANY_TO_ONE && (jProperty.name == 'conference' || jProperty.name == 'metaData')) { %>
+    [ManyToOne(inverse='true', cascade='none')]<%
                 } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.MANY_TO_ONE) { %>
-    [ManyToOne]<%
+    [ManyToOne(cascade='none')]<%
                 } else if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).relationType() == org.dukecon.model.annotations.Relation.RelationType.MANY_TO_MANY) {
                     if(jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType() != null) { %>
-    [ManyToMany(type='${jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType().getCanonicalName()}')]<%
+    [ManyToMany(type='${jProperty.getAnnotation(org.dukecon.model.annotations.Relation).remoteType().getCanonicalName()}', cascade='none')]<%
                     } else { %>
     [ManyToMany]<%
                     }
                 }
-            }
-            if(jProperty.as3Type.name == "LocalDateTime" || jProperty.as3Type.name == "MetaData" || jProperty.name == "names") { %>
-    [Transient]<%
             }
             if(jProperty.as3Type.name == "ListCollectionView") { %>
     public function get ${jProperty.name}():ArrayCollection {
@@ -135,6 +138,10 @@ public class ${jClass.as3Type.name}<%
     }<%
             } else if(jProperty.as3Type.name == "IMap") { %>
     public function get ${jProperty.name}():Object {
+        return _${jProperty.name};
+    }<%
+            } else if(jProperty.as3Type.name == "LocalDateTime") { %>
+    public function get ${jProperty.name}():Date {
         return _${jProperty.name};
     }<%
             } else { %>
@@ -150,6 +157,10 @@ public class ${jClass.as3Type.name}<%
     }<%
             } else if(jProperty.as3Type.name == "IMap") { %>
     public function set ${jProperty.name}(value:Object):void {
+        _${jProperty.name} = value;
+    }<%
+            } else if(jProperty.as3Type.name == "LocalDateTime") { %>
+    public function set ${jProperty.name}(value:Date):void {
         _${jProperty.name} = value;
     }<%
             } else { %>

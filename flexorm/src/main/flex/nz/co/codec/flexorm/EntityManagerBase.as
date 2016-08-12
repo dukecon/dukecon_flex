@@ -5,9 +5,10 @@ package nz.co.codec.flexorm
     import flash.utils.Dictionary;
     import flash.utils.getDefinitionByName;
     import flash.utils.getQualifiedClassName;
-    
+
     import mx.collections.ArrayCollection;
-    
+    import mx.formatters.DateFormatter;
+
     import nz.co.codec.flexorm.command.InsertCommand;
     import nz.co.codec.flexorm.command.SQLParameterisedCommand;
     import nz.co.codec.flexorm.command.UpdateCommand;
@@ -15,8 +16,10 @@ package nz.co.codec.flexorm
     import nz.co.codec.flexorm.metamodel.Entity;
     import nz.co.codec.flexorm.metamodel.Field;
     import nz.co.codec.flexorm.metamodel.Identity;
+    import nz.co.codec.flexorm.metamodel.ManyToManyAssociation;
     import nz.co.codec.flexorm.metamodel.PersistentEntity;
     import nz.co.codec.flexorm.util.Mixin;
+    import nz.co.codec.flexorm.util.StringUtils;
 
     public class EntityManagerBase
     {
@@ -44,9 +47,9 @@ package nz.co.codec.flexorm
 
         public function EntityManagerBase()
         {
-        	init();   
+        	init();
         }
-		
+
 		private function init():void {
 			_schema = DEFAULT_SCHEMA;
 			_prefs = {};
@@ -56,7 +59,7 @@ package nz.co.codec.flexorm
 			_prefs.markForDeletion = true;
 			_debugLevel = 0;
 			_entityMap = {};
-			clearCache();	
+			clearCache();
 		}
 
         public function get schema():String
@@ -70,7 +73,7 @@ package nz.co.codec.flexorm
 
 			if(_sqlConnection != null)
 				_sqlConnection.addEventListener(SQLEvent.CLOSE, onSqlConnectionClose);
-			
+
 			_introspector = new EntityIntrospector(_schema, value, _entityMap, _debugLevel, _prefs);
         }
 
@@ -180,9 +183,29 @@ package nz.co.codec.flexorm
             var map:Object = {};
             for each(var identity:Identity in entity.identities)
             {
-                var id:* = row[identity.column];
-                if (id == 0 || id == null)
-                    return null;
+                var id:* = getDbColumn(row, identity.column);
+/*
+				if (!idAssigned(id))
+					return null;
+*/
+                map[identity.fkProperty] = id;
+            }
+            return map;
+        }
+
+        protected function getIdentityMapFromMtmAssociation(row:Object, aMtm:ManyToManyAssociation):Object
+        {
+            var map:Object = {};
+            var entity:Entity = aMtm.associatedEntity;
+
+            for each (var identity:Identity in entity.identities)
+            {
+                var joinColumnName:String = aMtm.inverseJoinColumns.getColumnNameFromFkProperty(identity.fkProperty);
+                var id:* = getDbColumn(row, joinColumnName);
+                /*
+                   if (!idAssigned(id))
+                   return null;
+                 */
                 map[identity.fkProperty] = id;
             }
             return map;
@@ -193,9 +216,11 @@ package nz.co.codec.flexorm
             var map:Object = {};
             for each(var identity:Identity in entity.identities)
             {
-                var id:* = row[identity.fkColumn];
-                if (id == 0 || id == null)
-                    return null;
+                var id:* = getDbColumn(row, identity.fkColumn);
+/*
+				if (!idAssigned(id))
+					return null;
+*/
                 map[identity.fkProperty] = id;
             }
             return map;
@@ -241,12 +266,13 @@ package nz.co.codec.flexorm
             }
         }
 
-        protected function setManyToOneAssociationParams(command:SQLParameterisedCommand, obj:Object, entity:Entity):void
+        protected function setOneToOneAssociationParams(command:SQLParameterisedCommand, obj:Object, entity:Entity):void
         {
-            for each(var a:Association in entity.manyToOneAssociations)
+            for each (var aOto:Association in entity.oneToOneAssociations)
             {
-                var associatedEntity:Entity = a.associatedEntity;
-                var value:Object = obj[a.property];
+                var associatedEntity:Entity = aOto.associatedEntity;
+                var value:Object = obj[aOto.property];
+
                 if (associatedEntity.hasCompositeKey())
                 {
                     setIdentityParams(command, value, associatedEntity);
@@ -255,11 +281,35 @@ package nz.co.codec.flexorm
                 {
                     if (value == null)
                     {
-                        command.setParam(a.fkProperty, 0);
+                        command.setParam(aOto.fkProperty, 0);
                     }
                     else
                     {
-                        command.setParam(a.fkProperty, value[associatedEntity.pk.property]);
+                        command.setParam(aOto.fkProperty, value[associatedEntity.pk.property]);
+                    }
+                }
+            }
+        }
+
+        protected function setManyToOneAssociationParams(command:SQLParameterisedCommand, obj:Object, entity:Entity):void
+        {
+            for each(var aMto:Association in entity.manyToOneAssociations)
+            {
+                var associatedEntity:Entity = aMto.associatedEntity;
+                var value:Object = obj[aMto.property];
+                if (associatedEntity.hasCompositeKey())
+                {
+                    setIdentityParams(command, value, associatedEntity);
+                }
+                else
+                {
+                    if (value == null)
+                    {
+                        command.setParam(aMto.fkProperty, 0);
+                    }
+                    else
+                    {
+                        command.setParam(aMto.fkProperty, value[associatedEntity.pk.property]);
                     }
                 }
             }
@@ -271,10 +321,10 @@ package nz.co.codec.flexorm
         	{
 				var createdAt:Date = new Date();
 				var updatedAt:Date = new Date();
-				
+
 				if (obj.hasOwnProperty("createdAt")) obj["createdAt"] = createdAt;
 	            insertCommand.setParam("createdAt", createdAt);
-				
+
 				if (obj.hasOwnProperty("updatedAt")) obj["updatedAt"] = updatedAt;
 	            insertCommand.setParam("updatedAt", updatedAt);
 	        }
@@ -285,7 +335,7 @@ package nz.co.codec.flexorm
         	if (_prefs.syncSupport || _prefs.auditable)
         	{
 				var updatedAt:Date = new Date();
-				
+
 				if (obj.hasOwnProperty("updatedAt")) obj["updatedAt"] = updatedAt;
 	            updateCommand.setParam("updatedAt", updatedAt);
 	        }
@@ -321,7 +371,7 @@ package nz.co.codec.flexorm
             }
             else
             {
-                return getCachedValue(associatedEntity, getIdentityMap(associatedEntity.fkProperty, row[a.fkColumn]));
+                return getCachedValue(associatedEntity, getIdentityMap(associatedEntity.fkProperty, getDbColumn(row, a.fkColumn)));
             }
         }
 
@@ -385,11 +435,58 @@ package nz.co.codec.flexorm
         {
             return ((id is int && id > 0) || (id is String && id != null));
         }
-		
+
 		protected function onSqlConnectionClose( e : SQLEvent ) :void
 		{
 			this.init();
-		}   
+		}
 
-    }
+        protected function getDbColumn(row:Object, columnName:String):*
+        {
+            var res:* = null;
+
+            if (columnName != null) // shortcut (no need to search through)
+            {
+				for (var attr:String in row)
+				{
+					if (StringUtils.stringsEqualCaseIgnored(attr, columnName))
+					{
+						res = row[attr];
+						break;
+					}
+				}
+			}
+			return res;
+        }
+
+        protected function ConvertToDate(entry:*):Date
+        {
+            if (entry == null)
+            {
+                return null;
+            }
+
+            // Views return a Number or String instead of a Date (which cannot be cast to Date type)
+            if (entry is Date)
+            {
+                return entry;
+            }
+
+            if (entry is Number)
+            {
+                // JD 2440587.500000 is CE 1970 January 01 00:00:00.0 UT  Thursday
+                const julianOffset:Number = 2440587.5;
+                return new Date((entry - julianOffset) * 24 * 60 * 60 * 1000);
+            }
+
+            if (entry is String)
+            {
+                // format is probably "YYYY-MM-DD HH:MM:SS"
+                return DateFormatter.parseDateString(entry);
+            }
+
+            return null; // unknown type
+        }
+
+	}
 }

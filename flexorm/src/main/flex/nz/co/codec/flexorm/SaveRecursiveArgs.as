@@ -36,7 +36,8 @@ package nz.co.codec.flexorm
 
         internal var ownerClass:Class;
 
-        public function SaveRecursiveArgs() {
+        public function SaveRecursiveArgs()
+        {
         }
 
     }

@@ -15,6 +15,7 @@
     
     <build>
         <sourceDirectory>src/main/flex</sourceDirectory>
+        <testSourceDirectory>src/test/flex</testSourceDirectory>
         <plugins>
             <plugin>
                 <groupId>net.flexmojos.oss</groupId>
@@ -23,7 +24,18 @@
                 <extensions>true</extensions>
                 <configuration>
                     <debug>true</debug>
+                    <compilerWarnings>
+                        <warn-no-constructor>false</warn-no-constructor>
+                    </compilerWarnings>
                 </configuration>
+                <executions>
+                    <execution>
+                        <id>default-test-run</id>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </execution>
+                </executions>
                 <dependencies>
                     <dependency>
                         <groupId>com.adobe.air</groupId>
@@ -57,6 +69,19 @@
             <version>4.3.0-SNAPSHOT</version>
             <type>swc</type>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.flexmojos.oss</groupId>
+            <artifactId>flexmojos-unittest-flexunit4</artifactId>
+            <version>7.1.0</version>
+            <type>swc</type>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.adobe.air</groupId>
+                    <artifactId>framework</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 

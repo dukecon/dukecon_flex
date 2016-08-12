@@ -37,7 +37,7 @@
             sqlConnection.open(dbFile);
 
             var em:EntityManager = EntityManager.instance;
-            em.debugLevel = 1;
+            //em.debugLevel = 1;
             em.sqlConnection = sqlConnection;
         }
 

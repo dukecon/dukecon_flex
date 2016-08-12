@@ -10,7 +10,10 @@ package nz.co.codec.flexorm.command
         public function SelectMaxRgtCommand(sqlConnection:SQLConnection, schema:String, table:String, debugLevel:int=0)
         {
             super(sqlConnection, schema, table, debugLevel);
-            _statement.text = "select max(rgt) as max_rgt from " + schema + "." + table;
+
+            var sql:String = "select max(rgt) as max_rgt from " + schema + "." + table + ";";
+            sql += SQL_STATEMENT_SEPARATOR;
+            _statement.text = sql;
         }
 
         override public function execute():void
@@ -38,7 +41,7 @@ package nz.co.codec.flexorm.command
 
         public function toString():String
         {
-            return "SELECT MAX RGT: " + _statement.text;
+            return "SELECT MAX RGT: " + getStatementText();
         }
 
     }

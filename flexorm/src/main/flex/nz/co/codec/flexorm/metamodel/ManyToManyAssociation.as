@@ -37,20 +37,13 @@ package nz.co.codec.flexorm.metamodel
 
         public var createAsynCommand:CreateAsynCommand;
 
-        private var _associationTable:String;
+        public var joinColumns:JoinColumns;
 
-        /**
-         * Association table name
-         */
-        public function set associationTable(value:String):void
-        {
-            _associationTable = value;
-        }
+        public var inverseJoinColumns:JoinColumns;
 
-        public function get associationTable():String
-        {
-            return _associationTable;
-        }
+        public var associationTable:String;
+
+		public var associationTableIsView: Boolean;
 
         public function ManyToManyAssociation(hash:Object=null)
         {

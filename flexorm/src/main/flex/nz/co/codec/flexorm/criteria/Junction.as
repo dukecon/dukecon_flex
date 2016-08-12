@@ -47,6 +47,28 @@ package nz.co.codec.flexorm.criteria
             return this;
         }
 
+        public function addEqualCondition(property:String, str:String):Junction
+        {
+            var column:Object = _entity.getColumn(property);
+
+            if (column)
+            {
+                _filters.push(new EqualCondition(column.table, column.column, str));
+            }
+            return this;
+        }
+
+        public function addNotEqualCondition(property:String, str:String):Junction
+        {
+            var column:Object = _entity.getColumn(property);
+
+            if (column)
+            {
+                _filters.push(new NotEqualCondition(column.table, column.column, str));
+            }
+            return this;
+        }
+
         public function addLikeCondition(property:String, str:String):Junction
         {
             var column:Object = _entity.getColumn(property);

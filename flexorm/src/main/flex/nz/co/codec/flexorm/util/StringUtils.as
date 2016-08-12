@@ -4,6 +4,13 @@ package nz.co.codec.flexorm.util
 
     public class StringUtils
     {
+    	public static function stringsEqualCaseIgnored(s1: String, s2: String): Boolean {
+    		if (s1 == null || s2 == null) {
+    			return false;
+    		}
+    		return (s1.toLowerCase() == s2.toLowerCase());
+    	}
+
         public static function underscore(name:String):String
         {
             var retval:String = "";
@@ -115,7 +122,36 @@ package nz.co.codec.flexorm.util
             if (str == null)
                 return false;
 
-            return (str.lastIndexOf(match) == (str.length - match.length));
+            return (match == str.substring(str.length - match.length));
+            // return (str.lastIndexOf(match) == (str.length - match.length));
+            // does return false positives if str.length - match.length = -1
+        }
+
+        /**
+         * Formats a date that can be recognized by SQLite using function strftime('%J','" + toSqlDate(myDate) + "')
+         */
+        public static function toSqlDate(dateVal:Date):String
+        {
+            return dateVal == null ? null : dateVal.fullYear + "-" + formatNumberWithLeadingZeros(dateVal.month + 1, 2) // month is zero-based
+                                        + "-" + formatNumberWithLeadingZeros(dateVal.date, 2) + " " + formatNumberWithLeadingZeros(dateVal.hours, 2) +
+                                        ":" + formatNumberWithLeadingZeros(dateVal.minutes, 2) + ":" + formatNumberWithLeadingZeros(dateVal.seconds
+                                                                                                                                    , 2);
+        }
+
+        /**
+         * returns a string containing the number formatted with leading zeros
+         */
+        public static function formatNumberWithLeadingZeros(numberToConvert:Number, targetLength:Number):String
+        {
+            var retVal:String = "";
+            var numberAsString:String = numberToConvert.toString();
+            var stringLength:Number = numberAsString.length;
+
+            for (var i:int = 0; i < (targetLength - stringLength); i++)
+            {
+                retVal += "0";
+            }
+            return retVal + numberAsString;
         }
 
     }
