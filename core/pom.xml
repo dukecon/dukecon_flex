@@ -49,7 +49,6 @@
                             </excludeJavaClasses>
                             <templates>
                                 <base-bean-template>${basedir}/src/main/templates/beanFlexORM.gsp</base-bean-template>
-                                <bean-template>${basedir}/src/main/templates/beanHelperFlexORM.gsp</bean-template>
                             </templates>
                             <!--
                                 We want to generate different class names, so we need
