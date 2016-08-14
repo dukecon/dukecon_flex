@@ -90,7 +90,7 @@ package nz.co.codec.flexorm
                 sqlConnection.removeEventListener(SQLEvent.OPEN, openHandler);
                 sqlConnection.removeEventListener(SQLErrorEvent.ERROR, errorHandler);
                 responder.result(ev);
-            }
+            };
             sqlConnection.addEventListener(SQLEvent.OPEN, openHandler);
 
             var errorHandler:Function = function(e:SQLErrorEvent):void
@@ -98,7 +98,7 @@ package nz.co.codec.flexorm
                 sqlConnection.removeEventListener(SQLEvent.OPEN, openHandler);
                 sqlConnection.removeEventListener(SQLErrorEvent.ERROR, errorHandler);
                 responder.fault(e);
-            }
+            };
             sqlConnection.addEventListener(SQLErrorEvent.ERROR, errorHandler);
 
             sqlConnection.openAsync(dbFile);
@@ -113,7 +113,7 @@ package nz.co.codec.flexorm
                     sqlConnection.removeEventListener(SQLEvent.CLOSE, closeHandler);
                     sqlConnection.removeEventListener(SQLErrorEvent.ERROR, errorHandler);
                     responder.result(ev);
-                }
+                };
                 sqlConnection.addEventListener(SQLEvent.CLOSE, closeHandler);
 
                 var errorHandler:Function = function(e:SQLErrorEvent):void
@@ -121,7 +121,7 @@ package nz.co.codec.flexorm
                     sqlConnection.removeEventListener(SQLEvent.CLOSE, closeHandler);
                     sqlConnection.removeEventListener(SQLErrorEvent.ERROR, errorHandler);
                     responder.fault(e);
-                }
+                };
                 sqlConnection.addEventListener(SQLErrorEvent.ERROR, errorHandler);
 
                 sqlConnection.close();

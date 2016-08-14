@@ -1,35 +1,73 @@
 package ormtest
 {
-    import mx.collections.ArrayCollection;
-    import mx.collections.IList;
-    import mx.rpc.Responder;
-    import flexunit.framework.TestCase;
-    import flexunit.framework.TestSuite;
-    import nz.co.codec.flexorm.EntityErrorEvent;
-    import nz.co.codec.flexorm.EntityEvent;
-    import nz.co.codec.flexorm.EntityManagerAsync;
-    import nz.co.codec.flexorm.criteria.Criteria;
-    import nz.co.codec.flexorm.criteria.Sort;
-    import nz.co.codec.flexorm.util.ArrayStore;
-    import ormtest.model.Contact;
-    import ormtest.model.Lesson;
-    import ormtest.model.Order;
-    import ormtest.model.Organisation;
-    import ormtest.model.Resource;
-    import ormtest.model.Role;
-    import ormtest.model.Schedule;
-    import ormtest.model.Student;
-    import ormtest.model2.Person;
-    import ormtest.model3.User3;
-    import ormtest.model5.ResultVO;
+import flash.events.SQLErrorEvent;
+import flash.events.SQLEvent;
+import flash.filesystem.File;
 
-    public class EntityManagerAsyncTest extends TestCase
+import flexunit.framework.TestCase;
+import flexunit.framework.TestSuite;
+
+import mx.collections.ArrayCollection;
+import mx.collections.IList;
+import mx.rpc.Responder;
+
+import nz.co.codec.flexorm.EntityErrorEvent;
+import nz.co.codec.flexorm.EntityEvent;
+import nz.co.codec.flexorm.EntityManagerAsync;
+import nz.co.codec.flexorm.criteria.Criteria;
+import nz.co.codec.flexorm.criteria.Sort;
+import nz.co.codec.flexorm.util.ArrayStore;
+
+import ormtest.model.Contact;
+import ormtest.model.Lesson;
+import ormtest.model.Order;
+import ormtest.model.Organisation;
+import ormtest.model.Resource;
+import ormtest.model.Role;
+import ormtest.model.Schedule;
+import ormtest.model.Student;
+import ormtest.model2.Person;
+import ormtest.model3.User3;
+import ormtest.model5.ResultVO;
+
+public class EntityManagerAsyncTest extends TestCase
     {
-        private static var em:EntityManagerAsync = EntityManagerAsync.getInstance();
+        private var em:EntityManagerAsync = EntityManagerAsync.instance;
+
+        override public function setUp():void {
+            var dbFile:File = File.userDirectory.resolvePath("flexorm_test.db");
+
+            if (dbFile.exists)
+            {
+                dbFile.deleteFile();
+            }
+
+            em.openAsyncConnection(dbFile.nativePath, new Responder(function(event:SQLEvent):void
+            {
+                trace(this);
+                /*                testRunner.test = suite();
+                 testRunner.startTest();*/
+            }, function(error:SQLErrorEvent):void
+            {
+                trace(error);
+            }));
+        }
+
+        override public function tearDown():void
+        {
+            em.closeAsyncConnection(new Responder(function(event:SQLEvent):void
+            {
+                // em.deleteDBFile();
+            }, function(error:SQLErrorEvent):void
+            {
+                trace(error);
+            }));
+        }
+
 
         public static function suite():TestSuite
         {
-            em.debugLevel = 1;
+            EntityManagerAsync.instance.debugLevel = 1;
             var ts:TestSuite = new TestSuite();
             ts.addTest(new EntityManagerAsyncTest("testNullFindAll"));
             ts.addTest(new EntityManagerAsyncTest("testSaveSimpleObject"));
@@ -412,7 +450,7 @@ package ormtest
                         assertEquals(loadedPerson.emailAddr, "bill@ms.com");
                     }, 1500), function(e:EntityErrorEvent):void
                     {
-                        trace(e.message)
+                        trace(e.message);
                         trace(e.getStackTrace());
                     }));
                 }, 1500), function(e:EntityErrorEvent):void

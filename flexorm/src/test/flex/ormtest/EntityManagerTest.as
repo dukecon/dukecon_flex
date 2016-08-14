@@ -1,6 +1,9 @@
 package ormtest
 {
-    import flexunit.framework.TestCase;
+import flash.data.SQLConnection;
+import flash.filesystem.File;
+
+import flexunit.framework.TestCase;
     import flexunit.framework.TestSuite;
 
     import mx.collections.ArrayCollection;
@@ -60,11 +63,36 @@ package ormtest
 
     public class EntityManagerTest extends TestCase
     {
-        private static var em:EntityManager = EntityManager.instance;
+        private var em:EntityManager = EntityManager.instance;
+
+        private var sqlConnection:SQLConnection;
+
+        private var dbFile:File;
+
+        override public function setUp():void
+        {
+            dbFile = File.userDirectory.resolvePath("flexorm_test.db");
+
+            if (dbFile.exists)
+            {
+                dbFile.deleteFile();
+            }
+
+            sqlConnection = new SQLConnection();
+            sqlConnection.open(dbFile);
+            em.sqlConnection = sqlConnection;
+            //                em.legacySupport = true;
+        }
+
+        override public function tearDown():void
+        {
+            sqlConnection.close();
+            // keep database file for inspection
+        }
 
         public static function suite():TestSuite
         {
-            em.debugLevel = 1;
+            EntityManager.instance.debugLevel = 1;
             //            em.prefs = {
             //            	auditable: false,
             //            	markForDeletion: false
