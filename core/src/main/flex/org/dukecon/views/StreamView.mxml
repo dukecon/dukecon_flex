@@ -15,7 +15,7 @@
 
     <fx:Declarations>
         <parsley:FastInject>
-            <parsley:Inject property="conferenceService" type="{ConferenceService}" />
+            <parsley:Inject property="eventService" type="{EventService}" />
             <parsley:Inject property="streamService" type="{StreamService}" />
         </parsley:FastInject>
     </fx:Declarations>
@@ -27,8 +27,9 @@
 
       import org.dukecon.events.ListEvent;
       import org.dukecon.model.Track;
-      import org.dukecon.services.ConferenceService;
+      import org.dukecon.services.EventService;
       import org.dukecon.services.StreamService;
+      import org.dukecon.utils.I18nHelper;
 
       [Bindable]
       protected var stream:Track;
@@ -41,10 +42,7 @@
       [Bindable]
       protected var events:ArrayCollection;
 
-      [Inject]
-      public var conferenceService:ConferenceService;
-
-      [Inject]
+      public var eventService:EventService;
       public var streamService:StreamService;
 
       protected function onCreationComplete(event:FlexEvent):void {
@@ -68,10 +66,10 @@
       }
 
       protected function update():void {
-        if (stream && streamService && conferenceService) {
-//          streamName = stream.getName(resourceManager.localeChain[0]);
+        if (stream && eventService) {
+          streamName = I18nHelper.getName(stream.names, resourceManager.localeChain[0]);
           streamIcon = streamService.getIconForStream(stream.id);
-          events = conferenceService.getEventsForStream(stream);
+          events = eventService.getEventsForStream(stream);
         } else {
           streamIcon = null;
           streamName = null;

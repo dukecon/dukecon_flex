@@ -15,7 +15,7 @@
 
     <fx:Declarations>
         <parsley:FastInject>
-            <parsley:Inject property="conferenceService" type="{ConferenceService}" />
+            <parsley:Inject property="eventService" type="{EventService}" />
             <parsley:Inject property="locationService" type="{LocationService}" />
         </parsley:FastInject>
     </fx:Declarations>
@@ -27,8 +27,9 @@
 
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Location;
-        import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.EventService;
         import org.dukecon.services.LocationService;
+        import org.dukecon.utils.I18nHelper;
 
         [Bindable]
         protected var location:Location;
@@ -41,10 +42,7 @@
         [Bindable]
         protected var talks:ArrayCollection;
 
-        [Inject]
-        public var conferenceService:ConferenceService;
-
-        [Inject]
+        public var eventService:EventService;
         public var locationService:LocationService;
 
         protected function onCreationComplete(event:FlexEvent):void {
@@ -68,10 +66,10 @@
         }
 
         protected function update():void {
-            if(location && locationService && conferenceService) {
-//                locationName = location.getName(resourceManager.localeChain[0]);
+            if(location && locationService && eventService) {
+                locationName = I18nHelper.getName(location.names, resourceManager.localeChain[0]);
                 locationIcon = locationService.getIconForLocation(location.id);
-                talks = conferenceService.getEventsForLocation(location);
+                talks = eventService.getEventsForLocation(location);
             } else {
                 locationName = null;
                 locationIcon = null;

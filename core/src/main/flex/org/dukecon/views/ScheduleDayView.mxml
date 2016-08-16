@@ -75,7 +75,7 @@
                 var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
                 formattedDate = formatter.format(date);
 
-                var talksForDay:ArrayCollection = conferenceService.getEventsForDay(dateString);
+                var talksForDay:ArrayCollection;// = conferenceService.getEventsForDay(dateString);
                 var locations:ArrayCollection = locationService.locations;
                 var locationUsage:Object = {};
 

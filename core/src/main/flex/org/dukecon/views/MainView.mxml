@@ -40,7 +40,6 @@
 
         [Init]
         protected function init():void {
-            conferenceService.update();
             conferenceService.addEventListener(
                     ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, handleConferenceDataChanged);
             updateLastChangesDate();

@@ -12,5 +12,10 @@ public class ConferenceDataChangedEvent extends Event {
         super(type, bubbles, cancelable);
     }
 
+    public static function createConferenceDataChangedEvent():ConferenceDataChangedEvent {
+        return new ConferenceDataChangedEvent(CONFERENCE_DATA_CHANGED);
+    }
+
+
 }
 }

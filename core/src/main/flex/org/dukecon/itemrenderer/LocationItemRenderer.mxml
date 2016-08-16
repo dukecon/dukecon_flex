@@ -15,6 +15,7 @@
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Location;
         import org.dukecon.services.LocationService;
+        import org.dukecon.utils.I18nHelper;
 
         [Bindable]
         protected var locationIcon:Class;
@@ -41,7 +42,7 @@
         protected function update():void {
             if (location && locationService) {
                 locationIcon = locationService.getIconForLocation(location.id);
-//                locationName = location.getName(resourceManager.localeChain[0]);
+                locationName = I18nHelper.getName(location.names, resourceManager.localeChain[0]);
             } else {
                 locationIcon = null;
                 locationName = null;

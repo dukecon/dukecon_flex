@@ -15,7 +15,7 @@
 
     <fx:Declarations>
         <parsley:FastInject>
-            <parsley:Inject property="conferenceService" type="{ConferenceService}" />
+            <parsley:Inject property="eventService" type="{EventService}" />
             <parsley:Inject property="speakerService" type="{SpeakerService}" />
         </parsley:FastInject>
     </fx:Declarations>
@@ -28,7 +28,7 @@
 
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Speaker;
-        import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.EventService;
         import org.dukecon.services.SpeakerService;
 
         [Bindable]
@@ -40,10 +40,7 @@
         [Bindable]
         protected var events:ArrayCollection;
 
-        [Inject]
-        public var conferenceService:ConferenceService;
-
-        [Inject]
+        public var eventService:EventService;
         public var speakerService:SpeakerService;
 
         protected function onCreationComplete(event:FlexEvent):void {
@@ -67,9 +64,9 @@
         }
 
         protected function update():void {
-            if(speaker && speakerService && conferenceService) {
+            if(speaker && speakerService && eventService) {
                 speakerPortrait = speakerService.getIconForSpeaker(speaker.name);
-                events = conferenceService.getEventsForSpeaker(speaker);
+                events = eventService.getEventsForSpeaker(speaker);
             } else {
                 speakerPortrait = null;
                 events = null;

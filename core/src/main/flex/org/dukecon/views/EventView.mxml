@@ -15,9 +15,10 @@
         <parsley:FastInject>
             <parsley:Inject property="conferenceService" type="{ConferenceService}" />
             <parsley:Inject property="speakerService" type="{SpeakerService}" />
-            <parsley:Inject property="streamController" type="{StreamService}" />
-            <parsley:Inject property="languageController" type="{LanguageService}" />
-            <parsley:Inject property="locationController" type="{LocationService}" />
+            <parsley:Inject property="streamService" type="{StreamService}" />
+            <parsley:Inject property="languageService" type="{LanguageService}" />
+            <parsley:Inject property="locationService" type="{LocationService}" />
+            <parsley:Inject property="ratingService" type="{RatingService}" />
             <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
             <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" /-->
         </parsley:FastInject>
@@ -75,22 +76,11 @@
         [Bindable]
         protected var streamName:String;
 
-        [Inject]
         public var conferenceService:ConferenceService;
-
-        [Inject]
         public var speakerService:SpeakerService;
-
-        [Inject]
         public var locationService:LocationService;
-
-        [Inject]
         public var streamService:StreamService;
-
-        [Inject]
         public var languageService:LanguageService;
-
-        [Inject]
         public var ratingService:RatingService;
 
 

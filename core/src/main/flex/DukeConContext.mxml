@@ -4,20 +4,20 @@
 -->
 <local:Object xmlns:fx="http://ns.adobe.com/mxml/2009"
               xmlns:services="org.dukecon.services.*"
-              xmlns:local="*" xmlns:fpa="org.dukecon.fpa.*">
+              xmlns:local="*">
 
     <fx:Declarations>
-        <!-- Simple implementation of some JPA-Like entity mapping (FlexPersistenceApi) -->
-        <fpa:FpaEntityManager/>
         <!-- Shared connection to the BlazeDS backend -->
         <services:ServerConnection baseUrl="{baseUrl}"/>
         <!-- Service for accessing conference data -->
         <services:ConferenceService/>
         <services:EventService/>
+        <services:LanguageService/>
         <services:LocationService/>
         <services:SpeakerService/>
         <services:StreamService/>
         <services:SettingsService/>
+        <services:RatingService/>
     </fx:Declarations>
 
     <fx:Script>

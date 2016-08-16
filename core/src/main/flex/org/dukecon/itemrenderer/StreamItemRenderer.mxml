@@ -15,6 +15,7 @@
       import org.dukecon.events.ListEvent;
       import org.dukecon.model.Track;
       import org.dukecon.services.StreamService;
+      import org.dukecon.utils.I18nHelper;
 
       [Bindable]
       protected var streamIcon:Class;
@@ -41,7 +42,7 @@
       protected function update():void {
         if (stream && streamService) {
           streamIcon = streamService.getIconForStream(stream.id);
-//          streamName = stream.getName(resourceManager.localeChain[0]);
+          streamName = I18nHelper.getName(stream.names, resourceManager.localeChain[0]);
         } else {
           streamIcon = null;
           streamName = null;
