@@ -61,6 +61,7 @@ public class EventService {
 
     public function getEventsForSpeaker(speaker:Speaker):ArrayCollection {
         var criteria:Criteria = em.createCriteria(Event);
+        // TODO: This must be changed to a "speakers contains speaker with id"
         criteria.addEqualsCondition("speaker.id", speaker.id);
         return getEvents(criteria);
     }

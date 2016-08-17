@@ -19,10 +19,9 @@
             <parsley:Inject property="languageService" type="{LanguageService}" />
             <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
             <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" /-->
-            <parsley:Inject property="settingsService" type="{SettingsService}" />
         </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
-                             locale="{settingsService.selectedLanguage}"
+                             locale="{SettingsService.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>
     </fx:Declarations>
 
@@ -92,9 +91,6 @@
          [Inject]
          public var remoteUserPreferencesController:RemoteUserPreferencesController;
          */
-        [Inject]
-        [Bindable]
-        public var settingsService:SettingsService;
 
         public var startTime:Number;
         public var locations:ArrayCollection;

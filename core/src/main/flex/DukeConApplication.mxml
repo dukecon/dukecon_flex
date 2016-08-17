@@ -24,9 +24,6 @@
         import org.dukecon.views.SettingsView;
         import org.spicefactory.parsley.flex.FlexContextBuilder;
 
-        [Inject]
-        public var settingsService:SettingsService;
-
         protected function onPreInitialize(event:FlexEvent):void {
             initLogging();
             FlexContextBuilder.build(DukeConContext, this);
@@ -61,11 +58,9 @@
         override protected function commitProperties():void {
             super.commitProperties();
 
-            if (settingsService) {
-                // Get the selected language from the settings.
-                var selectedLanguage:String = settingsService.selectedLanguage;
-                resourceManager.localeChain = [selectedLanguage];
-            }
+            // Get the selected language from the settings.
+            var selectedLanguage:String = SettingsService.selectedLanguage;
+            resourceManager.localeChain = [selectedLanguage];
         }
 
         protected function onOpenSettingsClicked(event:MouseEvent):void {

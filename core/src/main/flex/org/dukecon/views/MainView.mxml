@@ -13,12 +13,11 @@
 
     <fx:Declarations>
         <parsley:FastInject injectionComplete="init()">
-            <parsley:Inject property="settingsService" type="{SettingsService}"/>
             <parsley:Inject property="conferenceService" type="{ConferenceService}"/>
             <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}"/-->
         </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
-                             locale="{settingsService.selectedLanguage}"
+                             locale="{SettingsService.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
     </fx:Declarations>
 
@@ -27,10 +26,6 @@
         import org.dukecon.events.ConferenceDataChangedEvent;
         import org.dukecon.services.ConferenceService;
         import org.dukecon.services.SettingsService;
-
-        [Inject]
-        [Bindable]
-        public var settingsService:SettingsService;
 
         [Inject]
         public var conferenceService:ConferenceService;

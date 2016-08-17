@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
-                xmlns:parsley="http://www.spicefactory.org/parsley"
                 height="136"
                 click="onItemClick(event)">
 
@@ -10,12 +9,11 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:FastInject property="settingsService" type="{SettingsService}" />
         <s:DateTimeFormatter id="formatter"
-                             locale="{settingsService.selectedLanguage}"
+                             locale="{SettingsService.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
         <s:DateTimeFormatter id="dayFormatter"
-                             locale="{settingsService.selectedLanguage}"
+                             locale="{SettingsService.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dayOfWeek')}"/>
     </fx:Declarations>
 
@@ -33,10 +31,6 @@
 
         [Bindable]
         protected var date:Date;
-
-        [Inject]
-        [Bindable]
-        public var settingsService:SettingsService;
 
         [Bindable("dataChange")]
         override public function get data():Object {

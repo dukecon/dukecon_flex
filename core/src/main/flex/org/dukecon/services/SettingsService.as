@@ -12,7 +12,7 @@ public class SettingsService {
         em = EntityManager.instance;
     }
 
-    public function get selectedLanguage():String {
+    public static function get selectedLanguage():String {
         return "de_DE";
     }
 
