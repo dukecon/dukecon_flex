@@ -37,12 +37,14 @@
         import mx.collections.ArrayCollection;
 
         import org.dukecon.events.ListEvent;
+        import org.dukecon.model.Language;
         import org.dukecon.model.Speaker;
         import org.dukecon.services.ConferenceService;
         import org.dukecon.services.LanguageService;
         import org.dukecon.services.LocationService;
         import org.dukecon.services.SettingsService;
         import org.dukecon.services.StreamService;
+        import org.dukecon.utils.I18nHelper;
 
         [Bindable]
         protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
@@ -79,16 +81,9 @@
         [Bindable]
         protected var speakerNames:String;
 
-        [Inject]
         public var conferenceService:ConferenceService;
-
-        [Inject]
         public var streamService:StreamService;
-
-        [Inject]
         public var locationService:LocationService;
-
-        [Inject]
         public var languageService:LanguageService;
 
         /*      [Inject]
@@ -102,7 +97,10 @@
         public var settingsService:SettingsService;
 
         public var startTime:Number;
-        public var locationIds:ArrayCollection;
+        public var locations:ArrayCollection;
+
+        public static const HEIGHT_PER_STREAM:Number = 394;
+        public static const WIDTH_SECONDS_PER_PIXEL:Number = 4;
 
         [Bindable("dataChange")]
         override public function get data():Object {
@@ -113,11 +111,11 @@
             super.data = value;
             event = org.dukecon.model.Event(value);
             adjustSize();
-            //update();
+            update();
         }
 
         protected function adjustSize():void {
-/*            var lengthInMinutes:Number = (event.end.time - event.start.time) / (1000 * 60);
+            var lengthInMinutes:Number = (event.end.time - event.start.time) / (1000 * 60);
             if (lengthInMinutes < 40) {
                 currentState = "short";
             } else if (length > 120) {
@@ -126,80 +124,79 @@
                 currentState = "normal";
             }
             // Update the position of the item based on it's data.
-            x = (event.start.time - startTime) / 4000;
-            y = locationIds.getItemIndex(event.location.id) * 394;
-            width = (event.end.time - event.start.time) / 4000;
+            x = (event.start.time - startTime) / (1000 * WIDTH_SECONDS_PER_PIXEL);
+            y = locations.getItemIndex(event.location) * HEIGHT_PER_STREAM;
+            width = (event.end.time - event.start.time) / (1000 * WIDTH_SECONDS_PER_PIXEL);
+        }
+
+        protected function update():void {
+            if (event) {
+                timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
+                locationName = I18nHelper.getName(event.location.names, resourceManager.localeChain[0]);
+                locationIcon = locationService.getIconForLocation(event.location.id);
+                if (event.track) {
+                    streamName = I18nHelper.getName(event.track.names, resourceManager.localeChain[0]);
+                    streamIcon = streamService.getIconForStream(event.track.id);
+                } else {
+                    streamName = null;
+                    streamIcon = null;
+                }
+                var language:Language = event.language ? event.language : null;// TODO: Make this get the default language ;
+                languageName = I18nHelper.getName(language.names, resourceManager.localeChain[0]);
+                languageIcon = languageService.getIconForLanguage(event.language.id);
+                speakerNames = "";
+                for each(var speaker:Speaker in event.speakers) {
+                    if (speakerNames != "") {
+                        speakerNames += ", ";
+                    }
+                    if (speaker) {
+                        speakerNames += speaker.name;
+                        if (speaker.company) {
+                            speakerNames += " (" + speaker.company + ")";
+                        }
+                    }
+                }
+            } else {
+                timeString = null;
+                locationName = null;
+                locationIcon = null;
+                streamName = null;
+                streamIcon = null;
+                languageName = null;
+                languageIcon = null;
+                speakerNames = null;
+            }
+
+            updateSelectionIcon();
+        }
+
+        protected function updateSelectionIcon():void {
+            if (event) {
+                favoriteImage.source = false/*localUserPreferencesController.isEventSelected(event)*/ ? starSelected : starUnselected;
+            } else {
+                favoriteImage.source = null;
+            }
+        }
+
+        protected function toggleSelection(evnt:MouseEvent):void {
+/*            var userPreference:UserPreference = new UserPreference();
+            userPreference.eventId = event.id;
+            if (localUserPreferencesController.isEventSelected(event)) {
+                localUserPreferencesController.del(userPreference);
+            } else {
+                localUserPreferencesController.add(userPreference);
+            }
+            updateSelectionIcon();
+
+            if (featureServerFavorites && !remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
+                var confirmDialog:ConfirmDialog = new ConfirmDialog();
+                confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
+                confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
+                PopUpManager.centerPopUp(confirmDialog);
+
+                remoteUserPreferencesController.infoPopupDisplayed = true;
+            }
 */        }
-
-        /*protected function update():void {
-         if (event) {
-         timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
-         locationName = conferenceService.getLocationName(event.location.id, resourceManager.localeChain[0]);
-         locationIcon = locationService.getIconForLocation(event.location.id);
-         if (event.track.id) {
-         streamName = conferenceService.getStreamName(event.track.id, resourceManager.localeChain[0]);
-         streamIcon = streamService.getIconForStream(event.track.id);
-         } else {
-         streamName = null;
-         streamIcon = null;
-         }
-         var languageId:String = event.languageId ? event.language.id : "de";
-         languageName = conferenceService.getLanguageName(languageId, resourceManager.localeChain[0]);
-         languageIcon = languageController.getIconForLanguage(event.language.id);
-         speakerNames = "";
-         for each(var speakerId:String in event.speakerIds.split(",")) {
-         var speaker:Speaker = conferenceService.getSpeaker(speakerId);
-         if (speakerNames != "") {
-         speakerNames += ", ";
-         }
-         if (speaker) {
-         speakerNames += speaker.name;
-         if (speaker.company) {
-         speakerNames += " (" + speaker.company + ")";
-         }
-         }
-         }
-         } else {
-         timeString = null;
-         locationName = null;
-         locationIcon = null;
-         streamName = null;
-         streamIcon = null;
-         languageName = null;
-         languageIcon = null;
-         speakerNames = null;
-         }
-
-         updateSelectionIcon();
-         }
-
-         protected function updateSelectionIcon():void {
-         if (event) {
-         favoriteImage.source = localUserPreferencesController.isEventSelected(event) ? starSelected : starUnselected;
-         } else {
-         favoriteImage.source = null;
-         }
-         }
-
-         protected function toggleSelection(evnt:MouseEvent):void {
-         var userPreference:UserPreference = new UserPreference();
-         userPreference.eventId = event.id;
-         if (localUserPreferencesController.isEventSelected(event)) {
-         localUserPreferencesController.del(userPreference);
-         } else {
-         localUserPreferencesController.add(userPreference);
-         }
-         updateSelectionIcon();
-
-         if (featureServerFavorites && !remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
-         var confirmDialog:ConfirmDialog = new ConfirmDialog();
-         confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
-         confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
-         PopUpManager.centerPopUp(confirmDialog);
-
-         remoteUserPreferencesController.infoPopupDisplayed = true;
-         }
-         }*/
 
         protected function onMoreClicked(evnt:MouseEvent):void {
             dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
@@ -239,6 +236,6 @@
         </s:VGroup>
     </s:VGroup>
 
-    <!--s:Image id="favoriteImage" top="20" right="20" click="toggleSelection(event)"/-->
+    <s:Image id="favoriteImage" top="20" right="20" click="toggleSelection(event)"/>
 
 </s:GridItemRenderer>

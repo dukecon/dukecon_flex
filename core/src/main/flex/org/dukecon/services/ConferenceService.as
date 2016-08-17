@@ -7,7 +7,8 @@ import flash.errors.SQLError;
 import flash.events.EventDispatcher;
 import flash.utils.getQualifiedClassName;
 
-import mx.formatters.DateFormatter;
+import mx.collections.ArrayCollection;
+
 import mx.logging.ILogger;
 import mx.logging.Log;
 import mx.rpc.events.FaultEvent;
@@ -18,6 +19,7 @@ import nz.co.codec.flexorm.EntityManager;
 
 import org.dukecon.events.ConferenceDataChangedEvent;
 import org.dukecon.model.Conference;
+import org.dukecon.utils.SqlHelper;
 
 [Event(name="conferenceDataChanged", type="org.dukecon.events.ConferenceDataChangedEvent")]
 public class ConferenceService extends EventDispatcher {
@@ -49,6 +51,15 @@ public class ConferenceService extends EventDispatcher {
     public function update():void {
         log.info("Updating conferences");
         service.list();
+    }
+
+    public function getDaysForConference(conference:Conference):ArrayCollection {
+        var result:Object = em.query("SELECT distinct(strftime('%Y-%m-%d', start)) AS day FROM events ORDER BY day ASC");
+        var days:ArrayCollection = new ArrayCollection();
+        for each(var resultItem:Object in result) {
+            days.addItem(resultItem["day"]);
+        }
+        return days;
     }
 
     [Bindable("conferenceDataChanged")]
@@ -90,24 +101,7 @@ public class ConferenceService extends EventDispatcher {
         var newLastUpdateDate:Date = null;
         try {
             var res:Array = em.query(query) as Array;
-
-            if (res[0].last_update_date != null) {
-                // Views return a Number or String instead of a Date (which cannot be cast to Date type)
-                if (res[0].last_update_date is Date) {
-                    newLastUpdateDate = res[0].last_update_date;
-                }
-
-                if (res[0].last_update_date is Number) {
-                    // JD 2440587.500000 is CE 1970 January 01 00:00:00.0 UT  Thursday
-                    const julianOffset:Number = 2440587.5;
-                    newLastUpdateDate = new Date((res[0].last_update_date - julianOffset) * 24 * 60 * 60 * 1000);
-                }
-
-                if (res[0].last_update_date is String) {
-                    // format is probably "YYYY-MM-DD HH:MM:SS"
-                    newLastUpdateDate = DateFormatter.parseDateString(res[0].last_update_date);
-                }
-            }
+            newLastUpdateDate = SqlHelper.convertSqlDateToFlexDate(res[0].last_update_date);
         } catch(e:SQLError) {
             // Ignore
         }

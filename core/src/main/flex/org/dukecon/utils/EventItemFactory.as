@@ -10,17 +10,17 @@ import org.dukecon.itemrenderer.GridEventItemRenderer;
 public class EventItemFactory implements IFactory {
 
     private var startTime:Number;
-    private var locationIds:ArrayCollection;
+    private var locations:ArrayCollection;
 
-    public function EventItemFactory(startTime:Number, locationIds:ArrayCollection) {
+    public function EventItemFactory(startTime:Number, locations:ArrayCollection) {
         this.startTime = startTime;
-        this.locationIds = locationIds;
+        this.locations = locations;
     }
 
     public function newInstance():* {
         var rect:GridEventItemRenderer = new GridEventItemRenderer();
         rect.startTime = startTime;
-        rect.locationIds = locationIds;
+        rect.locations = locations;
         return rect;
     }
 

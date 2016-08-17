@@ -25,6 +25,16 @@ public class EventService {
         em = EntityManager.instance;
     }
 
+    public function getEventsForDay(day:String):ArrayCollection {
+        var criteria:Criteria = em.createCriteria(Event);
+        var matches:Array = day.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+        var rangeStart:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]), 0, 0, 0);
+        criteria.addGreaterEqualsCondition("start", rangeStart);
+        var rangeEnd:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]), 23, 59, 59);
+        criteria.addLessThanCondition("start", rangeEnd);
+        return getEvents(criteria);
+    }
+
     public function getEventsForAudience(audience:Audience):ArrayCollection {
         var criteria:Criteria = em.createCriteria(Event);
         criteria.addEqualsCondition("audience.id", audience.id);

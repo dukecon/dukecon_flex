@@ -28,18 +28,17 @@
         [Bindable]
         protected var listData:ArrayCollection;
 
-        [Inject]
         public var conferenceService:ConferenceService;
 
         [Init]
         public function init():void {
-//            listData = conferenceService.selectedConference.days;
+            listData = conferenceService.getDaysForConference(null);
             list.addEventListener(ListEvent.ITEM_SELECTED, onDaySelected);
         }
 
         [MessageHandler]
         public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
-//            listData = conferenceService.selectedConference.days;
+            listData = conferenceService.getDaysForConference(null);
         }
 
         protected function onDaySelected(event:ListEvent):void {

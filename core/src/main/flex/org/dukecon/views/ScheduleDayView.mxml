@@ -9,8 +9,7 @@
         creationComplete="onCreationComplete(event)">
 
     <fx:Declarations>
-        <parsley:FastInject property="conferenceService" type="{ConferenceService}" />
-        <parsley:FastInject property="locationService" type="{LocationService}" />
+        <parsley:FastInject property="eventService" type="{EventService}" />
         <s:DateTimeFormatter id="formatter"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
         <s:DateTimeFormatter id="timeFormatter"
@@ -23,29 +22,30 @@
         import mx.events.FlexEvent;
 
         import org.dukecon.events.ListEvent;
+        import org.dukecon.itemrenderer.GridEventItemRenderer;
         import org.dukecon.model.Event;
-        import org.dukecon.model.Location;
-        import org.dukecon.services.ConferenceService;
-        import org.dukecon.services.LocationService;
+        import org.dukecon.services.EventService;
         import org.dukecon.utils.EventItemFactory;
 
         [Bindable]
         protected var dateString:String;
+        protected var loadedDataDateString:String = null;
 
         [Bindable]
         protected var formattedDate:String;
 
         [Bindable]
-        protected var dataProvider:ArrayCollection = new ArrayCollection();
+        protected var dataProvider:ArrayCollection = null;
+        [Bindable]
+        protected var gridHeight:Number;
+        [Bindable]
+        protected var gridWidth:Number;
 
         protected var dayStart:Number;
-        protected var locationIds:ArrayCollection;
+        protected var dayEnd:Number;
+        protected var locations:ArrayCollection;
 
-        [Inject]
-        public var conferenceService:ConferenceService;
-
-        [Inject]
-        public var locationService:LocationService;
+        public var eventService:EventService;
 
         protected function onCreationComplete(event:FlexEvent):void {
             grid.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
@@ -59,7 +59,6 @@
         override public function set data(value:Object):void {
             super.data = value;
             dateString = String(value);
-            update();
         }
 
         override protected function commitProperties():void {
@@ -70,51 +69,47 @@
         protected function update():void {
             var event:org.dukecon.model.Event;
 
-            if (dateString && conferenceService) {
-                var matches:Array = dateString.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
-                var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
-                formattedDate = formatter.format(date);
+            // Only update if we need to.
+            if (loadedDataDateString != dateString) {
+                if (dateString && eventService) {
+                    var matches:Array = dateString.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+                    var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
+                    formattedDate = formatter.format(date);
 
-                var talksForDay:ArrayCollection;// = conferenceService.getEventsForDay(dateString);
-                var locations:ArrayCollection = locationService.locations;
-                var locationUsage:Object = {};
+                    dataProvider = eventService.getEventsForDay(dateString);
+                    locations = new ArrayCollection();
 
-                // Find out the time range in which all events are.
-                dayStart = NaN;
-                for each(event in talksForDay) {
-/*                    if (event.end.time - event.start.time > 0) {
+                    // Find out the start time (start date of the earliest event)
+                    // as well as the list of locations for that day.
+                    dayStart = NaN;
+                    dayEnd = NaN;
+                    for each(event in dataProvider) {
+                        if (locations.getItemIndex(event.location) == -1) {
+                            locations.addItem(event.location);
+                        }
+
                         if ((isNaN(dayStart)) || (dayStart > event.start.time)) {
                             dayStart = event.start.time;
                         }
+                        if ((isNaN(dayEnd)) || (dayEnd < event.end.time)) {
+                            dayEnd = event.end.time;
+                        }
                     }
-*/                    // Keep track of the used locations.
-                    if(!locationUsage.hasOwnProperty(event.location.id)) {
-                        locationUsage[event.location.id] = 0;
-                    }
-                    locationUsage[event.location.id] += 1;
-                }
+                    loadedDataDateString = dateString;
 
-                locationIds = new ArrayCollection();
-                for each(var location:Location in locations) {
-                    // Filter out locations without talks.
-                    if(locationUsage.hasOwnProperty(location.id) &&
-                            Number(locationUsage[event.location.id]) > 0) {
-                        locationIds.addItem(location.id);
-                    }
+                    gridHeight = locations.length * GridEventItemRenderer.HEIGHT_PER_STREAM;
+                    gridWidth = (dayEnd - dayStart) / (1000 * GridEventItemRenderer.WIDTH_SECONDS_PER_PIXEL);
+                } else {
+                    formattedDate = null;
+                    dataProvider = null;
+                    locations = null;
+                    dayStart = NaN;
                 }
-
-                for each(event in talksForDay) {
-/*                    if (event.end.time - event.start.time > 0) {
-                        dataProvider.addItem(event);
-                    }
-*/                }
-            } else {
-                formattedDate = null;
             }
         }
 
         private function itemRenderer(event:org.dukecon.model.Event):IFactory {
-            return new EventItemFactory(dayStart, locationIds);
+            return new EventItemFactory(dayStart, locations);
         }
 
         protected function onTalkSelected(event:ListEvent):void {
@@ -130,16 +125,16 @@
 
     <s:Scroller id="scroller" top="0" left="0" right="0" bottom="0">
         <s:Group width="100%" height="100%"
-                 minWidth="{grid.contentWidth}"
-                 minHeight="{grid.contentHeight}">
-            <s:Rect width="{grid.contentWidth}"
-                    height="{grid.contentHeight}">
+                 minWidth="{gridWidth}"
+                 minHeight="{gridHeight}">
+            <s:Rect width="{gridWidth}"
+                    height="{gridHeight}">
                 <s:fill>
                     <s:SolidColor color="0xEEEEEE"/>
                 </s:fill>
             </s:Rect>
 
-            <s:DataGroup id="grid" dataProvider="{dataProvider}"
+            <s:DataGroup id="grid" dataProvider="{dataProvider}" width="{gridWidth}" height="{gridHeight}"
                          itemRendererFunction="itemRenderer" clipAndEnableScrolling="true">
                 <s:layout>
                     <s:BasicLayout/>
