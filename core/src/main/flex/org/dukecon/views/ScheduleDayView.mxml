@@ -19,6 +19,8 @@
     <fx:Script>
         <![CDATA[
         import mx.collections.ArrayCollection;
+        import mx.collections.Sort;
+        import mx.collections.SortField;
         import mx.events.FlexEvent;
 
         import org.dukecon.events.ListEvent;
@@ -96,6 +98,15 @@
                         }
                     }
                     loadedDataDateString = dateString;
+
+                    // Sort the locations by order.
+                    var orderSortField:SortField = new SortField();
+                    orderSortField.name = "order";
+                    orderSortField.numeric = true;
+                    var locationSort:Sort = new Sort();
+                    locationSort.fields = [orderSortField];
+                    locations.sort = locationSort;
+                    locations.refresh();
 
                     gridHeight = locations.length * GridEventItemRenderer.HEIGHT_PER_STREAM;
                     gridWidth = (dayEnd - dayStart) / (1000 * GridEventItemRenderer.WIDTH_SECONDS_PER_PIXEL);

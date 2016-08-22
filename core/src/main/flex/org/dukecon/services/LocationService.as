@@ -3,6 +3,8 @@
  */
 package org.dukecon.services {
 import mx.collections.ArrayCollection;
+import mx.collections.Sort;
+import mx.collections.SortField;
 
 import nz.co.codec.flexorm.EntityManager;
 
@@ -17,7 +19,18 @@ public class LocationService {
     }
 
     public function get locations():ArrayCollection {
-        return em.findAll(Location);
+        var res:ArrayCollection = em.findAll(Location);
+
+        // Sort the locations by order.
+        var orderSortField:SortField = new SortField();
+        orderSortField.name = "order";
+        orderSortField.numeric = true;
+        var locationSort:Sort = new Sort();
+        locationSort.fields = [orderSortField];
+        res.sort = locationSort;
+        res.refresh();
+
+        return res;
     }
 
     public function getIconForLocation(id:String):Class {
