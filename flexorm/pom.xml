@@ -15,7 +15,7 @@
     
     <build>
         <sourceDirectory>src/main/flex</sourceDirectory>
-        <testSourceDirectory>src/test/flex</testSourceDirectory>
+        <!--testSourceDirectory>src/test/flex</testSourceDirectory-->
         <plugins>
             <plugin>
                 <groupId>net.flexmojos.oss</groupId>
@@ -27,6 +27,7 @@
                     <compilerWarnings>
                         <warn-no-constructor>false</warn-no-constructor>
                     </compilerWarnings>
+                    <adlCommand>/Users/christoferdutz/Devtools/Adobe/AIR/22.0/bin/adl</adlCommand>
                 </configuration>
                 <executions>
                     <execution>
@@ -63,7 +64,7 @@
             <type>pom</type>
         </dependency>
 
-        <dependency>
+        <!--dependency>
             <groupId>org.apache.flex.flexunit</groupId>
             <artifactId>flexunit-flex</artifactId>
             <version>4.3.0-SNAPSHOT</version>
@@ -82,7 +83,7 @@
                     <artifactId>framework</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency-->
     </dependencies>
 
 </project>
