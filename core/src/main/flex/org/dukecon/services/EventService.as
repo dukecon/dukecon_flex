@@ -31,7 +31,7 @@ public class EventService {
         var rangeStart:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]), 0, 0, 0);
         criteria.addGreaterEqualsCondition("start", rangeStart);
         var rangeEnd:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]), 23, 59, 59);
-        criteria.addLessThanCondition("start", rangeEnd);
+        criteria.addLessEqualsCondition("start", rangeEnd);
         return getEvents(criteria);
     }
 
