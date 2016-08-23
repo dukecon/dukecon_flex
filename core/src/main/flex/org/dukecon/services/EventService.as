@@ -80,9 +80,12 @@ public class EventService {
     }
 
     private static function filterPartlyInitialized(event:Event):Boolean {
-        return (event.audience != null) && (event.type != null) && (event.language != null) &&
-                (event.location != null) && (event.speakers != null) && (event.track != null);
+        var fullyInitialized:Boolean = (event.type != null) && (event.language != null) &&
+                (event.location != null) && (event.speakers != null);
+        if(!fullyInitialized) {
+            trace("Partially Initialized: " + event.id);
+        }
+        return fullyInitialized;
     }
-
 }
 }
