@@ -4,22 +4,13 @@
 -->
 <s:GridItemRenderer
         xmlns:fx="http://ns.adobe.com/mxml/2009"
-        xmlns:s="library://ns.adobe.com/flex/spark"
-        xmlns:parsley="http://www.spicefactory.org/parsley">
+        xmlns:s="library://ns.adobe.com/flex/spark">
 
     <fx:Metadata>
         [ResourceBundle("dukecon")]
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:FastInject>
-            <parsley:Inject property="conferenceService" type="{ConferenceService}" />
-            <parsley:Inject property="streamService" type="{StreamService}" />
-            <parsley:Inject property="locationService" type="{LocationService}" />
-            <parsley:Inject property="languageService" type="{LanguageService}" />
-            <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
-            <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" /-->
-        </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
                              locale="{SettingsService.selectedLanguage}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>
@@ -33,16 +24,11 @@
 
     <fx:Script>
     <![CDATA[
-        import mx.collections.ArrayCollection;
-
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Language;
         import org.dukecon.model.Speaker;
-        import org.dukecon.services.ConferenceService;
-        import org.dukecon.services.LanguageService;
-        import org.dukecon.services.LocationService;
+        import org.dukecon.services.ResourceService;
         import org.dukecon.services.SettingsService;
-        import org.dukecon.services.StreamService;
         import org.dukecon.utils.I18nHelper;
 
         [Bindable]
@@ -62,7 +48,7 @@
         [Bindable]
         protected var streamName:String;
         [Bindable]
-        protected var streamIcon:Class;
+        protected var streamIcon:ByteArray;
 
         [Bindable]
         protected var timeString:String;
@@ -70,30 +56,20 @@
         [Bindable]
         protected var locationName:String;
         [Bindable]
-        protected var locationIcon:Class;
+        protected var locationIcon:ByteArray;
 
         [Bindable]
         protected var languageName:String;
         [Bindable]
-        protected var languageIcon:Class;
+        protected var languageIcon:ByteArray;
 
         [Bindable]
         protected var speakerNames:String;
 
-        public var conferenceService:ConferenceService;
-        public var streamService:StreamService;
-        public var locationService:LocationService;
-        public var languageService:LanguageService;
-
-        /*      [Inject]
-         public var localUserPreferencesController:LocalUserPreferencesController;
-
-         [Inject]
-         public var remoteUserPreferencesController:RemoteUserPreferencesController;
-         */
+        public var resourceService:ResourceService;
 
         public var startTime:Number;
-        public var locations:ArrayCollection;
+        public var rowNum:Number;
 
         public static const HEIGHT_PER_STREAM:Number = 394;
         public static const WIDTH_SECONDS_PER_PIXEL:Number = 4;
@@ -121,25 +97,26 @@
             }
             // Update the position of the item based on it's data.
             x = (event.start.time - startTime) / (1000 * WIDTH_SECONDS_PER_PIXEL);
-            y = locations.getItemIndex(event.location) * HEIGHT_PER_STREAM;
+            y = rowNum * HEIGHT_PER_STREAM;
             width = (event.end.time - event.start.time) / (1000 * WIDTH_SECONDS_PER_PIXEL);
         }
 
         protected function update():void {
             if (event) {
+                var imageData:ByteArray;
                 timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
                 locationName = I18nHelper.getName(event.location.names, resourceManager.localeChain[0]);
-                locationIcon = locationService.getIconForLocation(event.location.id);
+                locationIcon = resourceService.getIconForLocation(event.location.id);
                 if (event.track) {
                     streamName = I18nHelper.getName(event.track.names, resourceManager.localeChain[0]);
-                    streamIcon = streamService.getIconForStream(event.track.id);
+                    streamIcon = resourceService.getIconForStream(event.track.id);
                 } else {
                     streamName = null;
                     streamIcon = null;
                 }
                 var language:Language = event.language ? event.language : null;// TODO: Make this get the default language ;
                 languageName = I18nHelper.getName(language.names, resourceManager.localeChain[0]);
-                languageIcon = languageService.getIconForLanguage(event.language.id);
+                languageIcon = resourceService.getIconForLanguage(event.language.id);
                 speakerNames = "";
                 for each(var speaker:Speaker in event.speakers) {
                     if (speakerNames != "") {

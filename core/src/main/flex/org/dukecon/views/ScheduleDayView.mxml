@@ -9,7 +9,10 @@
         creationComplete="onCreationComplete(event)">
 
     <fx:Declarations>
-        <parsley:FastInject property="eventService" type="{EventService}" />
+        <parsley:FastInject>
+            <parsley:Inject property="eventService" type="{EventService}" />
+            <parsley:Inject property="resourceService" type="{ResourceService}" />
+        </parsley:FastInject>
         <s:DateTimeFormatter id="formatter"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
         <s:DateTimeFormatter id="timeFormatter"
@@ -27,6 +30,7 @@
         import org.dukecon.itemrenderer.GridEventItemRenderer;
         import org.dukecon.model.Event;
         import org.dukecon.services.EventService;
+        import org.dukecon.services.ResourceService;
         import org.dukecon.utils.EventItemFactory;
 
         [Bindable]
@@ -48,6 +52,7 @@
         protected var locations:ArrayCollection;
 
         public var eventService:EventService;
+        public var resourceService:ResourceService;
 
         protected function onCreationComplete(event:FlexEvent):void {
             grid.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
@@ -120,7 +125,7 @@
         }
 
         private function itemRenderer(event:org.dukecon.model.Event):IFactory {
-            return new EventItemFactory(dayStart, locations);
+            return new EventItemFactory(dayStart, locations.getItemIndex(event.location), resourceService);
         }
 
         protected function onTalkSelected(event:ListEvent):void {

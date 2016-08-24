@@ -14,6 +14,7 @@
     <fx:Declarations>
         <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="conferenceService" type="{ConferenceService}"/>
+            <parsley:Inject property="resourceService" type="{ResourceService}"/>
             <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}"/-->
         </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
@@ -25,10 +26,11 @@
     <![CDATA[
         import org.dukecon.events.ConferenceDataChangedEvent;
         import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.ResourceService;
         import org.dukecon.services.SettingsService;
 
-        [Inject]
         public var conferenceService:ConferenceService;
+        public var resourceService:ResourceService;
 
         /*[Inject]
         public var localUserPreferencesController:LocalUserPreferencesController;*/
@@ -56,6 +58,7 @@
 
         protected function onRefreshClicked(event:MouseEvent):void {
             conferenceService.update();
+            resourceService.update();
         }
 
         protected function onLogoClicked(event:MouseEvent):void {

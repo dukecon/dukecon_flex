@@ -11,6 +11,9 @@
         <services:ServerConnection baseUrl="{baseUrl}"/>
         <!-- Service for accessing conference data -->
         <services:ConferenceService/>
+        <!-- Service for accessing image resources -->
+        <services:ResourceService/>
+
         <services:EventService/>
         <services:LanguageService/>
         <services:LocationService/>
