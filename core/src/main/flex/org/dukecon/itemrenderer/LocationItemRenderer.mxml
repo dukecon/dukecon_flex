@@ -7,7 +7,7 @@
                 click="onItemClick(event)">
 
     <fx:Declarations>
-        <parsley:FastInject property="locationService" type="{LocationService}" />
+      <parsley:FastInject property="resourceService" type="{ResourceService}" />
     </fx:Declarations>
 
     <fx:Script>
@@ -15,18 +15,18 @@
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Location;
         import org.dukecon.services.LocationService;
+        import org.dukecon.services.ResourceService;
         import org.dukecon.utils.I18nHelper;
 
         [Bindable]
-        protected var locationIcon:Class;
+        protected var locationIcon:ByteArray;
 
         [Bindable]
         protected var location:Location;
         [Bindable]
         protected var locationName:String;
 
-        [Inject]
-        public var locationService:LocationService;
+        public var resourceService:ResourceService;
 
         [Bindable("dataChange")]
         override public function get data():Object {
@@ -40,8 +40,8 @@
         }
 
         protected function update():void {
-            if (location && locationService) {
-                locationIcon = locationService.getIconForLocation(location.id);
+            if (location && resourceService) {
+                locationIcon = resourceService.getIconForLocation(location.id);
                 locationName = I18nHelper.getName(location.names, resourceManager.localeChain[0]);
             } else {
                 locationIcon = null;
@@ -77,7 +77,7 @@
         </s:stroke>
     </s:Rect>
 
-    <comp:VectorImage source="{locationIcon}" top="10" left="10" width="110" bottom="10"/>
+    <s:Image source="{locationIcon}" top="10" left="10" width="110" bottom="10"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
         <s:Label id="itemLabel" text="{locationName}" styleName="listTitle"/>

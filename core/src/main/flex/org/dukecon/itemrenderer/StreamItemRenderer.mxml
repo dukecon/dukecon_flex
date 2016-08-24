@@ -7,26 +7,26 @@
                 click="onItemClick(event)">
 
     <fx:Declarations>
-        <parsley:FastInject property="streamService" type="{StreamService}" />
+        <parsley:FastInject property="resourceService" type="{ResourceService}" />
     </fx:Declarations>
 
     <fx:Script>
     <![CDATA[
       import org.dukecon.events.ListEvent;
       import org.dukecon.model.Track;
+      import org.dukecon.services.ResourceService;
       import org.dukecon.services.StreamService;
       import org.dukecon.utils.I18nHelper;
 
       [Bindable]
-      protected var streamIcon:Class;
+      protected var streamIcon:ByteArray;
       [Bindable]
       protected var streamName:String;
 
       [Bindable]
       protected var stream:Track;
 
-      [Inject]
-      public var streamService:StreamService;
+      public var resourceService:ResourceService;
 
       [Bindable("dataChange")]
       override public function get data():Object {
@@ -40,8 +40,8 @@
       }
 
       protected function update():void {
-        if (stream && streamService) {
-          streamIcon = streamService.getIconForStream(stream.id);
+        if (stream && resourceService) {
+          streamIcon = resourceService.getIconForStream(stream.id);
           streamName = I18nHelper.getName(stream.names, resourceManager.localeChain[0]);
         } else {
           streamIcon = null;
@@ -65,7 +65,7 @@
         </s:stroke>
     </s:Rect>
 
-    <comp:VectorImage source="{streamIcon}" top="8" left="8" width="120" bottom="8"/>
+    <s:Image source="{streamIcon}" top="8" left="8" width="120" bottom="8"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
         <s:Label id="itemLabel" text="{streamName}" styleName="listTitle"/>
