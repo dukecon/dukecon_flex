@@ -6,6 +6,7 @@
         xmlns:s="library://ns.adobe.com/flex/spark"
         xmlns:parsley="http://www.spicefactory.org/parsley"
         title="{formattedDate}"
+        destructionPolicy="never"
         creationComplete="onCreationComplete(event)">
 
     <fx:Declarations>
