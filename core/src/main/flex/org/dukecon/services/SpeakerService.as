@@ -20,13 +20,5 @@ public class SpeakerService {
         return em.findAll(Speaker);
     }
 
-    public function getSpeaker(id:String):Speaker {
-        return null;
-    }
-
-    public function getIconForSpeaker(id:String):Class {
-        return null;
-    }
-
 }
 }

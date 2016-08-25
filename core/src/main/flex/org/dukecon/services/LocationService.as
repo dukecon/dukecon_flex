@@ -33,17 +33,5 @@ public class LocationService {
         return res;
     }
 
-    public function getIconForLocation(id:String):Class {
-        return null;
-    }
-
-    public function getMapForLocation(id:String):Class {
-        return null;
-    }
-
-    public function getLocationName(id:String, locale:String):String {
-        return null;
-    }
-
 }
 }

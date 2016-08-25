@@ -14,7 +14,6 @@
     <![CDATA[
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Location;
-        import org.dukecon.services.LocationService;
         import org.dukecon.services.ResourceService;
         import org.dukecon.utils.I18nHelper;
 

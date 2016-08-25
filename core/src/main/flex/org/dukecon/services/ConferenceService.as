@@ -19,6 +19,7 @@ import nz.co.codec.flexorm.EntityManager;
 
 import org.dukecon.events.ConferenceDataChangedEvent;
 import org.dukecon.model.Conference;
+import org.dukecon.services.SettingsService;
 import org.dukecon.utils.SqlHelper;
 
 [Event(name="conferenceDataChanged", type="org.dukecon.events.ConferenceDataChangedEvent")]
@@ -53,8 +54,9 @@ public class ConferenceService extends EventDispatcher {
         service.list();
     }
 
-    public function getDaysForConference(conference:Conference):ArrayCollection {
-        var result:Object = em.query("SELECT distinct(strftime('%Y-%m-%d', start)) AS day FROM events ORDER BY day ASC");
+    public function get days():ArrayCollection {
+        var result:Object = em.query("SELECT distinct(strftime('%Y-%m-%d', start)) AS day FROM events " +
+                "WHERE conference_id = :0 ORDER BY day ASC", SettingsService.selectedConference.id);
         var days:ArrayCollection = new ArrayCollection();
         for each(var resultItem:Object in result) {
             days.addItem(resultItem["day"]);

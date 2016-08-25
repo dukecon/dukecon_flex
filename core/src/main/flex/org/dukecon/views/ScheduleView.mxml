@@ -24,21 +24,22 @@
         import org.dukecon.events.ConferenceDataChangedEvent;
         import org.dukecon.events.ListEvent;
         import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.SettingsService;
+        import org.spicefactory.lib.collection.Set;
 
         [Bindable]
         protected var listData:ArrayCollection;
 
         public var conferenceService:ConferenceService;
 
-        [Init]
         public function init():void {
-            listData = conferenceService.getDaysForConference(null);
+            listData = conferenceService.days;
             list.addEventListener(ListEvent.ITEM_SELECTED, onDaySelected);
         }
 
         [MessageHandler]
         public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
-            listData = conferenceService.getDaysForConference(null);
+            listData = conferenceService.days;
         }
 
         protected function onDaySelected(event:ListEvent):void {

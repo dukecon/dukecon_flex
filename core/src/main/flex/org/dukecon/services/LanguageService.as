@@ -20,9 +20,5 @@ public class LanguageService {
         return em.findAll(Language);
     }
 
-    public function getIconForLanguage(id:String):Class {
-        return null;
-    }
-
 }
 }

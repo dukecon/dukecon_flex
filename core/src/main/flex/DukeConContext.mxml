@@ -13,9 +13,9 @@
         <services:ConferenceService/>
         <!-- Service for accessing image resources -->
         <services:ResourceService/>
+        <services:LanguageService/>
 
         <services:EventService/>
-        <services:LanguageService/>
         <services:LocationService/>
         <services:SpeakerService/>
         <services:StreamService/>

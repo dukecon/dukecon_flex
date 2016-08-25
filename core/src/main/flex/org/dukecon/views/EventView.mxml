@@ -4,7 +4,6 @@
 -->
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
-        xmlns:comp="org.dukecon.components.*"
         xmlns:parsley="http://www.spicefactory.org/parsley">
 
     <fx:Metadata>
@@ -12,12 +11,9 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:FastInject>
+        <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="conferenceService" type="{ConferenceService}" />
-            <parsley:Inject property="speakerService" type="{SpeakerService}" />
-            <parsley:Inject property="streamService" type="{StreamService}" />
-            <parsley:Inject property="languageService" type="{LanguageService}" />
-            <parsley:Inject property="locationService" type="{LocationService}" />
+            <parsley:Inject property="resourceService" type="{ResourceService}" />
             <parsley:Inject property="ratingService" type="{RatingService}" />
             <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
             <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" /-->
@@ -38,11 +34,9 @@
         import org.dukecon.model.Speaker;
         import org.dukecon.model.user.UserPreference;
         import org.dukecon.services.ConferenceService;
-        import org.dukecon.services.LanguageService;
-        import org.dukecon.services.LocationService;
         import org.dukecon.services.RatingService;
-        import org.dukecon.services.SpeakerService;
-        import org.dukecon.services.StreamService;
+        import org.dukecon.services.ResourceService;
+        import org.dukecon.utils.I18nHelper;
 
         [Bindable]
         protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
@@ -60,12 +54,10 @@
 
         [Bindable]
         protected var event:org.dukecon.model.Event;
+        protected var _initialized:Boolean = false;
 
         [Bindable]
         protected var selectedIcon:Class;
-
-        [Bindable]
-        protected var streamIcon:Class;
 
         [Bindable]
         protected var speakers:String;
@@ -77,10 +69,7 @@
         protected var streamName:String;
 
         public var conferenceService:ConferenceService;
-        public var speakerService:SpeakerService;
-        public var locationService:LocationService;
-        public var streamService:StreamService;
-        public var languageService:LanguageService;
+        public var resourceService:ResourceService;
         public var ratingService:RatingService;
 
 
@@ -101,18 +90,32 @@
             update();
         }
 
-        override protected function commitProperties():void {
-            super.commitProperties();
+        protected function init():void {
+            _initialized = true;
             update();
         }
 
         protected function update():void {
-            if (event && speakerService && streamService && languageService) {
+            if(!_initialized) {
+                return;
+            }
+
+            if (event && resourceService) {
                 updateSelectionIcon();
                 if (event) {
-                    streamIcon = streamService.getIconForStream(event.track.id);
-                    languageIcon.source = languageService.getIconForLanguage(event.language.id);
-                    locationMap.source = locationService.getMapForLocation(event.location.id);
+                    if(event.track) {
+                        streamIcon.source = resourceService.getIconForStream(event.track.id);
+                    } else {
+                        streamIcon.source = null;
+                    }
+
+                    if(event.language) {
+                        languageIcon.source = resourceService.getIconForLanguage(event.language.id);
+                        locationMap.source = resourceService.getMapForLocation(event.location.id);
+                    } else {
+                        languageIcon.source = null;
+                        locationMap.source = null;
+                    }
                 } else {
                     streamIcon = null;
                     languageIcon.source = null;
@@ -132,9 +135,9 @@
                 }
                 title = startTimeFormatter.format(event.start) + " - " + endTimeFormatter.format(event.end);
                 ratingGroup.selectedValue = ratingService.getRating(event);
-                locationName = locationService.getLocationName(event.location.id, resourceManager.localeChain[0]);
-                if (event.track.id) {
-                    streamName = streamService.getStreamName(event.track.id, resourceManager.localeChain[0]);
+                locationName = I18nHelper.getName(event.location.names, resourceManager.localeChain[0]);
+                if (event.track && event.track.id) {
+                    streamName = I18nHelper.getName(event.track.names, resourceManager.localeChain[0]);
                 } else {
                     streamName = null;
                 }
@@ -206,7 +209,7 @@
                     </s:stroke>
                 </s:Rect>
 
-                <comp:VectorImage source="{streamIcon}" top="22" right="100" width="64" height="64"/>
+                <s:Image id="streamIcon" top="22" right="100" width="64" height="64"/>
 
                 <s:Image source="{selectedIcon}" top="20" right="20" click="toggleSelection(event)"/>
 

@@ -4,7 +4,6 @@
 -->
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
-        xmlns:comp="org.dukecon.components.*"
         xmlns:parsley="http://www.spicefactory.org/parsley"
         title="{resourceManager.getString('dukecon', 'speaker.title')}"
         creationComplete="onCreationComplete(event)">
@@ -14,34 +13,27 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:FastInject>
+        <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="eventService" type="{EventService}" />
-            <parsley:Inject property="speakerService" type="{SpeakerService}" />
+            <parsley:Inject property="resourceService" type="{ResourceService}" />
         </parsley:FastInject>
     </fx:Declarations>
 
     <fx:Script>
         <![CDATA[
-        import mx.collections.ArrayCollection;
         import mx.core.UIComponent;
         import mx.events.FlexEvent;
 
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Speaker;
         import org.dukecon.services.EventService;
-        import org.dukecon.services.SpeakerService;
+        import org.dukecon.services.ResourceService;
 
-        [Bindable]
         protected var speaker:Speaker;
-
-        [Bindable]
-        protected var speakerPortrait:Class;
-
-        [Bindable]
-        protected var events:ArrayCollection;
+        protected var _initialized:Boolean = false;
 
         public var eventService:EventService;
-        public var speakerService:SpeakerService;
+        public var resourceService:ResourceService;
 
         protected function onCreationComplete(event:FlexEvent):void {
             talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
@@ -58,18 +50,37 @@
             update();
         }
 
-        override protected function commitProperties():void {
-            super.commitProperties();
+        protected function init():void {
+            _initialized = true;
             update();
         }
 
         protected function update():void {
-            if(speaker && speakerService && eventService) {
-                speakerPortrait = speakerService.getIconForSpeaker(speaker.name);
-                events = eventService.getEventsForSpeaker(speaker);
+            if(!_initialized) {
+                return;
+            }
+
+            if(speaker && resourceService && eventService) {
+                talkList.dataProvider = eventService.getEventsForSpeaker(speaker);
+                speakerImage.source = resourceService.getIconForSpeaker(speaker.name);
+                speakerNameLabel.text = speaker.name;
+                speakerCompanyLabel.text = speaker.company;
+                speakerBioLabel.text = speaker.bio;
+                speakerEmailLabel.text = speaker.email;
+                speakerWebsiteLabel.text = speaker.website;
+                speakerTwitter.text = speaker.twitter;
+                speakerGplusLabel.text = speaker.gplus;
             } else {
-                speakerPortrait = null;
-                events = null;
+                talkList.dataProvider = null;
+                speakerImage.source = null;
+                speakerNameLabel.text = null;
+                speakerCompanyLabel.text = null;
+                speakerBioLabel.text = null;
+                speakerEmailLabel.text = null;
+                speakerWebsiteLabel.text = null;
+                speakerTwitter.text = null;
+                speakerGplusLabel.text = null;
+                talkList.dataProvider = null;
             }
         }
 
@@ -93,8 +104,8 @@
                     </s:fill>
                 </s:Rect>
 
-                <s:Label text="{speaker.name}" top="22" left="20" width="440" styleName="title"/>
-                <s:Label text="{speaker.company}" top="80" left="20" width="440" styleName="subTitle"/>
+                <s:Label id="speakerNameLabel" top="22" left="20" width="440" styleName="title"/>
+                <s:Label id="speakerCompanyLabel" top="80" left="20" width="440" styleName="subTitle"/>
 
                 <s:Rect top="20" right="20" width="120" height="120">
                     <s:fill>
@@ -105,26 +116,25 @@
                     </s:stroke>
                 </s:Rect>
 
-                <comp:VectorImage source="{speakerPortrait}" top="22" right="22" width="116" height="116"/>
+                <s:Image id="speakerImage" top="22" right="22" width="116" height="116"/>
             </s:Group>
-            <s:Label text="{speaker.bio}" styleName="content" width="{UIComponent(parent).width - 20}"/>
+            <s:Label id="speakerBioLabel" styleName="content" width="{UIComponent(parent).width - 20}"/>
             <s:Form width="100%">
                 <s:FormItem label="Email">
-                    <s:Label text="{speaker.email}"/>
+                    <s:Label id="speakerEmailLabel"/>
                 </s:FormItem>
                 <s:FormItem label="Website">
-                    <s:Label text="{speaker.website}"/>
+                    <s:Label id="speakerWebsiteLabel"/>
                 </s:FormItem>
                 <s:FormItem label="Twitter">
-                    <s:Label text="{speaker.twitter}"/>
+                    <s:Label id="speakerTwitter"/>
                 </s:FormItem>
                 <s:FormItem label="Google+">
-                    <s:Label text="{speaker.gplus}"/>
+                    <s:Label id="speakerGplusLabel"/>
                 </s:FormItem>
             </s:Form>
             <s:List id="talkList" width="100%"
-                    itemRenderer="org.dukecon.itemrenderer.EventItemRenderer"
-                    dataProvider="{events}"/>
+                    itemRenderer="org.dukecon.itemrenderer.EventItemRenderer"/>
         </s:VGroup>
     </s:Scroller>
 

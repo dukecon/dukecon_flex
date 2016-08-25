@@ -4,7 +4,6 @@
 -->
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
         xmlns:s="library://ns.adobe.com/flex/spark"
-        xmlns:comp="org.dukecon.components.*"
         xmlns:parsley="http://www.spicefactory.org/parsley"
         title="{resourceManager.getString('dukecon', 'location.title')}"
         creationComplete="onCreationComplete(event)">
@@ -14,36 +13,27 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:FastInject>
+        <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="eventService" type="{EventService}" />
-            <parsley:Inject property="locationService" type="{LocationService}" />
+            <parsley:Inject property="resourceService" type="{ResourceService}" />
         </parsley:FastInject>
     </fx:Declarations>
 
     <fx:Script>
         <![CDATA[
-        import mx.collections.ArrayCollection;
         import mx.events.FlexEvent;
 
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Location;
         import org.dukecon.services.EventService;
-        import org.dukecon.services.LocationService;
+        import org.dukecon.services.ResourceService;
         import org.dukecon.utils.I18nHelper;
 
-        [Bindable]
         protected var location:Location;
-
-        [Bindable]
-        protected var locationIcon:Class;
-        [Bindable]
-        protected var locationName:String;
-
-        [Bindable]
-        protected var talks:ArrayCollection;
+        protected var _initialized:Boolean = false;
 
         public var eventService:EventService;
-        public var locationService:LocationService;
+        public var resourceService:ResourceService;
 
         protected function onCreationComplete(event:FlexEvent):void {
             talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
@@ -60,20 +50,24 @@
             update();
         }
 
-        override protected function commitProperties():void {
-            super.commitProperties();
+        protected function init():void {
+            _initialized = true;
             update();
         }
 
         protected function update():void {
-            if(location && locationService && eventService) {
-                locationName = I18nHelper.getName(location.names, resourceManager.localeChain[0]);
-                locationIcon = locationService.getIconForLocation(location.id);
-                talks = eventService.getEventsForLocation(location);
+            if(!_initialized) {
+                return;
+            }
+
+            if(location && resourceService && eventService) {
+                locationName.text = I18nHelper.getName(location.names, resourceManager.localeChain[0]);
+                locationIcon.source = resourceService.getIconForLocation(location.id);
+                talkList.dataProvider = eventService.getEventsForLocation(location);
             } else {
-                locationName = null;
-                locationIcon = null;
-                talks = null;
+                locationName.text = null;
+                locationIcon.source = null;
+                talkList.dataProvider = null;
             }
         }
 
@@ -97,7 +91,7 @@
                     </s:fill>
                 </s:Rect>
 
-                <s:Label text="{locationName}" top="22" left="20" width="440" styleName="title"/>
+                <s:Label id="locationName" top="22" left="20" width="440" styleName="title"/>
 
                 <s:Rect top="20" right="20" width="120" height="120">
                     <s:fill>
@@ -108,11 +102,10 @@
                     </s:stroke>
                 </s:Rect>
 
-                <comp:VectorImage source="{locationIcon}" top="22" right="22" width="116" height="116"/>
+                <s:Image id="locationIcon" top="22" right="22" width="116" height="116"/>
             </s:Group>
             <s:List id="talkList" width="100%" height="100%"
-                    itemRenderer="org.dukecon.itemrenderer.EventItemRenderer"
-                    dataProvider="{talks}"/>
+                    itemRenderer="org.dukecon.itemrenderer.EventItemRenderer"/>
         </s:VGroup>
     </s:Scroller>
 

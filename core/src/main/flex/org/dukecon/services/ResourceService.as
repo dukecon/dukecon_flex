@@ -44,13 +44,21 @@ public class ResourceService {
 
     public function update():void {
         log.info("Updating conferences");
-        service.getResourcesForConference(null);
+        service.getResourcesForConference(SettingsService.selectedConference.id);
     }
 
     public function getIconForLocation(locationId:String):ByteArray {
         if(resourcesSharedObject.data["conferenceResources"] &&
                 resourcesSharedObject.data.conferenceResources["locations"]) {
             return resourcesSharedObject.data.conferenceResources.locations[locationId];
+        }
+        return null;
+    }
+
+    public function getMapForLocation(locationId:String):ByteArray {
+        if(resourcesSharedObject.data["conferenceResources"] &&
+                resourcesSharedObject.data.conferenceResources["locationMaps"]) {
+            return resourcesSharedObject.data.conferenceResources.locationMaps[locationId];
         }
         return null;
     }
@@ -67,6 +75,14 @@ public class ResourceService {
         if(resourcesSharedObject.data["conferenceResources"] &&
                 resourcesSharedObject.data.conferenceResources["languages"]) {
             return resourcesSharedObject.data.conferenceResources.languages[languageId];
+        }
+        return null;
+    }
+
+    public function getIconForSpeaker(speakerId:String):ByteArray {
+        if(resourcesSharedObject.data["conferenceResources"] &&
+                resourcesSharedObject.data.conferenceResources["speakers"]) {
+            return resourcesSharedObject.data.conferenceResources.speakers[speakerId];
         }
         return null;
     }

@@ -22,11 +22,14 @@
 
         import org.dukecon.services.SettingsService;
         import org.dukecon.views.SettingsView;
+        import org.spicefactory.parsley.core.context.Context;
         import org.spicefactory.parsley.flex.FlexContextBuilder;
+
+        private var installedLanguages:Array;
 
         protected function onPreInitialize(event:FlexEvent):void {
             initLogging();
-            FlexContextBuilder.build(DukeConContext, this);
+            var context:Context = FlexContextBuilder.build(DukeConContext, this);
 
             // Prepare the entity manager.
             var dbFile:File = File.userDirectory.resolvePath("dukecon.db");
@@ -36,6 +39,12 @@
             var em:EntityManager = EntityManager.instance;
             //em.debugLevel = 1;
             em.sqlConnection = sqlConnection;
+
+            // Save the initial list of installed resources.
+            var settingsService:SettingsService = SettingsService(context.getObjectByType(SettingsService));
+            if (settingsService) {
+                settingsService.installedLanguages = resourceManager.localeChain;
+            }
         }
 
         private static function initLogging():void {
@@ -55,13 +64,13 @@
             Log.addTarget(logTarget);
         }
 
-        override protected function commitProperties():void {
-            super.commitProperties();
+        /*override protected function commitProperties():void {
+         super.commitProperties();
 
-            // Get the selected language from the settings.
-            var selectedLanguage:String = SettingsService.selectedLanguage;
-            resourceManager.localeChain = [selectedLanguage];
-        }
+         // Get the selected language from the settings.
+         var selectedLanguage:String = SettingsService.selectedLanguage.code;
+         resourceManager.localeChain = [selectedLanguage];
+         }*/
 
         protected function onOpenSettingsClicked(event:MouseEvent):void {
             tabbedNavigator.activeView.navigator.pushView(SettingsView);

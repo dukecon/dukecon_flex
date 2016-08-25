@@ -20,13 +20,5 @@ public class StreamService {
         return em.findAll(Track);
     }
 
-    public function getIconForStream(id:String):Class {
-        return null;
-    }
-
-    public function getStreamName(id:String, locale:String):String {
-        return null;
-    }
-
 }
 }

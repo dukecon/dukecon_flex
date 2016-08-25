@@ -1,30 +1,23 @@
 <?xml version="1.0"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
-                xmlns:comp="org.dukecon.components.*"
                 xmlns:parsley="http://www.spicefactory.org/parsley"
                 height="136"
                 click="onItemClick(event)">
 
     <fx:Declarations>
-        <parsley:FastInject property="streamService" type="{StreamService}" />
+        <parsley:FastInject property="resourceService" type="{ResourceService}" />
     </fx:Declarations>
 
     <fx:Script>
     <![CDATA[
       import org.dukecon.events.ListEvent;
       import org.dukecon.model.Event;
-      import org.dukecon.services.StreamService;
+      import org.dukecon.services.ResourceService;
 
-      [Bindable]
       protected var event:org.dukecon.model.Event;
 
-      [Bindable]
-      protected var streamIcon:Class;
-
-      [Inject]
-      public var streamService:StreamService;
-
+      public var resourceService:ResourceService;
 
       [Bindable("dataChange")]
       override public function get data():Object {
@@ -38,18 +31,21 @@
       }
 
       protected function update():void {
-        if (event && streamService) {
-          streamIcon = streamService.getIconForStream(event.track.id);
+        if (event && resourceService) {
+          streamIcon.source = resourceService.getIconForStream(event.track.id);
+          titleLabel.text = event.title;
         } else {
-          streamIcon = null;
+          streamIcon.source = null;
+          titleLabel.text = null;
         }
-        itemLabel.width = this.parent.parent.width - 168;
+        titleLabel.width = this.parent.parent.width - 168;
         invalidateDisplayList();
       }
 
       protected function onItemClick(evnt:MouseEvent):void {
         dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
       }
+
       ]]>
   </fx:Script>
 
@@ -71,10 +67,10 @@
         </s:stroke>
     </s:Rect>
 
-    <s:Image source="{streamIcon}" top="10" left="10" width="110" bottom="10"/>
+    <s:Image id="streamIcon" top="10" left="10" width="110" bottom="10"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="itemLabel" text="{event.title}" styleName="talkListTitle"/>
+        <s:Label id="titleLabel" styleName="talkListTitle"/>
     </s:HGroup>
 
 </s:ItemRenderer>

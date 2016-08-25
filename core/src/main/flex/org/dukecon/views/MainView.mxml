@@ -18,7 +18,7 @@
             <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}"/-->
         </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
-                             locale="{SettingsService.selectedLanguage}"
+                             locale="{SettingsService.selectedLanguage.code}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
     </fx:Declarations>
 

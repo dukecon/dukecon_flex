@@ -1,29 +1,25 @@
 <?xml version="1.0"?>
 <s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
                 xmlns:s="library://ns.adobe.com/flex/spark"
-                xmlns:comp="org.dukecon.components.*"
                 xmlns:parsley="http://www.spicefactory.org/parsley"
                 height="136"
                 click="onItemClick(event)">
 
     <fx:Declarations>
-        <parsley:FastInject property="speakerService" type="{SpeakerService}" />
+        <parsley:FastInject property="resourceService" type="{ResourceService}" />
     </fx:Declarations>
 
     <fx:Script>
     <![CDATA[
         import org.dukecon.events.ListEvent;
         import org.dukecon.model.Speaker;
-        import org.dukecon.services.SpeakerService;
+        import org.dukecon.services.ResourceService;
 
         [Bindable]
         protected var speaker:Speaker;
 
-        [Bindable]
-        protected var speakerIcon:Class;
-
         [Inject]
-        public var speakerService:SpeakerService;
+        public var resourceService:ResourceService;
 
         [Bindable("dataChange")]
         override public function get data():Object {
@@ -37,12 +33,14 @@
         }
 
         protected function update():void {
-            if (speaker && speakerService) {
-                speakerIcon = speakerService.getIconForSpeaker(speaker.name);
+            if (speaker && resourceService) {
+              speakerIcon.source = resourceService.getIconForSpeaker(speaker.id);
+              speakerLabel.text = speaker.name;
             } else {
-                speakerIcon = null;
+              speakerIcon.source = null;
+              speakerLabel.text = null;
             }
-            itemLabel.width = this.parent.parent.width - 168;
+            speakerLabel.width = this.parent.parent.width - 168;
 
             invalidateDisplayList();
         }
@@ -71,10 +69,10 @@
         </s:stroke>
     </s:Rect>
 
-    <s:Image source="{speakerIcon}" top="10" left="10" width="110" bottom="10"/>
+    <s:Image id="speakerIcon" top="10" left="10" width="110" bottom="10"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="itemLabel" text="{speaker.name}" styleName="listTitle"/>
+        <s:Label id="speakerLabel" styleName="listTitle"/>
     </s:HGroup>
 
 </s:ItemRenderer>

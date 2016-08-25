@@ -9,7 +9,7 @@
         creationComplete="onCreationComplete(event)">
 
     <fx:Declarations>
-        <parsley:FastInject>
+        <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="eventService" type="{EventService}" />
             <parsley:Inject property="resourceService" type="{ResourceService}" />
         </parsley:FastInject>
@@ -50,6 +50,7 @@
         protected var dayStart:Number;
         protected var dayEnd:Number;
         protected var locations:ArrayCollection;
+        protected var _initialized:Boolean = false;
 
         public var eventService:EventService;
         public var resourceService:ResourceService;
@@ -64,16 +65,25 @@
         }
 
         override public function set data(value:Object):void {
+            if(value == data) {
+                return;
+            }
+
             super.data = value;
             dateString = String(value);
+            update();
         }
 
-        override protected function commitProperties():void {
-            super.commitProperties();
+        protected function init():void {
+            _initialized = true;
             update();
         }
 
         protected function update():void {
+            if(!_initialized) {
+                return;
+            }
+
             var event:org.dukecon.model.Event;
 
             // Only update if we need to.
