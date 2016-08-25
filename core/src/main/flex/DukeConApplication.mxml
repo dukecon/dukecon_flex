@@ -44,6 +44,7 @@
             var settingsService:SettingsService = SettingsService(context.getObjectByType(SettingsService));
             if (settingsService) {
                 settingsService.installedLanguages = resourceManager.localeChain;
+                settingsService.loadSettings();
             }
         }
 

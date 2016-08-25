@@ -44,11 +44,6 @@ public class SettingsService {
         em = EntityManager.instance;
     }
 
-    [Init]
-    public function init():void {
-        loadSettings();
-    }
-
     public function set installedLanguages(installedLanguages:Array):void {
         _installedLanguages = installedLanguages;
     }
@@ -79,11 +74,10 @@ public class SettingsService {
         return _installedLanguages[0];
     }
 
-    private function loadSettings():void {
+    public function loadSettings():void {
         // TODO: Load the settings and initialize the static properties.
-/*        var settingss:ArrayCollection = em.findAll(Settings);
-        settings = settingss[0];
-        trace(settingss);*/
+        settings = em.load(Settings, null) as Settings;
+        trace(settings);
     }
 
     private function saveSettings():void {
