@@ -23,6 +23,7 @@ import org.dukecon.model.Event;
 import org.dukecon.utils.SqlHelper;
 
 [Event(name="conferenceDataChanged", type="org.dukecon.events.ConferenceDataChangedEvent")]
+[ManagedEvents("conferenceDataChanged")]
 public class ConferenceService extends EventDispatcher {
 
     protected static var log:ILogger = Log.getLogger(getQualifiedClassName(ConferenceService).replace("::"));
@@ -55,28 +56,34 @@ public class ConferenceService extends EventDispatcher {
     }
 
     public function get conferences():ArrayCollection {
-        var result:Object = em.query("SELECT DISTINCT conf.id, conf.name, conf.url, conf.icon, strftime('%Y-%m-%d', evnt.start) AS start FROM conferences AS conf LEFT JOIN events AS evnt ON evnt.conference_id = conf.id");
-        if(result is Array) {
-            var rows:Array = result as Array;
-            var conferenceIndex:Object = {};
-            var conferences:ArrayCollection = new ArrayCollection();
-            for each(var row:Object in rows) {
-                if(!conferenceIndex[row.id]) {
-                    var conference:Conference = new Conference();
-                    conference.id = row.id;
-                    conference.name = row.name;
-                    conference.icon = row.icon;
-                    conference.url = row.url;
-                    conference.events = new ArrayCollection();
-                    conferences.addItem(conference);
-                    conferenceIndex[row.id] = conference;
+        try {
+            var result:Object = em.query("SELECT DISTINCT conf.id, conf.name, conf.url, conf.icon, strftime('%Y-%m-%d', evnt.start) AS start FROM conferences AS conf LEFT JOIN events AS evnt ON evnt.conference_id = conf.id");
+            if(result is Array) {
+                var rows:Array = result as Array;
+                var conferenceIndex:Object = {};
+                var conferences:ArrayCollection = new ArrayCollection();
+                for each(var row:Object in rows) {
+                    if(!conferenceIndex[row.id]) {
+                        var conference:Conference = new Conference();
+                        conference.id = row.id;
+                        conference.name = row.name;
+                        conference.icon = row.icon;
+                        conference.url = row.url;
+                        conference.events = new ArrayCollection();
+                        conferences.addItem(conference);
+                        conferenceIndex[row.id] = conference;
+                    }
+                    var event:Event = new Event();
+                    var matches:Array = row.start.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+                    event.start = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
+                    Conference(conferenceIndex[row.id]).events.addItem(event);
                 }
-                var event:Event = new Event();
-                var matches:Array = row.start.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
-                event.start = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
-                Conference(conferenceIndex[row.id]).events.addItem(event);
+                return conferences;
             }
-            return conferences;
+        } catch(error:SQLError) {
+            if(error.details == "no such table: 'conferences'") {
+                update();
+            }
         }
         return null;
     }

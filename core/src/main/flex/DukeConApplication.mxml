@@ -39,7 +39,7 @@
             var context:Context = FlexContextBuilder.build(DukeConContext, this);
 
             // Prepare the entity manager.
-            var dbFile:File = File.userDirectory.resolvePath("dukecon.db");
+            var dbFile:File = File.applicationStorageDirectory.resolvePath("dukecon.db");
             var sqlConnection:SQLConnection = new SQLConnection();
             sqlConnection.open(dbFile);
 

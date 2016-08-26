@@ -24,7 +24,6 @@
 
         import org.dukecon.events.ConferenceDataChangedEvent;
         import org.dukecon.events.ListEvent;
-        import org.dukecon.events.SettingsChangedEvent;
         import org.dukecon.services.ConferenceService;
         import org.dukecon.services.SettingsService;
         import org.dukecon.model.Conference;
@@ -35,13 +34,12 @@
         public var conferenceService:ConferenceService;
         public var settingsService:SettingsService;
 
-        [Init]
         public function init():void {
+            conferenceService.addEventListener(ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, onConferenceDataChanged);
             listData = conferenceService.conferences;
-            list.addEventListener(ListEvent.ITEM_SELECTED, onItemSelected)
+            list.addEventListener(ListEvent.ITEM_SELECTED, onItemSelected);
         }
 
-        [MessageHandler]
         public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
             listData = conferenceService.conferences;
         }
