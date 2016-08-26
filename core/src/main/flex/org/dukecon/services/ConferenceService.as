@@ -72,8 +72,8 @@ public class ConferenceService extends EventDispatcher {
                     conferenceIndex[row.id] = conference;
                 }
                 var event:Event = new Event();
-                // We are using the title as a utility to save the date.
-                event.title = row.start;
+                var matches:Array = row.start.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+                event.start = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
                 Conference(conferenceIndex[row.id]).events.addItem(event);
             }
             return conferences;
