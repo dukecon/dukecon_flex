@@ -12,7 +12,10 @@
     </fx:Metadata>
 
     <fx:Declarations>
-        <parsley:FastInject injectionComplete="init();" property="speakerService" type="{SpeakerService}" />
+        <parsley:FastInject injectionComplete="init();">
+            <parsley:Inject property="speakerService" type="{SpeakerService}" />
+            <parsley:Inject property="settingsService" type="{SettingsService}" />
+        </parsley:FastInject>
     </fx:Declarations>
 
     <fx:Script>
@@ -21,15 +24,15 @@
 
         import org.dukecon.events.ConferenceDataChangedEvent;
         import org.dukecon.events.ListEvent;
+        import org.dukecon.services.SettingsService;
         import org.dukecon.services.SpeakerService;
 
         [Bindable]
         protected var listData:ArrayCollection;
 
-        [Inject]
         public var speakerService:SpeakerService;
+        public var settingsService:SettingsService;
 
-        [Init]
         public function init():void {
             listData = speakerService.speakers;
             list.addEventListener(ListEvent.ITEM_SELECTED, onItemSelected)
@@ -45,6 +48,10 @@
         }
         ]]>
     </fx:Script>
+
+    <s:navigationContent>
+        <s:Button label="&lt;" click="{settingsService.selectedConference = null}"/>
+    </s:navigationContent>
 
     <s:List id="list" width="100%" height="100%"
             itemRenderer="org.dukecon.itemrenderer.SpeakerItemRenderer"

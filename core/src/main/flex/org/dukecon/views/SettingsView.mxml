@@ -219,10 +219,6 @@
             PopUpManager.centerPopUp(yesNoDialog);
         }
 
-        protected function onLeaveConferenceClicked(event:MouseEvent):void {
-            settingsService.selectedConference = null;
-        }
-
         protected function onUnbindConfirmDialogClosed(event:PopUpEvent):void {
             if (event.data == YesNoDialog.YES) {
 //                remoteUserPreferencesController.logout();
@@ -232,10 +228,6 @@
     </fx:Script>
 
     <s:Form width="100%">
-        <s:FormItem id="leaveConference">
-            <s:Button label="{resourceManager.getString('dukecon', 'settings.leave-conference')}"
-                      click="onLeaveConferenceClicked(event)" width="100%"/>
-        </s:FormItem>
         <s:FormItem id="languageSelection"
                     label="{resourceManager.getString('dukecon', 'settings.language')}:"
                     width="300"/>

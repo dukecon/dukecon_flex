@@ -15,6 +15,7 @@
         <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="conferenceService" type="{ConferenceService}"/>
             <parsley:Inject property="resourceService" type="{ResourceService}"/>
+            <parsley:Inject property="settingsService" type="{SettingsService}" />
         </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
                              locale="{SettingsService.selectedLanguage.code}"
@@ -30,6 +31,7 @@
 
         public var conferenceService:ConferenceService;
         public var resourceService:ResourceService;
+        public var settingsService:SettingsService;
 
         protected function init():void {
             conferenceService.addEventListener(
@@ -64,6 +66,10 @@
 
         ]]>
   </fx:Script>
+
+    <s:navigationContent>
+        <s:Button label="&lt;" click="{settingsService.selectedConference = null}"/>
+    </s:navigationContent>
 
     <s:VGroup id="content" width="100%" height="100%" horizontalAlign="center" padding="20">
         <s:Image source="@Embed('/logo_javaland.png')" scaleMode="letterbox" click="onLogoClicked(event)"/>
