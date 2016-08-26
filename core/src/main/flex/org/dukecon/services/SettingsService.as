@@ -2,19 +2,24 @@
  * Created by christoferdutz on 02.08.16.
  */
 package org.dukecon.services {
+
+import flash.events.EventDispatcher;
+
 import mx.resources.ResourceManager;
 
 import nz.co.codec.flexorm.EntityManager;
 
-import mx.collections.ArrayCollection;
+import org.dukecon.events.SettingsChangedEvent;
 
 import org.dukecon.model.Conference;
 import org.dukecon.model.Language;
 import org.dukecon.model.Settings;
 
-public class SettingsService {
+[Event(name="settingsChanged", type="org.dukecon.events.SettingsChangedEvent")]
+[ManagedEvents("settingsChanged")]
+public class SettingsService extends EventDispatcher {
 
-    private static var _selectedConference:Conference;
+    private static var _selectedConferenceId:String;
     private static var _selectedLanguage:Language;
 
     private var em:EntityManager;
@@ -22,21 +27,11 @@ public class SettingsService {
 
     private var _installedLanguages:Array;
 
-    public static function get selectedConference():Conference {
-        if(!_selectedConference) {
-            _selectedConference = new Conference();
-            _selectedConference.id = "499959";
-        }
-
-        return _selectedConference;
+    public static function get selectedConferenceId():String {
+        return _selectedConferenceId;
     }
 
     public static function get selectedLanguage():Language {
-        if(!_selectedLanguage) {
-            _selectedLanguage = new Language();
-            _selectedLanguage.code = ResourceManager.getInstance().localeChain[0];
-        }
-
         return _selectedLanguage;
     }
 
@@ -49,15 +44,17 @@ public class SettingsService {
     }
 
     public function set selectedConference(conference:Conference):void {
-        settings.selectedConferenceId = conference.id;
+        settings.selectedConferenceId = (conference) ? conference.id : null;
         saveSettings();
-        _selectedConference = conference;
+        _selectedConferenceId = settings.selectedConferenceId;
+        dispatchEvent(SettingsChangedEvent.createSettingsChangedEvent());
     }
 
     public function set selectedLanguage(language:Language):void {
-        settings.selectedLanguageId = language.id;
+        settings.selectedLanguageId = (language) ? language.id : null;
         saveSettings();
         _selectedLanguage = language;
+        dispatchEvent(SettingsChangedEvent.createSettingsChangedEvent());
     }
 
     private function getResourceLanguageCode(language:Language):String {
@@ -75,9 +72,17 @@ public class SettingsService {
     }
 
     public function loadSettings():void {
-        // TODO: Load the settings and initialize the static properties.
-        settings = em.load(Settings, null) as Settings;
-        trace(settings);
+        // Load the settings and initialize the static properties.
+        settings = em.load(Settings, "1") as Settings;
+        if(!settings) {
+            settings = new Settings();
+            settings.id = "1";
+            saveSettings();
+        }
+        _selectedConferenceId = settings.selectedConferenceId;
+        _selectedLanguage = new Language();
+        _selectedLanguage.id = settings.selectedLanguageId;
+        _selectedLanguage.code = ResourceManager.getInstance().localeChain[0];
     }
 
     private function saveSettings():void {

@@ -11,6 +11,11 @@
 
     <fx:Style source="DukeConStyle.css"/>
 
+    <s:states>
+        <s:State name="conferenceSelection"/>
+        <s:State name="default"/>
+    </s:states>
+
     <fx:Script>
         <![CDATA[
         import mx.events.FlexEvent;
@@ -19,6 +24,8 @@
         import mx.logging.targets.TraceTarget;
 
         import nz.co.codec.flexorm.EntityManager;
+
+        import org.dukecon.events.SettingsChangedEvent;
 
         import org.dukecon.services.SettingsService;
         import org.dukecon.views.SettingsView;
@@ -45,7 +52,9 @@
             if (settingsService) {
                 settingsService.installedLanguages = resourceManager.localeChain;
                 settingsService.loadSettings();
+                settingsService.addEventListener(SettingsChangedEvent.SETTINGS_CHANGED, onSettingsChanged);
             }
+            updateState();
         }
 
         private static function initLogging():void {
@@ -65,13 +74,13 @@
             Log.addTarget(logTarget);
         }
 
-        /*override protected function commitProperties():void {
-         super.commitProperties();
+        protected function updateState():void {
+            currentState = (SettingsService.selectedConferenceId) ? "default" : "conferenceSelection";
+        }
 
-         // Get the selected language from the settings.
-         var selectedLanguage:String = SettingsService.selectedLanguage.code;
-         resourceManager.localeChain = [selectedLanguage];
-         }*/
+        protected function onSettingsChanged(event:SettingsChangedEvent):void {
+            updateState();
+        }
 
         protected function onOpenSettingsClicked(event:MouseEvent):void {
             tabbedNavigator.activeView.navigator.pushView(SettingsView);
@@ -79,8 +88,16 @@
         ]]>
     </fx:Script>
 
+    <s:ViewNavigator label="{resourceManager.getString('dukecon', 'conferences.title')}"
+                     icon="@Embed('/conference.png')" includeIn="conferenceSelection"
+                     firstView="org.dukecon.views.ConferencesView" width="100%" height="100%">
+        <s:actionContent>
+            <s:Button icon="@Embed('/settings.png')" name="settingsButton"
+                      click="onOpenSettingsClicked(event)"/>
+        </s:actionContent>
+    </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'main.title')}"
-                     icon="@Embed('/conference.png')"
+                     icon="@Embed('/conference.png')" includeIn="default"
                      firstView="org.dukecon.views.MainView" width="100%" height="100%">
         <s:actionContent>
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
@@ -88,7 +105,7 @@
         </s:actionContent>
     </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'schedule.title')}"
-                     icon="@Embed('/schedule.png')"
+                     icon="@Embed('/schedule.png')" includeIn="default"
                      firstView="org.dukecon.views.ScheduleView" width="100%" height="100%">
         <s:actionContent>
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
@@ -96,7 +113,7 @@
         </s:actionContent>
     </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'streams.title')}"
-                     icon="@Embed('/stream.png')"
+                     icon="@Embed('/stream.png')" includeIn="default"
                      firstView="org.dukecon.views.StreamsView" width="100%" height="100%">
         <s:actionContent>
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
@@ -104,7 +121,7 @@
         </s:actionContent>
     </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'locations.title')}"
-                     icon="@Embed('/location.png')"
+                     icon="@Embed('/location.png')" includeIn="default"
                      firstView="org.dukecon.views.LocationsView" width="100%" height="100%">
         <s:actionContent>
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
@@ -112,7 +129,7 @@
         </s:actionContent>
     </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'speakers.title')}"
-                     icon="@Embed('/speaker.png')"
+                     icon="@Embed('/speaker.png')" includeIn="default"
                      firstView="org.dukecon.views.SpeakersView" width="100%" height="100%">
         <s:actionContent>
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"

@@ -12,5 +12,9 @@ public class SettingsChangedEvent extends Event {
         super(type, bubbles, cancelable);
     }
 
+    public static function createSettingsChangedEvent():SettingsChangedEvent {
+        return new SettingsChangedEvent(SETTINGS_CHANGED);
+    }
+
 }
 }

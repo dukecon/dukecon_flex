@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<s:ItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009"
+                xmlns:s="library://ns.adobe.com/flex/spark"
+                xmlns:parsley="http://www.spicefactory.org/parsley"
+                height="136"
+                click="onItemClick(event)">
+
+  <fx:Declarations>
+    <parsley:FastInject property="resourceService" type="{ResourceService}" />
+  </fx:Declarations>
+
+  <fx:Script>
+    <![CDATA[
+    import org.dukecon.events.ListEvent;
+    import org.dukecon.model.Conference;
+    import org.dukecon.services.ResourceService;
+
+    [Bindable]
+    protected var conferenceIcon:ByteArray;
+
+    [Bindable]
+    protected var conference:Conference;
+    [Bindable]
+    protected var conferenceName:String;
+
+    public var resourceService:ResourceService;
+
+    [Bindable("dataChange")]
+    override public function get data():Object {
+      return super.data;
+    }
+
+    override public function set data(value:Object):void {
+      super.data = value;
+      conference = Conference(data);
+      update();
+    }
+
+    protected function update():void {
+      if (conference && resourceService) {
+        conferenceIcon = resourceService.getIconForConference(conference.id);
+        conferenceName = conference.name;
+      } else {
+        conferenceIcon = null;
+        conferenceName = null;
+      }
+      itemLabel.width = this.parent.parent.width - 168;
+
+      invalidateDisplayList();
+    }
+
+    protected function onItemClick(event:MouseEvent):void {
+      dispatchEvent(new ListEvent(data, ListEvent.ITEM_SELECTED));
+    }
+
+    ]]>
+  </fx:Script>
+
+  <s:Rect top="0" left="0" width="100%" bottom="0">
+    <s:fill>
+      <s:SolidColor color="white"/>
+    </s:fill>
+    <s:stroke>
+      <s:SolidColorStroke color="black"/>
+    </s:stroke>
+  </s:Rect>
+
+  <s:Rect top="8" left="8" width="120" bottom="8">
+    <s:fill>
+      <s:SolidColor color="white"/>
+    </s:fill>
+    <s:stroke>
+      <s:SolidColorStroke color="black"/>
+    </s:stroke>
+  </s:Rect>
+
+  <s:Image source="{conferenceIcon}" top="10" left="10" width="110" bottom="10"/>
+
+  <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
+    <s:Label id="itemLabel" text="{conferenceName}" styleName="listTitle"/>
+  </s:HGroup>
+
+</s:ItemRenderer>

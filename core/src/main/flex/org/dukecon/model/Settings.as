@@ -12,7 +12,7 @@ public class Settings implements Identifyable {
     public function Settings() {
     }
 
-    [Id]
+    [Id(strategy='assigned')]
     public function get id():String {
         return _id;
     }

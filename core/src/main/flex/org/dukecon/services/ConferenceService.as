@@ -19,7 +19,7 @@ import nz.co.codec.flexorm.EntityManager;
 
 import org.dukecon.events.ConferenceDataChangedEvent;
 import org.dukecon.model.Conference;
-import org.dukecon.services.SettingsService;
+import org.dukecon.model.Event;
 import org.dukecon.utils.SqlHelper;
 
 [Event(name="conferenceDataChanged", type="org.dukecon.events.ConferenceDataChangedEvent")]
@@ -54,9 +54,36 @@ public class ConferenceService extends EventDispatcher {
         service.list();
     }
 
+    public function get conferences():ArrayCollection {
+        var result:Object = em.query("SELECT DISTINCT conf.id, conf.name, conf.url, conf.icon, strftime('%Y-%m-%d', evnt.start) AS start FROM conferences AS conf LEFT JOIN events AS evnt ON evnt.conference_id = conf.id");
+        if(result is Array) {
+            var rows:Array = result as Array;
+            var conferenceIndex:Object = {};
+            var conferences:ArrayCollection = new ArrayCollection();
+            for each(var row:Object in rows) {
+                if(!conferenceIndex[row.id]) {
+                    var conference:Conference = new Conference();
+                    conference.id = row.id;
+                    conference.name = row.name;
+                    conference.icon = row.icon;
+                    conference.url = row.url;
+                    conference.events = new ArrayCollection();
+                    conferences.addItem(conference);
+                    conferenceIndex[row.id] = conference;
+                }
+                var event:Event = new Event();
+                // We are using the title as a utility to save the date.
+                event.title = row.start;
+                Conference(conferenceIndex[row.id]).events.addItem(event);
+            }
+            return conferences;
+        }
+        return null;
+    }
+
     public function get days():ArrayCollection {
         var result:Object = em.query("SELECT distinct(strftime('%Y-%m-%d', start)) AS day FROM events " +
-                "WHERE conference_id = :0 ORDER BY day ASC", SettingsService.selectedConference.id);
+                "WHERE conference_id = :0 ORDER BY day ASC", SettingsService.selectedConferenceId);
         var days:ArrayCollection = new ArrayCollection();
         for each(var resultItem:Object in result) {
             days.addItem(resultItem["day"]);

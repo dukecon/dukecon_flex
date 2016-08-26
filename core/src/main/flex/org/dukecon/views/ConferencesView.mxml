@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+<!--
+  Created by christoferdutz on 15.05.15.
+-->
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009"
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        xmlns:parsley="http://www.spicefactory.org/parsley"
+        title="{resourceManager.getString('dukecon', 'conferences.title')}">
+
+    <fx:Metadata>
+        [ResourceBundle("dukecon")]
+    </fx:Metadata>
+
+    <fx:Declarations>
+        <parsley:FastInject injectionComplete="init()">
+            <parsley:Inject property="conferenceService" type="{ConferenceService}" />
+            <parsley:Inject property="settingsService" type="{SettingsService}" />
+        </parsley:FastInject>
+    </fx:Declarations>
+
+    <fx:Script>
+    <![CDATA[
+        import mx.collections.ArrayCollection;
+
+        import org.dukecon.events.ConferenceDataChangedEvent;
+        import org.dukecon.events.ListEvent;
+        import org.dukecon.events.SettingsChangedEvent;
+        import org.dukecon.services.ConferenceService;
+        import org.dukecon.services.SettingsService;
+        import org.dukecon.model.Conference;
+
+        [Bindable]
+        protected var listData:ArrayCollection;
+
+        public var conferenceService:ConferenceService;
+        public var settingsService:SettingsService;
+
+        [Init]
+        public function init():void {
+            listData = conferenceService.conferences;
+            list.addEventListener(ListEvent.ITEM_SELECTED, onItemSelected)
+        }
+
+        [MessageHandler]
+        public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
+            listData = conferenceService.conferences;
+        }
+
+        protected function onItemSelected(event:ListEvent):void {
+            settingsService.selectedConference = Conference(event.data);
+        }
+
+        ]]>
+    </fx:Script>
+
+    <s:List id="list" width="100%" height="100%"
+            itemRenderer="org.dukecon.itemrenderer.ConferenceItemRenderer"
+            dataProvider="{listData}"/>
+
+</s:View>

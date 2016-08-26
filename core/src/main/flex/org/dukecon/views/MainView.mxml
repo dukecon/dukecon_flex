@@ -15,7 +15,6 @@
         <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="conferenceService" type="{ConferenceService}"/>
             <parsley:Inject property="resourceService" type="{ResourceService}"/>
-            <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}"/-->
         </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
                              locale="{SettingsService.selectedLanguage.code}"
@@ -32,10 +31,6 @@
         public var conferenceService:ConferenceService;
         public var resourceService:ResourceService;
 
-        /*[Inject]
-        public var localUserPreferencesController:LocalUserPreferencesController;*/
-
-        [Init]
         protected function init():void {
             conferenceService.addEventListener(
                     ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, handleConferenceDataChanged);

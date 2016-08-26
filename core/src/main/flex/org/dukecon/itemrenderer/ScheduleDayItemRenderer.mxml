@@ -10,10 +10,10 @@
 
     <fx:Declarations>
         <s:DateTimeFormatter id="formatter"
-                             locale="{SettingsService.selectedLanguage}"
+                             locale="{SettingsService.selectedLanguage.code}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
         <s:DateTimeFormatter id="dayFormatter"
-                             locale="{SettingsService.selectedLanguage}"
+                             locale="{SettingsService.selectedLanguage.code}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dayOfWeek')}"/>
     </fx:Declarations>
 

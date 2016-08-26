@@ -44,7 +44,11 @@ public class ResourceService {
 
     public function update():void {
         log.info("Updating conferences");
-        service.getResourcesForConference(SettingsService.selectedConference.id);
+        service.getResourcesForConference(SettingsService.selectedConferenceId);
+    }
+
+    public function getIconForConference(conferenceId:String):ByteArray {
+        return null;
     }
 
     public function getIconForLocation(locationId:String):ByteArray {
