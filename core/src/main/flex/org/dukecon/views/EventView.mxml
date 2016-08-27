@@ -15,8 +15,7 @@
             <parsley:Inject property="conferenceService" type="{ConferenceService}" />
             <parsley:Inject property="resourceService" type="{ResourceService}" />
             <parsley:Inject property="ratingService" type="{RatingService}" />
-            <!--parsley:Inject property="localUserPreferencesController" type="{LocalUserPreferencesController}" />
-            <parsley:Inject property="remoteUserPreferencesController" type="{RemoteUserPreferencesController}" /-->
+            <parsley:Inject property="userPreferenceService" type="{UserPreferenceService}" />
         </parsley:FastInject>
         <s:DateTimeFormatter id="startTimeFormatter"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
@@ -32,10 +31,10 @@
 
         import org.dukecon.model.Event;
         import org.dukecon.model.Speaker;
-        import org.dukecon.model.user.UserPreference;
         import org.dukecon.services.ConferenceService;
         import org.dukecon.services.RatingService;
         import org.dukecon.services.ResourceService;
+        import org.dukecon.services.UserPreferenceService;
         import org.dukecon.utils.I18nHelper;
 
         [Bindable]
@@ -71,14 +70,9 @@
         public var conferenceService:ConferenceService;
         public var resourceService:ResourceService;
         public var ratingService:RatingService;
+        public var userPreferenceService:UserPreferenceService;
 
 
-        /*      [Inject]
-         public var localUserPreferencesController:LocalUserPreferencesController;
-
-         [Inject]
-         public var remoteUserPreferencesController:RemoteUserPreferencesController;
-         */
         [Bindable("dataChange")]
         override public function get data():Object {
             return super.data;
@@ -96,20 +90,20 @@
         }
 
         protected function update():void {
-            if(!_initialized) {
+            if (!_initialized) {
                 return;
             }
 
             if (event && resourceService) {
                 updateSelectionIcon();
                 if (event) {
-                    if(event.track) {
+                    if (event.track) {
                         streamIcon.source = resourceService.getIconForStream(event.track.id);
                     } else {
                         streamIcon.source = null;
                     }
 
-                    if(event.language) {
+                    if (event.language) {
                         languageIcon.source = resourceService.getIconForLanguage(event.language.id);
                         locationMap.source = resourceService.getMapForLocation(event.location.id);
                     } else {
@@ -152,31 +146,19 @@
 
         protected function updateSelectionIcon():void {
             if (event) {
-//          selectedIcon = localUserPreferencesController.isEventSelected(event) ? starSelected : starUnselected;
+                selectedIcon = userPreferenceService.isEventSelected(event) ? starSelected : starUnselected;
             } else {
                 selectedIcon = null;
             }
         }
 
         protected function toggleSelection(evnt:MouseEvent):void {
-            var userPreference:UserPreference = new UserPreference();
-            userPreference.eventId = event.id;
-            /*        if (localUserPreferencesController.isEventSelected(event)) {
-             localUserPreferencesController.del(userPreference);
-             } else {
-             localUserPreferencesController.add(userPreference);
-             }
-             updateSelectionIcon();
-
-             if (featureServerFavorites && !remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
-             var confirmDialog:ConfirmDialog = new ConfirmDialog();
-             confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
-             confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
-             PopUpManager.centerPopUp(confirmDialog);
-
-             remoteUserPreferencesController.infoPopupDisplayed = true;
-             }
-             */
+            if (userPreferenceService.isEventSelected(event)) {
+                userPreferenceService.unselectEvent(event);
+            } else {
+                userPreferenceService.selectEvent(event);
+            }
+            updateSelectionIcon();
         }
 
         protected function onRatingChanged(evnt:ItemClickEvent):void {

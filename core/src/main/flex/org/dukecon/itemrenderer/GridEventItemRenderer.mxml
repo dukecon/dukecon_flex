@@ -29,6 +29,7 @@
         import org.dukecon.model.Speaker;
         import org.dukecon.services.ResourceService;
         import org.dukecon.services.SettingsService;
+        import org.dukecon.services.UserPreferenceService;
         import org.dukecon.utils.I18nHelper;
 
         [Bindable]
@@ -67,6 +68,7 @@
         protected var speakerNames:String;
 
         public var resourceService:ResourceService;
+        public var userPreferenceService:UserPreferenceService;
 
         public var startTime:Number;
         public var rowNum:Number;
@@ -145,31 +147,20 @@
 
         protected function updateSelectionIcon():void {
             if (event) {
-                favoriteImage.source = false/*localUserPreferencesController.isEventSelected(event)*/ ? starSelected : starUnselected;
+                favoriteImage.source = userPreferenceService.isEventSelected(event) ? starSelected : starUnselected;
             } else {
                 favoriteImage.source = null;
             }
         }
 
         protected function toggleSelection(evnt:MouseEvent):void {
-/*            var userPreference:UserPreference = new UserPreference();
-            userPreference.eventId = event.id;
-            if (localUserPreferencesController.isEventSelected(event)) {
-                localUserPreferencesController.del(userPreference);
+            if (userPreferenceService.isEventSelected(event)) {
+                userPreferenceService.unselectEvent(event);
             } else {
-                localUserPreferencesController.add(userPreference);
+                userPreferenceService.selectEvent(event);
             }
             updateSelectionIcon();
-
-            if (featureServerFavorites && !remoteUserPreferencesController.connectedToRemote && !remoteUserPreferencesController.infoPopupDisplayed) {
-                var confirmDialog:ConfirmDialog = new ConfirmDialog();
-                confirmDialog.message = resourceManager.getString('dukecon', 'settings.server-account.confirm-not-server-backed');
-                confirmDialog.open(DukeConApplication(FlexGlobals.topLevelApplication), true);
-                PopUpManager.centerPopUp(confirmDialog);
-
-                remoteUserPreferencesController.infoPopupDisplayed = true;
-            }
-*/        }
+        }
 
         protected function onMoreClicked(evnt:MouseEvent):void {
             dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));

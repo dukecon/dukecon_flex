@@ -14,7 +14,7 @@
         <!-- Service for accessing image resources -->
         <services:ResourceService/>
         <services:LanguageService/>
-
+        <services:UserPreferenceService/>
         <services:EventService/>
         <services:LocationService/>
         <services:SpeakerService/>
