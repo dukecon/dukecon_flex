@@ -23,7 +23,7 @@ import org.dukecon.model.Settings;
 [ManagedEvents("settingsChanged")]
 public class SettingsService extends EventDispatcher {
 
-    protected static var log:ILogger = Log.getLogger(getQualifiedClassName(ConferenceService).replace("::"));
+    protected static var log:ILogger = Log.getLogger(getQualifiedClassName(SettingsService).replace("::"));
 
     private static var _selectedConferenceId:String;
     private static var _selectedLanguage:Language;

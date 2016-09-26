@@ -34,6 +34,7 @@
         import org.dukecon.services.ConferenceService;
         import org.dukecon.services.RatingService;
         import org.dukecon.services.ResourceService;
+        import org.dukecon.services.SettingsService;
         import org.dukecon.services.UserPreferenceService;
         import org.dukecon.utils.I18nHelper;
 
@@ -149,17 +150,17 @@
 
         protected function updateSelectionIcon():void {
             if (event) {
-                selectedIcon = userPreferenceService.isEventSelected(event) ? starSelected : starUnselected;
+                selectedIcon = userPreferenceService.isEventSelected(SettingsService.selectedConferenceId, event) ? starSelected : starUnselected;
             } else {
                 selectedIcon = null;
             }
         }
 
         protected function toggleSelection(evnt:MouseEvent):void {
-            if (userPreferenceService.isEventSelected(event)) {
-                userPreferenceService.unselectEvent(event);
+            if (userPreferenceService.isEventSelected(SettingsService.selectedConferenceId, event)) {
+                userPreferenceService.unselectEvent(SettingsService.selectedConferenceId, event);
             } else {
-                userPreferenceService.selectEvent(event);
+                userPreferenceService.selectEvent(SettingsService.selectedConferenceId, event);
             }
             updateSelectionIcon();
         }

@@ -134,17 +134,17 @@
 
     protected function updateSelectionIcon():void {
       if (event) {
-        favoriteImage.source = userPreferenceService.isEventSelected(event) ? starSelected : starUnselected;
+        favoriteImage.source = userPreferenceService.isEventSelected(SettingsService.selectedConferenceId, event) ? starSelected : starUnselected;
       } else {
         favoriteImage.source = null;
       }
     }
 
     protected function toggleSelection(evnt:MouseEvent):void {
-      if (userPreferenceService.isEventSelected(event)) {
-        userPreferenceService.unselectEvent(event);
+      if (userPreferenceService.isEventSelected(SettingsService.selectedConferenceId, event)) {
+        userPreferenceService.unselectEvent(SettingsService.selectedConferenceId, event);
       } else {
-        userPreferenceService.selectEvent(event);
+        userPreferenceService.selectEvent(SettingsService.selectedConferenceId, event);
       }
       updateSelectionIcon();
     }
@@ -187,6 +187,6 @@
     </s:VGroup>
   </s:VGroup>
 
-  <s:BitmapImage id="favoriteImage" top="20" right="20" /><!--click="toggleSelection(event)"-->
+  <s:Image id="favoriteImage" top="20" right="20" click="toggleSelection(event)"/>
 
 </s:GridItemRenderer>
