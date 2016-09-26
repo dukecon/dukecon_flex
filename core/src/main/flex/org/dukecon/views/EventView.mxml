@@ -95,6 +95,9 @@
             }
 
             if (event && resourceService) {
+                titleLabel.text = event.title;
+                abstractLabel.text = event.abstractText;
+                timeLabel.text = startTimeFormatter.format(event.start) + " - " + endTimeFormatter.format(event.end);
                 updateSelectionIcon();
                 if (event) {
                     if (event.track) {
@@ -180,7 +183,7 @@
                     </s:fill>
                 </s:Rect>
 
-                <s:Label id="titleLabel" text="{event.title}" top="20" left="20" width="440" styleName="title"/>
+                <s:Label id="titleLabel" top="20" left="20" width="440" styleName="title"/>
 
                 <s:Rect top="20" right="100" width="64" height="64" visible="{event != null}">
                     <s:fill>
@@ -197,12 +200,11 @@
 
                 <s:Image id="languageIcon" top="100" right="28" width="48" height="36"/>
             </s:Group>
-            <s:Label text="{event.abstractText}" styleName="content" width="{UIComponent(parent).width - 20}"/>
+            <s:Label id="abstractLabel" styleName="content" width="{UIComponent(parent).width - 20}"/>
             <s:Label text="{speakers}" width="{UIComponent(parent).width - 20}" fontWeight="bold"/>
             <s:HGroup>
                 <s:Label text="{resourceManager.getString('dukecon', 'talks.time')}:" fontWeight="bold"/>
-                <s:Label text="{startTimeFormatter.format(event.start)} - {endTimeFormatter.format(event.end)}"
-                         styleName="content"/>
+                <s:Label id="timeLabel" styleName="content"/>
             </s:HGroup>
             <s:HGroup>
                 <s:Label text="{resourceManager.getString('dukecon', 'talks.stream')}:" fontWeight="bold"/>

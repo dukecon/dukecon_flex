@@ -35,13 +35,13 @@
         public var settingsService:SettingsService;
 
         public function init():void {
-            listData = conferenceService.days;
+            listData = conferenceService.getConferenceDays(SettingsService.selectedConferenceId);
             list.addEventListener(ListEvent.ITEM_SELECTED, onDaySelected);
         }
 
         [MessageHandler]
         public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
-            listData = conferenceService.days;
+            listData = conferenceService.getConferenceDays(SettingsService.selectedConferenceId);
         }
 
         protected function onDaySelected(event:ListEvent):void {

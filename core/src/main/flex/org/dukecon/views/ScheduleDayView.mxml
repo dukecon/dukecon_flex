@@ -33,6 +33,7 @@
         import org.dukecon.model.Event;
         import org.dukecon.services.EventService;
         import org.dukecon.services.ResourceService;
+        import org.dukecon.services.SettingsService;
         import org.dukecon.services.UserPreferenceService;
         import org.dukecon.utils.EventItemFactory;
 
@@ -97,7 +98,7 @@
                     var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
                     formattedDate = formatter.format(date);
 
-                    dataProvider = eventService.getEventsForDay(dateString);
+                    dataProvider = eventService.getEventsForDay(SettingsService.selectedConferenceId, dateString);
                     locations = new ArrayCollection();
 
                     // Find out the start time (start date of the earliest event)

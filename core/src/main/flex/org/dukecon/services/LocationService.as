@@ -6,31 +6,33 @@ import mx.collections.ArrayCollection;
 import mx.collections.Sort;
 import mx.collections.SortField;
 
-import nz.co.codec.flexorm.EntityManager;
-
-import org.dukecon.model.Location;
+import org.dukecon.model.ConferenceStorage;
 
 public class LocationService {
 
-    private var em:EntityManager;
+    [Inject]
+    public var conferenceService:ConferenceService;
 
     public function LocationService() {
-        em = EntityManager.instance;
     }
 
-    public function get locations():ArrayCollection {
-        var res:ArrayCollection = em.findAll(Location);
+    public function getLocations(conferenceId:String):ArrayCollection {
+        var conference:ConferenceStorage = conferenceService.getConference(conferenceId);
+        if(conference) {
+            var res:ArrayCollection = conference.conference.metaData.locations;
 
-        // Sort the locations by order.
-        var orderSortField:SortField = new SortField();
-        orderSortField.name = "order";
-        orderSortField.numeric = true;
-        var locationSort:Sort = new Sort();
-        locationSort.fields = [orderSortField];
-        res.sort = locationSort;
-        res.refresh();
+            // Sort the locations by order.
+            var orderSortField:SortField = new SortField();
+            orderSortField.name = "order";
+            orderSortField.numeric = true;
+            var locationSort:Sort = new Sort();
+            locationSort.fields = [orderSortField];
+            res.sort = locationSort;
+            res.refresh();
 
-        return res;
+            return res;
+        }
+        return null;
     }
 
 }

@@ -3,7 +3,6 @@
  */
 package org.dukecon.services {
 import mx.messaging.ChannelSet;
-import mx.messaging.MessageAgent;
 import mx.messaging.channels.AMFChannel;
 import mx.messaging.channels.SecureAMFChannel;
 

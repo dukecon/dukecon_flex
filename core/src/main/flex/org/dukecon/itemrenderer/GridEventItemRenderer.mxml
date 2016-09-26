@@ -4,202 +4,189 @@
 -->
 <s:GridItemRenderer
         xmlns:fx="http://ns.adobe.com/mxml/2009"
-        xmlns:s="library://ns.adobe.com/flex/spark">
+        xmlns:s="library://ns.adobe.com/flex/spark"
+        click="onMoreClicked(event)">
 
-    <fx:Metadata>
-        [ResourceBundle("dukecon")]
-    </fx:Metadata>
+  <fx:Metadata>
+    [ResourceBundle("dukecon")]
+  </fx:Metadata>
 
-    <fx:Declarations>
-        <s:DateTimeFormatter id="timeFormatter"
-                             locale="{SettingsService.selectedLanguage}"
-                             dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>
-    </fx:Declarations>
+  <fx:Declarations>
+    <s:DateTimeFormatter id="timeFormatter"
+                         locale="{SettingsService.selectedLanguage}"
+                         dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>
+  </fx:Declarations>
 
-    <s:states>
-        <s:State name="long"/>
-        <s:State name="normal"/>
-        <s:State name="short"/>
-    </s:states>
+  <s:states>
+    <s:State name="long"/>
+    <s:State name="normal"/>
+    <s:State name="short"/>
+  </s:states>
 
-    <fx:Script>
+  <fx:Script>
     <![CDATA[
-        import org.dukecon.events.ListEvent;
-        import org.dukecon.model.Language;
-        import org.dukecon.model.Speaker;
-        import org.dukecon.services.ResourceService;
-        import org.dukecon.services.SettingsService;
-        import org.dukecon.services.UserPreferenceService;
-        import org.dukecon.utils.I18nHelper;
+    import org.dukecon.events.ListEvent;
+    import org.dukecon.model.Language;
+    import org.dukecon.model.Speaker;
+    import org.dukecon.services.ResourceService;
+    import org.dukecon.services.SettingsService;
+    import org.dukecon.services.UserPreferenceService;
+    import org.dukecon.utils.I18nHelper;
 
-        [Bindable]
-        protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
+    [Bindable]
+    protected var featureServerFavorites:Boolean = FEATURE::serverFavorites;
 
-        [Embed(source="/star-unselected.png")]
-        [Bindable]
-        public var starUnselected:Class;
+    [Embed(source="/star-unselected.png")]
+    [Bindable]
+    public var starUnselected:Class;
 
-        [Embed(source="/star-selected.png")]
-        [Bindable]
-        public var starSelected:Class;
+    [Embed(source="/star-selected.png")]
+    [Bindable]
+    public var starSelected:Class;
 
-        [Bindable]
-        protected var event:org.dukecon.model.Event;
+    protected var event:org.dukecon.model.Event;
 
-        [Bindable]
-        protected var streamName:String;
-        [Bindable]
-        protected var streamIcon:ByteArray;
+    public var resourceService:ResourceService;
+    public var userPreferenceService:UserPreferenceService;
 
-        [Bindable]
-        protected var timeString:String;
+    public var startTime:Number;
+    public var rowNum:Number;
 
-        [Bindable]
-        protected var locationName:String;
-        [Bindable]
-        protected var locationIcon:ByteArray;
+    public static const HEIGHT_PER_STREAM:Number = 394;
+    public static const WIDTH_SECONDS_PER_PIXEL:Number = 4;
 
-        [Bindable]
-        protected var languageName:String;
-        [Bindable]
-        protected var languageIcon:ByteArray;
+    [Bindable("dataChange")]
+    override public function get data():Object {
+      return super.data;
+    }
 
-        [Bindable]
-        protected var speakerNames:String;
+    override public function set data(value:Object):void {
+      super.data = value;
+      event = org.dukecon.model.Event(value);
+      adjustSize();
+      update();
+    }
 
-        public var resourceService:ResourceService;
-        public var userPreferenceService:UserPreferenceService;
+    protected function adjustSize():void {
+      var lengthInMinutes:Number = (event.end.time - event.start.time) / (1000 * 60);
+      if (lengthInMinutes < 40) {
+        currentState = "short";
+      } else if (length > 120) {
+        currentState = "long";
+      } else {
+        currentState = "normal";
+      }
+      // Update the position of the item based on it's data.
+      x = (event.start.time - startTime) / (1000 * WIDTH_SECONDS_PER_PIXEL);
+      y = rowNum * HEIGHT_PER_STREAM;
+      width = (event.end.time - event.start.time) / (1000 * WIDTH_SECONDS_PER_PIXEL);
 
-        public var startTime:Number;
-        public var rowNum:Number;
+      titleLabel.width = width - 120;
+      speakersLabel.width = width - 20;
+    }
 
-        public static const HEIGHT_PER_STREAM:Number = 394;
-        public static const WIDTH_SECONDS_PER_PIXEL:Number = 4;
-
-        [Bindable("dataChange")]
-        override public function get data():Object {
-            return super.data;
+    protected function update():void {
+      border.visible = event != null;
+      if (event) {
+        titleLabel.text = event.title;
+        timeLabel.text = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
+        locationLabel.text = I18nHelper.getName(event.location.names, resourceManager.localeChain[0]);
+        locationIcon.source = resourceService.getIconForLocation(event.location.id);
+        if (event.track) {
+          streamLabel.text = I18nHelper.getName(event.track.names, resourceManager.localeChain[0]);
+          streamIcon.source = resourceService.getIconForStream(event.track.id);
+        } else {
+          streamLabel.text = null;
+          streamIcon.source = null;
         }
-
-        override public function set data(value:Object):void {
-            super.data = value;
-            event = org.dukecon.model.Event(value);
-            adjustSize();
-            update();
+        var language:Language = event.language ? event.language : null;// TODO: Make this get the default language ;
+        if(language) {
+          languageLabel.text = I18nHelper.getName(language.names, resourceManager.localeChain[0]);
+          languageIcon.source = resourceService.getIconForLanguage(event.language.id);
         }
-
-        protected function adjustSize():void {
-            var lengthInMinutes:Number = (event.end.time - event.start.time) / (1000 * 60);
-            if (lengthInMinutes < 40) {
-                currentState = "short";
-            } else if (length > 120) {
-                currentState = "long";
-            } else {
-                currentState = "normal";
+        var speakerNames:String = "";
+        for each(var speaker:Speaker in event.speakers) {
+          if (speakerNames != "") {
+            speakerNames += ", ";
+          }
+          if (speaker) {
+            speakerNames += speaker.name;
+            if (speaker.company) {
+              speakerNames += " (" + speaker.company + ")";
             }
-            // Update the position of the item based on it's data.
-            x = (event.start.time - startTime) / (1000 * WIDTH_SECONDS_PER_PIXEL);
-            y = rowNum * HEIGHT_PER_STREAM;
-            width = (event.end.time - event.start.time) / (1000 * WIDTH_SECONDS_PER_PIXEL);
+          }
         }
+        speakersLabel.text = speakerNames;
+      } else {
+        titleLabel.text = null;
+        timeLabel.text = null;
+        locationLabel.text = null;
+        locationIcon = null;
+        streamLabel.text = null;
+        streamIcon = null;
+        languageLabel.text = null;
+        languageIcon = null;
+        speakersLabel.text = null;
+      }
 
-        protected function update():void {
-            if (event) {
-                var imageData:ByteArray;
-                timeString = timeFormatter.format(event.start) + " - " + timeFormatter.format(event.end);
-                locationName = I18nHelper.getName(event.location.names, resourceManager.localeChain[0]);
-                locationIcon = resourceService.getIconForLocation(event.location.id);
-                if (event.track) {
-                    streamName = I18nHelper.getName(event.track.names, resourceManager.localeChain[0]);
-                    streamIcon = resourceService.getIconForStream(event.track.id);
-                } else {
-                    streamName = null;
-                    streamIcon = null;
-                }
-                var language:Language = event.language ? event.language : null;// TODO: Make this get the default language ;
-                languageName = I18nHelper.getName(language.names, resourceManager.localeChain[0]);
-                languageIcon = resourceService.getIconForLanguage(event.language.id);
-                speakerNames = "";
-                for each(var speaker:Speaker in event.speakers) {
-                    if (speakerNames != "") {
-                        speakerNames += ", ";
-                    }
-                    if (speaker) {
-                        speakerNames += speaker.name;
-                        if (speaker.company) {
-                            speakerNames += " (" + speaker.company + ")";
-                        }
-                    }
-                }
-            } else {
-                timeString = null;
-                locationName = null;
-                locationIcon = null;
-                streamName = null;
-                streamIcon = null;
-                languageName = null;
-                languageIcon = null;
-                speakerNames = null;
-            }
+      updateSelectionIcon();
+    }
 
-            updateSelectionIcon();
-        }
+    protected function updateSelectionIcon():void {
+      if (event) {
+        favoriteImage.source = userPreferenceService.isEventSelected(event) ? starSelected : starUnselected;
+      } else {
+        favoriteImage.source = null;
+      }
+    }
 
-        protected function updateSelectionIcon():void {
-            if (event) {
-                favoriteImage.source = userPreferenceService.isEventSelected(event) ? starSelected : starUnselected;
-            } else {
-                favoriteImage.source = null;
-            }
-        }
+    protected function toggleSelection(evnt:MouseEvent):void {
+      if (userPreferenceService.isEventSelected(event)) {
+        userPreferenceService.unselectEvent(event);
+      } else {
+        userPreferenceService.selectEvent(event);
+      }
+      updateSelectionIcon();
+    }
 
-        protected function toggleSelection(evnt:MouseEvent):void {
-            if (userPreferenceService.isEventSelected(event)) {
-                userPreferenceService.unselectEvent(event);
-            } else {
-                userPreferenceService.selectEvent(event);
-            }
-            updateSelectionIcon();
-        }
-
-        protected function onMoreClicked(evnt:MouseEvent):void {
-            dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
-        }
-        ]]>
+    protected function onMoreClicked(evnt:MouseEvent):void {
+      dispatchEvent(new ListEvent(event, ListEvent.ITEM_SELECTED));
+    }
+    ]]>
   </fx:Script>
 
-    <s:Rect top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10" visible="{event != null}">
-        <s:fill>
-            <s:SolidColor color="0xffffff"/>
-        </s:fill>
-        <s:stroke>
-            <s:SolidColorStroke color="0x000000"/>
-        </s:stroke>
-    </s:Rect>
+  <s:Rect id="border" top="4" left="4" right="4" bottom="4" radiusX="10" radiusY="10">
+    <s:fill>
+      <s:SolidColor color="0xffffff"/>
+    </s:fill>
+    <s:stroke>
+      <s:SolidColorStroke color="0x000000"/>
+    </s:stroke>
+  </s:Rect>
 
-    <s:VGroup top="20" left="20" right="20" bottom="20" gap="20" click="onMoreClicked(event)">
-        <s:Label text="{event.title}" width="{this.width - 120}" height="100" styleName="talkTitle"/>
-        <s:Label id="speakersLabel" text="{speakerNames}" width="{this.width - 20}" height="56" styleName="talkSpeakers"/>
-        <s:VGroup width="100%" gap="10">
-            <s:HGroup width="100%" gap="20" verticalAlign="middle">
-                <s:Image source="@Embed('/clock.png')" visible="{event != null}" width="32" height="32"/>
-                <s:Label text="{timeString}" styleName="talkTime"/>
-            </s:HGroup>
-            <s:HGroup width="100%" gap="20" verticalAlign="middle">
-                <s:Image source="{locationIcon}" width="32" height="32"/>
-                <s:Label text="{locationName}" styleName="talkLocation"/>
-            </s:HGroup>
-            <s:HGroup width="100%" gap="20" verticalAlign="middle">
-                <s:Image source="{streamIcon}" width="32" height="32"/>
-                <s:Label text="{streamName}" styleName="talkStream"/>
-            </s:HGroup>
-            <s:HGroup width="100%" gap="20" verticalAlign="middle">
-                <s:Image source="{languageIcon}" width="32" height="32"/>
-                <s:Label text="{languageName}" styleName="talkLanguage"/>
-            </s:HGroup>
-        </s:VGroup>
+  <s:VGroup top="20" left="20" right="20" bottom="20" gap="20">
+    <s:Label id="titleLabel" height="100" styleName="talkTitle"/><!-- width="{this.width - 120}"-->
+    <s:Label id="speakersLabel" height="56" styleName="talkSpeakers"/><!-- width="{this.width - 20}"-->
+    <s:VGroup width="100%" gap="10">
+      <s:HGroup width="100%" gap="20" verticalAlign="middle">
+        <s:BitmapImage source="@Embed('/clock.png')" width="32" height="32"/>
+        <s:Label id="timeLabel" styleName="talkTime"/>
+      </s:HGroup>
+      <s:HGroup width="100%" gap="20" verticalAlign="middle">
+        <s:BitmapImage id="locationIcon" width="32" height="32"/>
+        <s:Label id="locationLabel" styleName="talkLocation"/>
+      </s:HGroup>
+      <s:HGroup width="100%" gap="20" verticalAlign="middle">
+        <s:BitmapImage id="streamIcon" width="32" height="32"/>
+        <s:Label id="streamLabel" styleName="talkStream"/>
+      </s:HGroup>
+      <s:HGroup width="100%" gap="20" verticalAlign="middle">
+        <s:BitmapImage id="languageIcon" width="32" height="32"/>
+        <s:Label id="languageLabel" styleName="talkLanguage"/>
+      </s:HGroup>
     </s:VGroup>
+  </s:VGroup>
 
-    <s:Image id="favoriteImage" top="20" right="20" click="toggleSelection(event)"/>
+  <s:BitmapImage id="favoriteImage" top="20" right="20" /><!--click="toggleSelection(event)"-->
 
 </s:GridItemRenderer>

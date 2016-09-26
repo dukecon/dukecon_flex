@@ -37,8 +37,8 @@
     <module>core</module>
     <!--module>keycloak</module-->
 
-    <module>flexorm</module>
-    <module>flexorm-generator</module>
+    <!--module>flexorm</module>
+    <module>flexorm-generator</module-->
 
     <!--module>oauth2</module-->
   </modules>

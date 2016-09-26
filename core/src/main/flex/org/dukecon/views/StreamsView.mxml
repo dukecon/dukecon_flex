@@ -35,13 +35,13 @@
 
       [Init]
       public function init():void {
-        listData = streamService.streams;
+        listData = streamService.getStreams(SettingsService.selectedConferenceId);
         list.addEventListener(ListEvent.ITEM_SELECTED, onStreamSelected);
       }
 
       [MessageHandler]
       public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
-        listData = streamService.streams;
+        listData = streamService.getStreams(SettingsService.selectedConferenceId);
       }
 
       protected function onStreamSelected(event:ListEvent):void {

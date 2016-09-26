@@ -3,21 +3,36 @@
  */
 package org.dukecon.services {
 import mx.collections.ArrayCollection;
+import mx.collections.Sort;
+import mx.collections.SortField;
 
-import nz.co.codec.flexorm.EntityManager;
-
-import org.dukecon.model.Language;
+import org.dukecon.model.ConferenceStorage;
 
 public class LanguageService {
 
-    private var em:EntityManager;
+    [Inject]
+    public var conferenceService:ConferenceService;
 
     public function LanguageService() {
-        em = EntityManager.instance;
     }
 
-    public function get languages():ArrayCollection {
-        return em.findAll(Language);
+    public function getLanguages(conferenceId:String):ArrayCollection {
+        var conference:ConferenceStorage = conferenceService.getConference(conferenceId);
+        if(conference) {
+            var res:ArrayCollection = conference.conference.metaData.languages;
+
+            // Sort the locations by order.
+            var orderSortField:SortField = new SortField();
+            orderSortField.name = "order";
+            orderSortField.numeric = true;
+            var locationSort:Sort = new Sort();
+            locationSort.fields = [orderSortField];
+            res.sort = locationSort;
+            res.refresh();
+
+            return res;
+        }
+        return null;
     }
 
 }

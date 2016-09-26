@@ -3,21 +3,37 @@
  */
 package org.dukecon.services {
 import mx.collections.ArrayCollection;
+import mx.collections.Sort;
+import mx.collections.SortField;
 
-import nz.co.codec.flexorm.EntityManager;
-
-import org.dukecon.model.Track;
+import org.dukecon.model.ConferenceStorage;
 
 public class StreamService {
 
-    private var em:EntityManager;
+    [Inject]
+    public var conferenceService:ConferenceService;
 
     public function StreamService() {
-        em = EntityManager.instance;
     }
 
-    public function get streams():ArrayCollection {
-        return em.findAll(Track);
+    public function getStreams(conferenceId:String):ArrayCollection {
+        var conference:ConferenceStorage = conferenceService.getConference(conferenceId);
+        if(conference) {
+            var res:ArrayCollection = conference.conference.metaData.tracks;
+
+            // Sort the locations by order.
+            var orderSortField:SortField = new SortField();
+            orderSortField.name = "order";
+            orderSortField.numeric = true;
+            var locationSort:Sort = new Sort();
+            locationSort.fields = [orderSortField];
+            res.sort = locationSort;
+            res.refresh();
+
+            return res;
+        }
+
+        return null;
     }
 
 }

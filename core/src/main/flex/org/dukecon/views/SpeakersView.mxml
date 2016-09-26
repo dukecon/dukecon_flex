@@ -34,13 +34,13 @@
         public var settingsService:SettingsService;
 
         public function init():void {
-            listData = speakerService.speakers;
+            listData = speakerService.getSpeakers(SettingsService.selectedConferenceId);
             list.addEventListener(ListEvent.ITEM_SELECTED, onItemSelected)
         }
 
         [MessageHandler]
         public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
-            listData = speakerService.speakers;
+            listData = speakerService.getSpeakers(SettingsService.selectedConferenceId);
         }
 
         protected function onItemSelected(event:ListEvent):void {

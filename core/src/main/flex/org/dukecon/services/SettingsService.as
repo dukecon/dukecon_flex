@@ -4,13 +4,17 @@
 package org.dukecon.services {
 
 import flash.events.EventDispatcher;
+import flash.events.NetStatusEvent;
+import flash.net.SharedObject;
+import flash.net.SharedObjectFlushStatus;
+import flash.utils.getQualifiedClassName;
+
+import mx.logging.ILogger;
+import mx.logging.Log;
 
 import mx.resources.ResourceManager;
 
-import nz.co.codec.flexorm.EntityManager;
-
 import org.dukecon.events.SettingsChangedEvent;
-
 import org.dukecon.model.Conference;
 import org.dukecon.model.Language;
 import org.dukecon.model.Settings;
@@ -19,11 +23,12 @@ import org.dukecon.model.Settings;
 [ManagedEvents("settingsChanged")]
 public class SettingsService extends EventDispatcher {
 
+    protected static var log:ILogger = Log.getLogger(getQualifiedClassName(ConferenceService).replace("::"));
+
     private static var _selectedConferenceId:String;
     private static var _selectedLanguage:Language;
 
-    private var em:EntityManager;
-    private var settings:Settings;
+    private var settingsSharedObject:SharedObject;
 
     private var _installedLanguages:Array;
 
@@ -36,7 +41,14 @@ public class SettingsService extends EventDispatcher {
     }
 
     public function SettingsService() {
-        em = EntityManager.instance;
+        settingsSharedObject = SharedObject.getLocal("dukecon-settings");
+        if(!settingsSharedObject.data.settings) {
+            settingsSharedObject.data.settings = new Settings();
+        }
+        _selectedConferenceId = settingsSharedObject.data.settings.selectedConferenceId;
+        _selectedLanguage = new Language();
+        _selectedLanguage.id = settingsSharedObject.data.settings.selectedLanguageId;
+        _selectedLanguage.code = ResourceManager.getInstance().localeChain[0];
     }
 
     public function set installedLanguages(installedLanguages:Array):void {
@@ -44,14 +56,14 @@ public class SettingsService extends EventDispatcher {
     }
 
     public function set selectedConference(conference:Conference):void {
-        settings.selectedConferenceId = (conference) ? conference.id : null;
+        settingsSharedObject.data.settings.selectedConferenceId = (conference) ? conference.id : null;
         saveSettings();
-        _selectedConferenceId = settings.selectedConferenceId;
+        _selectedConferenceId = settingsSharedObject.data.settings.selectedConferenceId;
         dispatchEvent(SettingsChangedEvent.createSettingsChangedEvent());
     }
 
     public function set selectedLanguage(language:Language):void {
-        settings.selectedLanguageId = (language) ? language.id : null;
+        settingsSharedObject.data.settings.selectedLanguageId = (language) ? language.id : null;
         saveSettings();
         _selectedLanguage = language;
         dispatchEvent(SettingsChangedEvent.createSettingsChangedEvent());
@@ -71,22 +83,36 @@ public class SettingsService extends EventDispatcher {
         return _installedLanguages[0];
     }
 
-    public function loadSettings():void {
-        // Load the settings and initialize the static properties.
-        settings = em.load(Settings, "1") as Settings;
-        if(!settings) {
-            settings = new Settings();
-            settings.id = "1";
-            saveSettings();
+    private function saveSettings():void {
+        var flushStatus:String = null;
+        try {
+            flushStatus = settingsSharedObject.flush(10000);
+        } catch (error:Error) {
+            log.error("Error writing shared object to disk.", error);
         }
-        _selectedConferenceId = settings.selectedConferenceId;
-        _selectedLanguage = new Language();
-        _selectedLanguage.id = settings.selectedLanguageId;
-        _selectedLanguage.code = ResourceManager.getInstance().localeChain[0];
+        if (flushStatus != null) {
+            switch (flushStatus) {
+                case SharedObjectFlushStatus.PENDING:
+                    log.info("Requesting permission to save object...\n");
+                    settingsSharedObject.addEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
+                    break;
+                case SharedObjectFlushStatus.FLUSHED:
+                    log.info("Value flushed to disk.");
+                    break;
+            }
+        }
     }
 
-    private function saveSettings():void {
-        em.save(settings);
+    private function onFlushStatus(event:NetStatusEvent):void {
+        switch (event.info.code) {
+            case "SharedObject.Flush.Success":
+                log.info("User granted permission -- value saved.");
+                break;
+            case "SharedObject.Flush.Failed":
+                log.info("User denied permission -- value not saved.");
+                break;
+        }
+        settingsSharedObject.removeEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
     }
 
 }

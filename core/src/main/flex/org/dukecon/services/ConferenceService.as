@@ -3,24 +3,25 @@
  */
 package org.dukecon.services {
 
-import flash.errors.SQLError;
 import flash.events.EventDispatcher;
+import flash.events.NetStatusEvent;
+import flash.net.SharedObject;
+import flash.net.SharedObjectFlushStatus;
 import flash.utils.getQualifiedClassName;
 
 import mx.collections.ArrayCollection;
-
+import mx.formatters.DateFormatter;
 import mx.logging.ILogger;
 import mx.logging.Log;
 import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 import mx.rpc.remoting.RemoteObject;
 
-import nz.co.codec.flexorm.EntityManager;
-
 import org.dukecon.events.ConferenceDataChangedEvent;
 import org.dukecon.model.Conference;
+import org.dukecon.model.ConferenceStorage;
 import org.dukecon.model.Event;
-import org.dukecon.utils.SqlHelper;
+import org.dukecon.model.Speaker;
 
 [Event(name="conferenceDataChanged", type="org.dukecon.events.ConferenceDataChangedEvent")]
 [ManagedEvents("conferenceDataChanged")]
@@ -29,16 +30,20 @@ public class ConferenceService extends EventDispatcher {
     protected static var log:ILogger = Log.getLogger(getQualifiedClassName(ConferenceService).replace("::"));
 
     private var service:RemoteObject;
-    private var em:EntityManager;
 
     [Inject]
     public var serverConnection:ServerConnection;
 
-    private var _lastUpdateDate:Date;
+    private var conferencesSharedObject:SharedObject;
+
+    private var dateFormat:DateFormatter;
 
     public function ConferenceService() {
         service = new RemoteObject("conferenceService");
-        em = EntityManager.instance;
+        conferencesSharedObject = SharedObject.getLocal("dukecon-conferences");
+
+        dateFormat = new DateFormatter();
+        dateFormat.formatString = "YYYY-MM-DD";
     }
 
     [Init]
@@ -56,101 +61,152 @@ public class ConferenceService extends EventDispatcher {
     }
 
     public function get conferences():ArrayCollection {
-        try {
-            var result:Object = em.query("SELECT DISTINCT conf.id, conf.name, conf.url, conf.icon, strftime('%Y-%m-%d', evnt.start) AS start FROM conferences AS conf LEFT JOIN events AS evnt ON evnt.conference_id = conf.id");
-            if(result is Array) {
-                var rows:Array = result as Array;
-                var conferenceIndex:Object = {};
-                var conferences:ArrayCollection = new ArrayCollection();
-                for each(var row:Object in rows) {
-                    if(!conferenceIndex[row.id]) {
-                        var conference:Conference = new Conference();
-                        conference.id = row.id;
-                        conference.name = row.name;
-                        conference.icon = row.icon;
-                        conference.url = row.url;
-                        conference.events = new ArrayCollection();
-                        conferences.addItem(conference);
-                        conferenceIndex[row.id] = conference;
-                    }
-                    var event:Event = new Event();
-                    var matches:Array = row.start.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
-                    event.start = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
-                    Conference(conferenceIndex[row.id]).events.addItem(event);
-                }
-                return conferences;
-            }
-        } catch(error:SQLError) {
-            if(error.details == "no such table: 'conferences'") {
-                update();
-            }
+        var conferences:ArrayCollection = new ArrayCollection();
+        for(var conferenceId:String in conferencesSharedObject.data.conferences) {
+            conferences.addItem(conferencesSharedObject.data.conferences[conferenceId].conference);
+        }
+        return conferences;
+    }
+
+    public function getConference(conferenceId:String):ConferenceStorage {
+        if(conferencesSharedObject.data.conferences.hasOwnProperty(conferenceId)) {
+            return ConferenceStorage(conferencesSharedObject.data.conferences[conferenceId]);
         }
         return null;
     }
 
-    public function get days():ArrayCollection {
-        var result:Object = em.query("SELECT distinct(strftime('%Y-%m-%d', start)) AS day FROM events " +
-                "WHERE conference_id = :0 ORDER BY day ASC", SettingsService.selectedConferenceId);
-        var days:ArrayCollection = new ArrayCollection();
-        for each(var resultItem:Object in result) {
-            days.addItem(resultItem["day"]);
+    public function getConferenceDays(conferenceId:String):ArrayCollection {
+        var conference:ConferenceStorage = getConference(conferenceId);
+        if(conference) {
+            return conference.days;
         }
-        return days;
+        return null;
     }
 
     [Bindable("conferenceDataChanged")]
     public function get lastUpdatedDate():Date {
-        if(!_lastUpdateDate) {
-            updateLastUpdatedDate();
+        if(!conferencesSharedObject.data.lastUpdatedDate) {
+            update();
         }
-        return _lastUpdateDate;
+        return conferencesSharedObject.data.lastUpdatedDate;
     }
 
     private function onListResult(resultEvent:ResultEvent):void {
         log.info("Got response");
+
+        var conferences:Object = {};
         for each(var conference:Conference in resultEvent.result) {
-            try {
-                em.save(conference);
-                log.info("Saved Conference with id: " + conference.id);
-            } catch (e:Error) {
-                log.error("Got error saving conference with id: " + conference.id, e);
+            var conferenceStorage:ConferenceStorage = new ConferenceStorage();
+            conferenceStorage.id = conference.id;
+            conferenceStorage.conference = conference;
+            conferenceStorage.days = new ArrayCollection();
+            conferenceStorage.audienceIndex = {};
+            conferenceStorage.eventTypeIndex = {};
+            conferenceStorage.languageIndex = {};
+            conferenceStorage.locationIndex = {};
+            conferenceStorage.speakerIndex = {};
+            conferenceStorage.streamIndex = {};
+            conferenceStorage.dayIndex = {};
+
+            // Build up some helpful indexes that prevent us from having to process
+            // all events for each list operation.
+            for each(var event:Event in conference.events) {
+                var dateString:String = dateFormat.format(event.start);
+                if(conferenceStorage.days.getItemIndex(dateString) == -1) {
+                    conferenceStorage.days.addItem(dateString)
+                }
+
+                if(event.audience) {
+                    if(!conferenceStorage.audienceIndex.hasOwnProperty(event.audience.id)) {
+                        conferenceStorage.audienceIndex[event.audience.id] = new ArrayCollection();
+                    }
+                    ArrayCollection(conferenceStorage.audienceIndex[event.audience.id]).addItem(event);
+                }
+
+                if(event.type) {
+                    if(!conferenceStorage.eventTypeIndex.hasOwnProperty(event.type.id)) {
+                        conferenceStorage.eventTypeIndex[event.type.id] = new ArrayCollection();
+                    }
+                    ArrayCollection(conferenceStorage.eventTypeIndex[event.type.id]).addItem(event);
+                }
+
+                if(event.language) {
+                    if(!conferenceStorage.languageIndex.hasOwnProperty(event.language.id)) {
+                        conferenceStorage.languageIndex[event.language.id] = new ArrayCollection();
+                    }
+                    ArrayCollection(conferenceStorage.languageIndex[event.language.id]).addItem(event);
+                }
+
+                if(event.location) {
+                    if(!conferenceStorage.locationIndex.hasOwnProperty(event.location.id)) {
+                        conferenceStorage.locationIndex[event.location.id] = new ArrayCollection();
+                    }
+                    ArrayCollection(conferenceStorage.locationIndex[event.location.id]).addItem(event);
+                }
+
+                if(event.speakers) {
+                    for each(var speaker:Speaker in event.speakers) {
+                        if(!conferenceStorage.speakerIndex.hasOwnProperty(speaker.id)) {
+                            conferenceStorage.speakerIndex[speaker.id] = new ArrayCollection();
+                        }
+                        ArrayCollection(conferenceStorage.speakerIndex[speaker.id]).addItem(event);
+                    }
+                }
+
+                if(event.track) {
+                    if(!conferenceStorage.streamIndex.hasOwnProperty(event.track.id)) {
+                        conferenceStorage.streamIndex[event.track.id] = new ArrayCollection();
+                    }
+                    ArrayCollection(conferenceStorage.streamIndex[event.track.id]).addItem(event);
+                }
+
+                if(!conferenceStorage.dayIndex.hasOwnProperty(dateString)) {
+                    conferenceStorage.dayIndex[dateString] = new ArrayCollection();
+                }
+                ArrayCollection(conferenceStorage.dayIndex[dateString]).addItem(event);
+            }
+
+            conferences[conferenceStorage.id] = conferenceStorage;
+        }
+
+        conferencesSharedObject.data.conferences = conferences;
+        conferencesSharedObject.data.lastUpdatedDate = new Date();
+
+        var flushStatus:String = null;
+        try {
+            flushStatus = conferencesSharedObject.flush(10000);
+        } catch (error:Error) {
+            log.error("Error writing shared object to disk.", error);
+        }
+        if (flushStatus != null) {
+            switch (flushStatus) {
+                case SharedObjectFlushStatus.PENDING:
+                    log.info("Requesting permission to save object...\n");
+                    conferencesSharedObject.addEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
+                    break;
+                case SharedObjectFlushStatus.FLUSHED:
+                    log.info("Value flushed to disk.");
+                    dispatchEvent(ConferenceDataChangedEvent.createConferenceDataChangedEvent());
+                    break;
             }
         }
-        updateLastUpdatedDate();
     }
 
     private static function onFault(event:FaultEvent):void {
         log.error("Got error loading conferences.", event.fault);
     }
 
-    protected function updateLastUpdatedDate():void {
-        var query:String = "SELECT max(updated_at) AS last_update_date FROM (SELECT updated_at FROM audiences " +
-                "UNION SELECT updated_at FROM conferences " +
-                "UNION SELECT updated_at FROM event_types " +
-                "UNION SELECT updated_at FROM events " +
-                "UNION SELECT updated_at FROM languages " +
-                "UNION SELECT updated_at FROM locations " +
-                "UNION SELECT updated_at FROM meta_datas " +
-                "UNION SELECT updated_at FROM speakers " +
-                "UNION SELECT updated_at FROM tracks)";
-
-        var newLastUpdateDate:Date = null;
-        try {
-            var res:Array = em.query(query) as Array;
-            newLastUpdateDate = SqlHelper.convertSqlDateToFlexDate(res[0].last_update_date);
-        } catch(e:SQLError) {
-            // Ignore
+    private function onFlushStatus(event:NetStatusEvent):void {
+        switch (event.info.code) {
+            case "SharedObject.Flush.Success":
+                log.info("User granted permission -- value saved.");
+                break;
+            case "SharedObject.Flush.Failed":
+                log.info("User denied permission -- value not saved.");
+                break;
         }
-
-        // No last update date found, fetch something from the server.
-        if(!newLastUpdateDate) {
-            update();
-        }
-        // Only update the value and fire events, if the date has changed.
-        else if(_lastUpdateDate != newLastUpdateDate) {
-            _lastUpdateDate = newLastUpdateDate;
-            dispatchEvent(ConferenceDataChangedEvent.createConferenceDataChangedEvent());
-        }
+        conferencesSharedObject.removeEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
+        dispatchEvent(ConferenceDataChangedEvent.createConferenceDataChangedEvent());
     }
 
 }

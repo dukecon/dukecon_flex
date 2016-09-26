@@ -3,6 +3,7 @@
  */
 package org.dukecon.model {
 
+[RemoteClass]
 public class Settings implements Identifyable {
 
     private var _id:String;

@@ -107,6 +107,7 @@
             var selectedLanguage:String = String(RadioButton(event.target).value);
 
             resourceManager.localeChain = [selectedLanguage];
+            // TODO: Implement the language change ...
 //            settingsService.selectedLanguage = String(selectedLanguage);
 
             log.info("Changed language to: " + selectedLanguage);

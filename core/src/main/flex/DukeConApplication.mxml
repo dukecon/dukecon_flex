@@ -23,8 +23,6 @@
         import mx.logging.LogEventLevel;
         import mx.logging.targets.TraceTarget;
 
-        import nz.co.codec.flexorm.EntityManager;
-
         import org.dukecon.events.SettingsChangedEvent;
 
         import org.dukecon.services.SettingsService;
@@ -43,15 +41,10 @@
             var sqlConnection:SQLConnection = new SQLConnection();
             sqlConnection.open(dbFile);
 
-            var em:EntityManager = EntityManager.instance;
-            //em.debugLevel = 1;
-            em.sqlConnection = sqlConnection;
-
             // Save the initial list of installed resources.
             var settingsService:SettingsService = SettingsService(context.getObjectByType(SettingsService));
             if (settingsService) {
                 settingsService.installedLanguages = resourceManager.localeChain;
-                settingsService.loadSettings();
                 settingsService.addEventListener(SettingsChangedEvent.SETTINGS_CHANGED, onSettingsChanged);
             }
             updateState();

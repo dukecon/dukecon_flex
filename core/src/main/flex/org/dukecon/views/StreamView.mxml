@@ -27,6 +27,7 @@
       import org.dukecon.model.Track;
       import org.dukecon.services.EventService;
       import org.dukecon.services.ResourceService;
+      import org.dukecon.services.SettingsService;
       import org.dukecon.utils.I18nHelper;
 
       protected var stream:Track;
@@ -63,7 +64,7 @@
           if (stream && eventService && resourceService) {
               streamIcon.source = resourceService.getIconForStream(stream.id);
               streamNameLabel.text = I18nHelper.getName(stream.names, resourceManager.localeChain[0]);
-              talkList.dataProvider = eventService.getEventsForStream(stream);
+              talkList.dataProvider = eventService.getEventsForStream(SettingsService.selectedConferenceId, stream);
           } else {
               streamIcon.source = null;
               streamNameLabel.text = null;

@@ -27,6 +27,7 @@
         import org.dukecon.model.Location;
         import org.dukecon.services.EventService;
         import org.dukecon.services.ResourceService;
+        import org.dukecon.services.SettingsService;
         import org.dukecon.utils.I18nHelper;
 
         protected var location:Location;
@@ -63,7 +64,7 @@
             if(location && resourceService && eventService) {
                 locationName.text = I18nHelper.getName(location.names, resourceManager.localeChain[0]);
                 locationIcon.source = resourceService.getIconForLocation(location.id);
-                talkList.dataProvider = eventService.getEventsForLocation(location);
+                talkList.dataProvider = eventService.getEventsForLocation(SettingsService.selectedConferenceId, location);
             } else {
                 locationName.text = null;
                 locationIcon.source = null;

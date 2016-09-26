@@ -28,6 +28,7 @@
         import org.dukecon.model.Speaker;
         import org.dukecon.services.EventService;
         import org.dukecon.services.ResourceService;
+        import org.dukecon.services.SettingsService;
 
         protected var speaker:Speaker;
         protected var _initialized:Boolean = false;
@@ -61,8 +62,8 @@
             }
 
             if(speaker && resourceService && eventService) {
-                talkList.dataProvider = eventService.getEventsForSpeaker(speaker);
                 speakerImage.source = resourceService.getIconForSpeaker(speaker.name);
+                talkList.dataProvider = eventService.getEventsForSpeaker(SettingsService.selectedConferenceId, speaker);
                 speakerNameLabel.text = speaker.name;
                 speakerCompanyLabel.text = speaker.company;
                 speakerBioLabel.text = speaker.bio;

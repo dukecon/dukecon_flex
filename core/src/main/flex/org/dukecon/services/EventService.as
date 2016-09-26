@@ -5,12 +5,8 @@ package org.dukecon.services {
 
 import mx.collections.ArrayCollection;
 
-import nz.co.codec.flexorm.EntityManager;
-import nz.co.codec.flexorm.criteria.Criteria;
-
 import org.dukecon.model.Audience;
-
-import org.dukecon.model.Event;
+import org.dukecon.model.ConferenceStorage;
 import org.dukecon.model.EventType;
 import org.dukecon.model.Language;
 import org.dukecon.model.Location;
@@ -19,73 +15,67 @@ import org.dukecon.model.Track;
 
 public class EventService {
 
-    private var em:EntityManager;
+    [Inject]
+    public var conferenceService:ConferenceService;
 
     public function EventService() {
-        em = EntityManager.instance;
     }
 
-    public function getEventsForDay(day:String):ArrayCollection {
-        var criteria:Criteria = em.createCriteria(Event);
-        var matches:Array = day.match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
-        var rangeStart:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]), 0, 0, 0);
-        criteria.addGreaterEqualsCondition("start", rangeStart);
-        var rangeEnd:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]), 23, 59, 59);
-        criteria.addLessEqualsCondition("start", rangeEnd);
-        return getEvents(criteria);
-    }
-
-    public function getEventsForAudience(audience:Audience):ArrayCollection {
-        var criteria:Criteria = em.createCriteria(Event);
-        criteria.addEqualsCondition("audience.id", audience.id);
-        return getEvents(criteria);
-    }
-
-    public function getEventsForEventType(eventType:EventType):ArrayCollection {
-        var criteria:Criteria = em.createCriteria(Event);
-        criteria.addEqualsCondition("eventType.id", eventType.id);
-        return getEvents(criteria);
-    }
-
-    public function getEventsForLanguage(language:Language):ArrayCollection {
-        var criteria:Criteria = em.createCriteria(Event);
-        criteria.addEqualsCondition("language.id", language.id);
-        return getEvents(criteria);
-    }
-
-    public function getEventsForLocation(location:Location):ArrayCollection {
-        var criteria:Criteria = em.createCriteria(Event);
-        criteria.addEqualsCondition("location.id", location.id);
-        return getEvents(criteria);
-    }
-
-    public function getEventsForSpeaker(speaker:Speaker):ArrayCollection {
-        var criteria:Criteria = em.createCriteria(Event);
-        // TODO: This must be changed to a "speakers contains speaker with id"
-        criteria.addEqualsCondition("speaker.id", speaker.id);
-        return getEvents(criteria);
-    }
-
-    public function getEventsForStream(track:Track):ArrayCollection {
-        var criteria:Criteria = em.createCriteria(Event);
-        criteria.addEqualsCondition("track.id", track.id);
-        return getEvents(criteria);
-    }
-
-    private function getEvents(criteria:Criteria):ArrayCollection {
-        var res:ArrayCollection = em.fetchCriteria(criteria);
-        res.filterFunction = filterPartlyInitialized;
-        res.refresh();
-        return res;
-    }
-
-    private static function filterPartlyInitialized(event:Event):Boolean {
-        var fullyInitialized:Boolean = (event.type != null) && (event.language != null) &&
-                (event.location != null) && (event.speakers != null);
-        if(!fullyInitialized) {
-            trace("Partially Initialized: " + event.id);
+    public function getEventsForDay(conferenceId:String, day:String):ArrayCollection {
+        var conference:ConferenceStorage = conferenceService.getConference(conferenceId);
+        if(conference) {
+            return conference.dayIndex[day];
         }
-        return fullyInitialized;
+        return null;
     }
+
+    public function getEventsForAudience(conferenceId:String, audience:Audience):ArrayCollection {
+        var conference:ConferenceStorage = conferenceService.getConference(conferenceId);
+        if(conference) {
+            return conference.audienceIndex[audience.id];
+        }
+        return null;
+    }
+
+    public function getEventsForEventType(conferenceId:String, eventType:EventType):ArrayCollection {
+        var conference:ConferenceStorage = conferenceService.getConference(conferenceId);
+        if(conference) {
+            return conference.eventTypeIndex[eventType.id];
+        }
+        return null;
+    }
+
+    public function getEventsForLanguage(conferenceId:String, language:Language):ArrayCollection {
+        var conference:ConferenceStorage = conferenceService.getConference(conferenceId);
+        if(conference) {
+            return conference.languageIndex[language.id];
+        }
+        return null;
+    }
+
+    public function getEventsForLocation(conferenceId:String, location:Location):ArrayCollection {
+        var conference:ConferenceStorage = conferenceService.getConference(conferenceId);
+        if(conference) {
+            return conference.locationIndex[location.id];
+        }
+        return null;
+    }
+
+    public function getEventsForSpeaker(conferenceId:String, speaker:Speaker):ArrayCollection {
+        var conference:ConferenceStorage = conferenceService.getConference(conferenceId);
+        if(conference) {
+            return conference.speakerIndex[speaker.id];
+        }
+        return null;
+    }
+
+    public function getEventsForStream(conferenceId:String, track:Track):ArrayCollection {
+        var conference:ConferenceStorage = conferenceService.getConference(conferenceId);
+        if(conference) {
+            return conference.streamIndex[track.id];
+        }
+        return null;
+    }
+
 }
 }

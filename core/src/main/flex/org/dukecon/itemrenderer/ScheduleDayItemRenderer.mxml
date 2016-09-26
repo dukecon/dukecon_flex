@@ -40,7 +40,9 @@
         override public function set data(value:Object):void {
             super.data = value;
             var matches:Array = String(data).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
-            date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
+            if(matches) {
+                date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
+            }
             update();
         }
 
