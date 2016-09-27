@@ -25,17 +25,17 @@ public class UserPreferenceService {
         }
     }
 
-    public function isEventSelected(conferenceId:String, event:Event):Boolean {
-        return Object(preferencesSharedObject.data.preferences).hasOwnProperty(conferenceId + "-" + event.id)
+    public function isEventSelected(event:Event):Boolean {
+        return Object(preferencesSharedObject.data.preferences).hasOwnProperty(event.conference.id + "-" + event.id)
     }
 
-    public function selectEvent(conferenceId:String, event:Event):void {
-        Object(preferencesSharedObject.data.preferences)[conferenceId + "-" + event.id] = "true";
+    public function selectEvent(event:Event):void {
+        Object(preferencesSharedObject.data.preferences)[event.conference.id + "-" + event.id] = "true";
         saveSettings();
     }
 
-    public function unselectEvent(conferenceId:String, event:Event):void {
-        delete Object(preferencesSharedObject.data.preferences)[conferenceId + "-" + event.id];
+    public function unselectEvent(event:Event):void {
+        delete Object(preferencesSharedObject.data.preferences)[event.conference.id + "-" + event.id];
         saveSettings();
     }
 

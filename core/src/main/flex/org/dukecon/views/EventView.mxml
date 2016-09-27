@@ -34,7 +34,6 @@
         import org.dukecon.services.ConferenceService;
         import org.dukecon.services.RatingService;
         import org.dukecon.services.ResourceService;
-        import org.dukecon.services.SettingsService;
         import org.dukecon.services.UserPreferenceService;
         import org.dukecon.utils.I18nHelper;
 
@@ -95,6 +94,9 @@
                 return;
             }
 
+            if (event) {
+                title = startTimeFormatter.format(event.start) + " - " + endTimeFormatter.format(event.end);
+            }
             if (event && resourceService) {
                 titleLabel.text = event.title;
                 abstractLabel.text = event.abstractText;
@@ -131,7 +133,6 @@
                         }
                     }
                 }
-                title = startTimeFormatter.format(event.start) + " - " + endTimeFormatter.format(event.end);
                 ratingGroup.selectedValue = ratingService.getRating(event);
                 locationName = I18nHelper.getName(event.location.names, resourceManager.localeChain[0]);
                 if (event.track && event.track.id) {
@@ -150,17 +151,17 @@
 
         protected function updateSelectionIcon():void {
             if (event) {
-                selectedIcon = userPreferenceService.isEventSelected(SettingsService.selectedConferenceId, event) ? starSelected : starUnselected;
+                selectedIcon = userPreferenceService.isEventSelected(event) ? starSelected : starUnselected;
             } else {
                 selectedIcon = null;
             }
         }
 
         protected function toggleSelection(evnt:MouseEvent):void {
-            if (userPreferenceService.isEventSelected(SettingsService.selectedConferenceId, event)) {
-                userPreferenceService.unselectEvent(SettingsService.selectedConferenceId, event);
+            if (userPreferenceService.isEventSelected(event)) {
+                userPreferenceService.unselectEvent(event);
             } else {
-                userPreferenceService.selectEvent(SettingsService.selectedConferenceId, event);
+                userPreferenceService.selectEvent(event);
             }
             updateSelectionIcon();
         }

@@ -16,6 +16,7 @@
         <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="eventService" type="{EventService}" />
             <parsley:Inject property="resourceService" type="{ResourceService}" />
+            <parsley:Inject property="settingsService" type="{SettingsService}" />
         </parsley:FastInject>
     </fx:Declarations>
 
@@ -35,6 +36,7 @@
 
         public var eventService:EventService;
         public var resourceService:ResourceService;
+        public var settingsService:SettingsService;
 
         protected function onCreationComplete(event:FlexEvent):void {
             talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
@@ -64,7 +66,7 @@
             if(location && resourceService && eventService) {
                 locationName.text = I18nHelper.getName(location.names, resourceManager.localeChain[0]);
                 locationIcon.source = resourceService.getIconForLocation(location.id);
-                talkList.dataProvider = eventService.getEventsForLocation(SettingsService.selectedConferenceId, location);
+                talkList.dataProvider = eventService.getEventsForLocation(settingsService.selectedConferenceId, location);
             } else {
                 locationName.text = null;
                 locationIcon.source = null;

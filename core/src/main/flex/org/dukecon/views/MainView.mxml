@@ -18,7 +18,6 @@
             <parsley:Inject property="settingsService" type="{SettingsService}" />
         </parsley:FastInject>
         <s:DateTimeFormatter id="timeFormatter"
-                             locale="{SettingsService.selectedLanguage.code}"
                              dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
     </fx:Declarations>
 
@@ -31,6 +30,7 @@
 
         public var conferenceService:ConferenceService;
         public var resourceService:ResourceService;
+        [Bindable]
         public var settingsService:SettingsService;
 
         protected function init():void {
@@ -68,7 +68,7 @@
   </fx:Script>
 
     <s:navigationContent>
-        <s:Button label="&lt;" click="{settingsService.selectedConference = null}"/>
+        <s:Button label="&lt;" click="{settingsService.selectedConferenceId = null}"/>
     </s:navigationContent>
 
     <s:VGroup id="content" width="100%" height="100%" horizontalAlign="center" padding="20">

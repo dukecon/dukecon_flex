@@ -45,7 +45,7 @@
         }
 
         protected function onItemSelected(event:ListEvent):void {
-            settingsService.selectedConference = Conference(event.data);
+            settingsService.selectedConferenceId = Conference(event.data).id;
         }
 
         ]]>

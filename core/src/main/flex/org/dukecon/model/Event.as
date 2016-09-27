@@ -9,5 +9,20 @@ package org.dukecon.model {
 
     [RemoteClass(alias="org.dukecon.model.Event")]
     public class Event extends EventBase {
+
+        private var _conference:Conference;
+
+        public function Event() {
+            super();
+        }
+
+        public function get conference():Conference {
+            return _conference;
+        }
+
+        public function set conference(value:Conference):void {
+            _conference = value;
+        }
+
     }
 }

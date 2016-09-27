@@ -13,6 +13,7 @@
         <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="eventService" type="{EventService}" />
             <parsley:Inject property="resourceService" type="{ResourceService}" />
+            <parsley:Inject property="settingsService" type="{SettingsService}" />
             <parsley:Inject property="userPreferenceService" type="{UserPreferenceService}" />
         </parsley:FastInject>
         <s:DateTimeFormatter id="formatter"
@@ -58,6 +59,7 @@
 
         public var eventService:EventService;
         public var resourceService:ResourceService;
+        public var settingsService:SettingsService;
         public var userPreferenceService:UserPreferenceService;
 
         protected function onCreationComplete(event:FlexEvent):void {
@@ -98,7 +100,7 @@
                     var date:Date = new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
                     formattedDate = formatter.format(date);
 
-                    dataProvider = eventService.getEventsForDay(SettingsService.selectedConferenceId, dateString);
+                    dataProvider = eventService.getEventsForDay(settingsService.selectedConferenceId, dateString);
                     locations = new ArrayCollection();
 
                     // Find out the start time (start date of the earliest event)

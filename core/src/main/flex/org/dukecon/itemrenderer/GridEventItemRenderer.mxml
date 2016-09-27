@@ -13,7 +13,6 @@
 
   <fx:Declarations>
     <s:DateTimeFormatter id="timeFormatter"
-                         locale="{SettingsService.selectedLanguage}"
                          dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.time')}"/>
   </fx:Declarations>
 
@@ -29,7 +28,6 @@
     import org.dukecon.model.Language;
     import org.dukecon.model.Speaker;
     import org.dukecon.services.ResourceService;
-    import org.dukecon.services.SettingsService;
     import org.dukecon.services.UserPreferenceService;
     import org.dukecon.utils.I18nHelper;
 
@@ -134,17 +132,17 @@
 
     protected function updateSelectionIcon():void {
       if (event) {
-        favoriteImage.source = userPreferenceService.isEventSelected(SettingsService.selectedConferenceId, event) ? starSelected : starUnselected;
+        favoriteImage.source = userPreferenceService.isEventSelected(event) ? starSelected : starUnselected;
       } else {
         favoriteImage.source = null;
       }
     }
 
     protected function toggleSelection(evnt:MouseEvent):void {
-      if (userPreferenceService.isEventSelected(SettingsService.selectedConferenceId, event)) {
-        userPreferenceService.unselectEvent(SettingsService.selectedConferenceId, event);
+      if (userPreferenceService.isEventSelected(event)) {
+        userPreferenceService.unselectEvent(event);
       } else {
-        userPreferenceService.selectEvent(SettingsService.selectedConferenceId, event);
+        userPreferenceService.selectEvent(event);
       }
       updateSelectionIcon();
     }

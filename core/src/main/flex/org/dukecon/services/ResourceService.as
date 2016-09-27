@@ -22,15 +22,14 @@ public class ResourceService {
 
     [Inject]
     public var serverConnection:ServerConnection;
+    [Inject]
+    public var settingsService:SettingsService;
 
     private var resourcesSharedObject:SharedObject;
 
     public function ResourceService() {
         service = new RemoteObject("resourceService");
         resourcesSharedObject = SharedObject.getLocal("dukecon-resources");
-        if(!resourcesSharedObject.data["conferenceResources"]) {
-            update();
-        }
     }
 
     [Init]
@@ -40,11 +39,15 @@ public class ResourceService {
 
         service.getResourcesForConference.addEventListener(ResultEvent.RESULT, onGetResourcesForConferenceResult);
         service.addEventListener(FaultEvent.FAULT, onFault);
+
+        if(!resourcesSharedObject.data["conferenceResources"]) {
+            update();
+        }
     }
 
     public function update():void {
         log.info("Updating conferences");
-        service.getResourcesForConference(SettingsService.selectedConferenceId);
+        service.getResourcesForConference(settingsService.selectedConferenceId);
     }
 
     public function getIconForConference(conferenceId:String):ByteArray {

@@ -16,6 +16,7 @@
         <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="eventService" type="{EventService}" />
             <parsley:Inject property="resourceService" type="{ResourceService}" />
+            <parsley:Inject property="settingsService" type="{SettingsService}" />
         </parsley:FastInject>
     </fx:Declarations>
 
@@ -35,6 +36,7 @@
 
       public var eventService:EventService;
       public var resourceService:ResourceService;
+      public var settingsService:SettingsService;
 
       protected function onCreationComplete(event:FlexEvent):void {
         talkList.addEventListener(ListEvent.ITEM_SELECTED, onStreamSelected);
@@ -64,7 +66,7 @@
           if (stream && eventService && resourceService) {
               streamIcon.source = resourceService.getIconForStream(stream.id);
               streamNameLabel.text = I18nHelper.getName(stream.names, resourceManager.localeChain[0]);
-              talkList.dataProvider = eventService.getEventsForStream(SettingsService.selectedConferenceId, stream);
+              talkList.dataProvider = eventService.getEventsForStream(settingsService.selectedConferenceId, stream);
           } else {
               streamIcon.source = null;
               streamNameLabel.text = null;

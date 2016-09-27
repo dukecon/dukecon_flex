@@ -11,12 +11,9 @@ import flash.utils.getQualifiedClassName;
 
 import mx.logging.ILogger;
 import mx.logging.Log;
-
 import mx.resources.ResourceManager;
 
 import org.dukecon.events.SettingsChangedEvent;
-import org.dukecon.model.Conference;
-import org.dukecon.model.Language;
 import org.dukecon.model.Settings;
 
 [Event(name="settingsChanged", type="org.dukecon.events.SettingsChangedEvent")]
@@ -25,62 +22,48 @@ public class SettingsService extends EventDispatcher {
 
     protected static var log:ILogger = Log.getLogger(getQualifiedClassName(SettingsService).replace("::"));
 
-    private static var _selectedConferenceId:String;
-    private static var _selectedLanguage:Language;
-
     private var settingsSharedObject:SharedObject;
 
     private var _installedLanguages:Array;
 
-    public static function get selectedConferenceId():String {
-        return _selectedConferenceId;
-    }
-
-    public static function get selectedLanguage():Language {
-        return _selectedLanguage;
-    }
-
     public function SettingsService() {
         settingsSharedObject = SharedObject.getLocal("dukecon-settings");
         if(!settingsSharedObject.data.settings) {
-            settingsSharedObject.data.settings = new Settings();
+            var settings:Settings = new Settings();
+            settings.selectedLanguageId = ResourceManager.getInstance().localeChain[0];
+            settingsSharedObject.data.settings = settings;
+        } else {
+            ResourceManager.getInstance().localeChain =
+                    [Settings(settingsSharedObject.data.settings).selectedLanguageId];
         }
-        _selectedConferenceId = settingsSharedObject.data.settings.selectedConferenceId;
-        _selectedLanguage = new Language();
-        _selectedLanguage.id = settingsSharedObject.data.settings.selectedLanguageId;
-        _selectedLanguage.code = ResourceManager.getInstance().localeChain[0];
+        dispatchEvent(SettingsChangedEvent.createSettingsChangedEvent());
     }
 
     public function set installedLanguages(installedLanguages:Array):void {
         _installedLanguages = installedLanguages;
     }
 
-    public function set selectedConference(conference:Conference):void {
-        settingsSharedObject.data.settings.selectedConferenceId = (conference) ? conference.id : null;
+    public function set selectedConferenceId(conferenceId:String):void {
+        settingsSharedObject.data.settings.selectedConferenceId = conferenceId;
         saveSettings();
-        _selectedConferenceId = settingsSharedObject.data.settings.selectedConferenceId;
         dispatchEvent(SettingsChangedEvent.createSettingsChangedEvent());
     }
 
-    public function set selectedLanguage(language:Language):void {
-        settingsSharedObject.data.settings.selectedLanguageId = (language) ? language.id : null;
+    [Bindable("settingsChanged")]
+    public function get selectedConferenceId():String {
+        return Settings(settingsSharedObject.data.settings).selectedConferenceId;
+    }
+
+    public function set selectedLanguageId(language:String):void {
+        Settings(settingsSharedObject.data.settings).selectedLanguageId = language;
+        ResourceManager.getInstance().localeChain = [language];
         saveSettings();
-        _selectedLanguage = language;
         dispatchEvent(SettingsChangedEvent.createSettingsChangedEvent());
     }
 
-    private function getResourceLanguageCode(language:Language):String {
-        if(language) {
-            for each(var installedLanguage:String in _installedLanguages) {
-                if(installedLanguage == language.code) {
-                    return language.code;
-                }
-                if(installedLanguage.indexOf(language.code + "_") == 0) {
-                    return installedLanguage;
-                }
-            }
-        }
-        return _installedLanguages[0];
+    [Bindable("settingsChanged")]
+    public function get selectedLanguageId():String {
+        return Settings(settingsSharedObject.data.settings).selectedLanguageId;
     }
 
     private function saveSettings():void {

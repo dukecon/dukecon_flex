@@ -16,6 +16,7 @@
         <parsley:FastInject injectionComplete="init()">
             <parsley:Inject property="eventService" type="{EventService}" />
             <parsley:Inject property="resourceService" type="{ResourceService}" />
+            <parsley:Inject property="settingsService" type="{SettingsService}" />
         </parsley:FastInject>
     </fx:Declarations>
 
@@ -35,6 +36,7 @@
 
         public var eventService:EventService;
         public var resourceService:ResourceService;
+        public var settingsService:SettingsService;
 
         protected function onCreationComplete(event:FlexEvent):void {
             talkList.addEventListener(ListEvent.ITEM_SELECTED, onTalkSelected);
@@ -63,7 +65,7 @@
 
             if(speaker && resourceService && eventService) {
                 speakerImage.source = resourceService.getIconForSpeaker(speaker.name);
-                talkList.dataProvider = eventService.getEventsForSpeaker(SettingsService.selectedConferenceId, speaker);
+                talkList.dataProvider = eventService.getEventsForSpeaker(settingsService.selectedConferenceId, speaker);
                 speakerNameLabel.text = speaker.name;
                 speakerCompanyLabel.text = speaker.company;
                 speakerBioLabel.text = speaker.bio;

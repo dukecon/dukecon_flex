@@ -34,13 +34,13 @@
         public var settingsService:SettingsService;
 
         public function init():void {
-            listData = locationService.getLocations(SettingsService.selectedConferenceId);
+            listData = locationService.getLocations(settingsService.selectedConferenceId);
             list.addEventListener(ListEvent.ITEM_SELECTED, onLocationSelected)
         }
 
         [MessageHandler]
         public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
-            listData = locationService.getLocations(SettingsService.selectedConferenceId);
+            listData = locationService.getLocations(settingsService.selectedConferenceId);
         }
 
         protected function onLocationSelected(event:ListEvent):void {
@@ -50,7 +50,7 @@
     </fx:Script>
 
     <s:navigationContent>
-        <s:Button label="&lt;" click="{settingsService.selectedConference = null}"/>
+        <s:Button label="&lt;" click="{settingsService.selectedConferenceId = null}"/>
     </s:navigationContent>
 
     <s:List id="list" width="100%" height="100%"

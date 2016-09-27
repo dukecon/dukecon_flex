@@ -111,6 +111,8 @@ public class ConferenceService extends EventDispatcher {
             // Build up some helpful indexes that prevent us from having to process
             // all events for each list operation.
             for each(var event:Event in conference.events) {
+                event.conference = conference;
+
                 var dateString:String = dateFormat.format(event.start);
                 if(conferenceStorage.days.getItemIndex(dateString) == -1) {
                     conferenceStorage.days.addItem(dateString)

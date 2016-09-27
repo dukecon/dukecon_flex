@@ -4,21 +4,12 @@
 package org.dukecon.model {
 
 [RemoteClass]
-public class Settings implements Identifyable {
+public class Settings {
 
-    private var _id:String;
     private var _selectedConferenceId:String;
     private var _selectedLanguageId:String;
 
     public function Settings() {
-    }
-
-    [Id(strategy='assigned')]
-    public function get id():String {
-        return _id;
-    }
-    public function set id(value:String):void {
-        _id = value;
     }
 
     public function get selectedConferenceId():String {

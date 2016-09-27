@@ -31,18 +31,14 @@
         import org.spicefactory.parsley.flex.FlexContextBuilder;
 
         private var installedLanguages:Array;
+        private var settingsService:SettingsService;
 
         protected function onPreInitialize(event:FlexEvent):void {
             initLogging();
             var context:Context = FlexContextBuilder.build(DukeConContext, this);
 
-            // Prepare the entity manager.
-            var dbFile:File = File.applicationStorageDirectory.resolvePath("dukecon.db");
-            var sqlConnection:SQLConnection = new SQLConnection();
-            sqlConnection.open(dbFile);
-
             // Save the initial list of installed resources.
-            var settingsService:SettingsService = SettingsService(context.getObjectByType(SettingsService));
+            settingsService = SettingsService(context.getObjectByType(SettingsService));
             if (settingsService) {
                 settingsService.installedLanguages = resourceManager.localeChain;
                 settingsService.addEventListener(SettingsChangedEvent.SETTINGS_CHANGED, onSettingsChanged);
@@ -68,7 +64,7 @@
         }
 
         protected function updateState():void {
-            currentState = (SettingsService.selectedConferenceId) ? "default" : "conferenceSelection";
+            currentState = (settingsService.selectedConferenceId) ? "default" : "conferenceSelection";
         }
 
         protected function onSettingsChanged(event:SettingsChangedEvent):void {
