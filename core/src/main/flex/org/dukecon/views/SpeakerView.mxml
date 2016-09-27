@@ -119,7 +119,7 @@
                     </s:stroke>
                 </s:Rect>
 
-                <s:Image id="speakerImage" top="22" right="22" width="116" height="116"/>
+                <s:Image id="speakerImage" top="21" right="21" width="119" height="119"/>
             </s:Group>
             <s:Label id="speakerBioLabel" styleName="content" width="{UIComponent(parent).width - 20}"/>
             <s:Form width="100%">

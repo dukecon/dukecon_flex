@@ -18,6 +18,9 @@ public class ResourceService {
 
     protected static var log:ILogger = Log.getLogger(getQualifiedClassName(ConferenceService).replace("::"));
 
+    [Embed(source="/speakers/default-speaker.jpg", mimeType="application/octet-stream")]
+    public var defaultSpeaker:Class;
+
     private var service:RemoteObject;
 
     [Inject]
@@ -91,7 +94,7 @@ public class ResourceService {
                 resourcesSharedObject.data.conferenceResources["speakers"]) {
             return resourcesSharedObject.data.conferenceResources.speakers[speakerId];
         }
-        return null;
+        return new defaultSpeaker();
     }
 
     private function onGetResourcesForConferenceResult(resultEvent:ResultEvent):void {
