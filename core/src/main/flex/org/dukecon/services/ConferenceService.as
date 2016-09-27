@@ -10,6 +10,8 @@ import flash.net.SharedObjectFlushStatus;
 import flash.utils.getQualifiedClassName;
 
 import mx.collections.ArrayCollection;
+import mx.collections.Sort;
+import mx.collections.SortField;
 import mx.formatters.DateFormatter;
 import mx.logging.ILogger;
 import mx.logging.Log;
@@ -78,6 +80,13 @@ public class ConferenceService extends EventDispatcher {
     public function getConferenceDays(conferenceId:String):ArrayCollection {
         var conference:ConferenceStorage = getConference(conferenceId);
         if(conference) {
+            // Sort the days.
+            var orderSortField:SortField = new SortField(null, true, false, false);
+            var locationSort:Sort = new Sort();
+            locationSort.fields = [orderSortField];
+            conference.days.sort = locationSort;
+            conference.days.refresh();
+
             return conference.days;
         }
         return null;
