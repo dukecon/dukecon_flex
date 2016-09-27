@@ -102,20 +102,11 @@
         }
         timeLabel.text = timeFormatter.format(event.start) + " (" + timeString + ")";
 
-/*        locationLabel.text = I18nHelper.getName(event.location.names, resourceManager.localeChain[0]);
-        locationIcon.source = resourceService.getIconForLocation(event.location.id);
-        if (event.track) {
-          streamLabel.text = I18nHelper.getName(event.track.names, resourceManager.localeChain[0]);
-          streamIcon.source = resourceService.getIconForStream(event.track.id);
-        } else {
-          streamLabel.text = null;
-          streamIcon.source = null;
-        }*/
         var language:Language = event.language ? event.language : null;// TODO: Make this get the default language ;
         if(language) {
-//          languageLabel.text = I18nHelper.getName(language.names, resourceManager.localeChain[0]);
           languageIcon.source = resourceService.getIconForLanguage(event.language.id);
         }
+
         var speakerNames:String = "";
         for each(var speaker:Speaker in event.speakers) {
           if (speakerNames != "") {
@@ -126,15 +117,11 @@
           }
         }
         speakersLabel.text = speakerNames;
+
         abstractLabel.text = event.abstractText;
       } else {
         titleLabel.text = null;
         timeLabel.text = null;
-/*        locationLabel.text = null;
-        locationIcon = null;
-        streamLabel.text = null;
-        streamIcon = null;
-        languageLabel.text = null;*/
         languageIcon = null;
         speakersLabel.text = null;
         abstractLabel.text = null;
@@ -158,6 +145,9 @@
         userPreferenceService.selectEvent(event);
       }
       updateSelectionIcon();
+
+      // Stop the event from bubbling up.
+      evnt.stopPropagation();
     }
 
     protected function onMoreClicked(evnt:MouseEvent):void {
@@ -189,17 +179,6 @@
     <s:Label id="titleLabel" height="100" styleName="talkTitle" maxDisplayedLines="-1"/>
     <s:Label id="speakersLabel" height="56" styleName="talkSpeakers" maxDisplayedLines="-1"/>
     <s:Label id="abstractLabel" height="110" styleName="talkAbstract" maxDisplayedLines="-1"/>
-
-    <!--s:VGroup width="100%" gap="10">
-      <s:HGroup width="100%" gap="20" verticalAlign="middle">
-        <s:BitmapImage id="locationIcon" width="32" height="32"/>
-        <s:Label id="locationLabel" styleName="talkLocation"/>
-      </s:HGroup>
-      <s:HGroup width="100%" gap="20" verticalAlign="middle">
-        <s:BitmapImage id="streamIcon" width="32" height="32"/>
-        <s:Label id="streamLabel" styleName="talkStream"/>
-      </s:HGroup>
-    </s:VGroup-->
   </s:VGroup>
 
 </s:GridItemRenderer>
