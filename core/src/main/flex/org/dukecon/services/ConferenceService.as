@@ -151,6 +151,7 @@ public class ConferenceService extends EventDispatcher {
                 if(event.location) {
                     if(!conferenceStorage.locationIndex.hasOwnProperty(event.location.id)) {
                         conferenceStorage.locationIndex[event.location.id] = new ArrayCollection();
+                        event.location.conference = conference;
                     }
                     ArrayCollection(conferenceStorage.locationIndex[event.location.id]).addItem(event);
                 }
@@ -167,6 +168,7 @@ public class ConferenceService extends EventDispatcher {
                 if(event.track) {
                     if(!conferenceStorage.streamIndex.hasOwnProperty(event.track.id)) {
                         conferenceStorage.streamIndex[event.track.id] = new ArrayCollection();
+                        event.track.conference = conference;
                     }
                     ArrayCollection(conferenceStorage.streamIndex[event.track.id]).addItem(event);
                 }

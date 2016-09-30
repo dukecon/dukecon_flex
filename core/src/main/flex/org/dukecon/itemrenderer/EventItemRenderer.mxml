@@ -31,7 +31,7 @@
       }
 
       protected function update():void {
-        if (event && resourceService) {
+        if (event && event.track && resourceService) {
           streamIcon.source = resourceService.getIconForStream(event.track.id);
           titleLabel.text = event.title;
         } else {

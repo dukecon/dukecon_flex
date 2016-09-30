@@ -9,5 +9,20 @@ package org.dukecon.model {
 
     [RemoteClass(alias="org.dukecon.model.Location")]
     public class Location extends LocationBase {
+
+        private var _conference:Conference;
+
+        public function Location() {
+            super();
+        }
+
+        public function get conference():Conference {
+            return _conference;
+        }
+
+        public function set conference(value:Conference):void {
+            _conference = value;
+        }
+
     }
 }

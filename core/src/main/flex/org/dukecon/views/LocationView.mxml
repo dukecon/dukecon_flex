@@ -64,7 +64,8 @@
             }
 
             if(location && resourceService && eventService) {
-                locationName.text = I18nHelper.getName(location.names, resourceManager.localeChain[0]);
+                locationName.text = I18nHelper.getName(location.names, resourceManager.localeChain[0],
+                        location.conference.metaData.defaultLanguage.id);
                 locationIcon.source = resourceService.getIconForLocation(location.id);
                 talkList.dataProvider = eventService.getEventsForLocation(settingsService.selectedConferenceId, location);
             } else {

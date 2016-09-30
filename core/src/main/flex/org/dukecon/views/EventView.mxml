@@ -134,9 +134,11 @@
                     }
                 }
                 ratingGroup.selectedValue = ratingService.getRating(event);
-                locationName = I18nHelper.getName(event.location.names, resourceManager.localeChain[0]);
+                locationName = I18nHelper.getName(event.location.names, resourceManager.localeChain[0],
+                        event.conference.metaData.defaultLanguage.id);
                 if (event.track && event.track.id) {
-                    streamName = I18nHelper.getName(event.track.names, resourceManager.localeChain[0]);
+                    streamName = I18nHelper.getName(event.track.names, resourceManager.localeChain[0],
+                            event.conference.metaData.defaultLanguage.id);
                 } else {
                     streamName = null;
                 }

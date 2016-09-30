@@ -65,7 +65,8 @@
 
           if (stream && eventService && resourceService) {
               streamIcon.source = resourceService.getIconForStream(stream.id);
-              streamNameLabel.text = I18nHelper.getName(stream.names, resourceManager.localeChain[0]);
+              streamNameLabel.text = I18nHelper.getName(stream.names, resourceManager.localeChain[0],
+                      stream.conference.metaData.defaultLanguage.id);
               talkList.dataProvider = eventService.getEventsForStream(settingsService.selectedConferenceId, stream);
           } else {
               streamIcon.source = null;

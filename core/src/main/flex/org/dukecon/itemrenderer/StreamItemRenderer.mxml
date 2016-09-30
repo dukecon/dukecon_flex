@@ -42,7 +42,8 @@
       protected function update():void {
         if (stream && resourceService) {
           streamIcon = resourceService.getIconForStream(stream.id);
-          streamName = I18nHelper.getName(stream.names, resourceManager.localeChain[0]);
+          streamName = I18nHelper.getName(stream.names, resourceManager.localeChain[0],
+                  stream.conference.metaData.defaultLanguage.id);
         } else {
           streamIcon = null;
           streamName = null;

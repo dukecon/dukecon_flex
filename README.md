@@ -14,3 +14,4 @@ released, you have to build it, but it shouldn't be that hard to do.
 One thing you do need though in addition to this in order to run the
 Flex unit-tests, is a working flashplayer binary in your PATH.
 
+https://apacheconeu2016.sched.org/api/session/list?api_key=02cc6e2b5c92f13d51ac8dcaa85edc7c&custom_data=Y&format=json
