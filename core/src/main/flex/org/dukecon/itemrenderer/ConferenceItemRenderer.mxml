@@ -5,23 +5,32 @@
                 height="136"
                 click="onItemClick(event)">
 
+  <fx:Metadata>
+    [ResourceBundle("dukecon")]
+  </fx:Metadata>
+
   <fx:Declarations>
     <parsley:FastInject property="resourceService" type="{ResourceService}" />
+    <s:DateTimeFormatter id="timeFormatter"
+                         dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.date')}"/>
   </fx:Declarations>
 
   <fx:Script>
     <![CDATA[
+
     import org.dukecon.events.ListEvent;
-    import org.dukecon.model.Conference;
+    import org.dukecon.model.ConferenceStorage;
     import org.dukecon.services.ResourceService;
 
     [Bindable]
     protected var conferenceIcon:ByteArray;
 
     [Bindable]
-    protected var conference:Conference;
+    protected var conferenceStorage:ConferenceStorage;
     [Bindable]
     protected var conferenceName:String;
+    [Bindable]
+    protected var conferenceDates:String;
 
     public var resourceService:ResourceService;
 
@@ -32,17 +41,22 @@
 
     override public function set data(value:Object):void {
       super.data = value;
-      conference = Conference(data);
+      conferenceStorage = ConferenceStorage(data);
       update();
     }
 
     protected function update():void {
-      if (conference && resourceService) {
-        conferenceIcon = resourceService.getIconForConference(conference.id);
-        conferenceName = conference.name;
+      if (conferenceStorage && resourceService) {
+        conferenceIcon = resourceService.getIconForConference(conferenceStorage.id);
+        conferenceName = conferenceStorage.conference.name;
+
+        var firstDay:Date = conferenceStorage.firstDay;
+        var lastDay:Date = conferenceStorage.lastDay;
+        conferenceDates = timeFormatter.format(firstDay) + " - " + timeFormatter.format(lastDay);
       } else {
         conferenceIcon = null;
         conferenceName = null;
+        conferenceDates = null;
       }
       itemLabel.width = this.parent.parent.width - 168;
 
@@ -76,8 +90,9 @@
 
   <s:Image source="{conferenceIcon}" top="10" left="10" width="110" bottom="10"/>
 
-  <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
+  <s:VGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
     <s:Label id="itemLabel" text="{conferenceName}" styleName="listTitle"/>
-  </s:HGroup>
+    <s:Label id="datesLabel" text="{conferenceDates}" styleName="listsSubTitle"/>
+  </s:VGroup>
 
 </s:ItemRenderer>

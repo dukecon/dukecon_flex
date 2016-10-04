@@ -62,6 +62,14 @@ public class ConferenceService extends EventDispatcher {
         service.list();
     }
 
+    public function get conferenceStorages():ArrayCollection {
+        var conferenceStorages:ArrayCollection = new ArrayCollection();
+        for(var conferenceId:String in conferencesSharedObject.data.conferences) {
+            conferenceStorages.addItem(conferencesSharedObject.data.conferences[conferenceId]);
+        }
+        return conferenceStorages;
+    }
+
     public function get conferences():ArrayCollection {
         var conferences:ArrayCollection = new ArrayCollection();
         for(var conferenceId:String in conferencesSharedObject.data.conferences) {

@@ -4,6 +4,10 @@
 package org.dukecon.model {
 import mx.collections.ArrayCollection;
 
+import spark.collections.Sort;
+
+import spark.collections.SortField;
+
 [RemoteClass]
 public class ConferenceStorage {
 
@@ -45,6 +49,30 @@ public class ConferenceStorage {
 
     public function set days(value:ArrayCollection):void {
         _days = value;
+    }
+
+    public function get firstDay():Date {
+        // Sort the days
+        var orderSortField:SortField = new SortField();
+        var locationSort:Sort = new Sort();
+        locationSort.fields = [orderSortField];
+        _days.sort = locationSort;
+        _days.refresh();
+
+        var matches:Array = String(_days[0]).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+        return new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
+    }
+
+    public function get lastDay():Date {
+        // Sort the days
+        var orderSortField:SortField = new SortField();
+        var locationSort:Sort = new Sort();
+        locationSort.fields = [orderSortField];
+        _days.sort = locationSort;
+        _days.refresh();
+
+        var matches:Array = String(_days[_days.length - 1]).match(/(\d\d\d\d)-(\d\d)-(\d\d)/);
+        return new Date(int(matches[1]), int(matches[2]) - 1, int(matches[3]));
     }
 
     public function get streamIndex():Object {

@@ -26,7 +26,7 @@
         import org.dukecon.events.ListEvent;
         import org.dukecon.services.ConferenceService;
         import org.dukecon.services.SettingsService;
-        import org.dukecon.model.Conference;
+        import org.dukecon.model.ConferenceStorage;
 
         [Bindable]
         protected var listData:ArrayCollection;
@@ -36,16 +36,16 @@
 
         public function init():void {
             conferenceService.addEventListener(ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, onConferenceDataChanged);
-            listData = conferenceService.conferences;
+            listData = conferenceService.conferenceStorages;
             list.addEventListener(ListEvent.ITEM_SELECTED, onItemSelected);
         }
 
         public function onConferenceDataChanged(event:ConferenceDataChangedEvent):void {
-            listData = conferenceService.conferences;
+            listData = conferenceService.conferenceStorages;
         }
 
         protected function onItemSelected(event:ListEvent):void {
-            settingsService.selectedConferenceId = Conference(event.data).id;
+            settingsService.selectedConferenceId = ConferenceStorage(event.data).id;
         }
 
         ]]>
