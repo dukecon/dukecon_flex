@@ -74,6 +74,11 @@
         protected function onOpenSettingsClicked(event:MouseEvent):void {
             tabbedNavigator.activeView.navigator.pushView(SettingsView);
         }
+
+        protected function onGoToMainClicked():void {
+            tabbedNavigator.selectedIndex = 0;
+        }
+
         ]]>
     </fx:Script>
 
@@ -84,14 +89,20 @@
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
                       click="onOpenSettingsClicked(event)"/>
         </s:actionContent>
+        <s:navigationContent>
+            <s:Button icon="@Embed('/update.png')" click="{trace('Update')}"/>
+        </s:navigationContent>
     </s:ViewNavigator>
-    <s:ViewNavigator label="{resourceManager.getString('dukecon', 'main.title')}"
+    <s:ViewNavigator id="mainView" label="{resourceManager.getString('dukecon', 'main.title')}"
                      icon="@Embed('/conference.png')" includeIn="default"
                      firstView="org.dukecon.views.MainView" width="100%" height="100%">
         <s:actionContent>
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
                       click="onOpenSettingsClicked(event)"/>
         </s:actionContent>
+        <s:navigationContent>
+            <s:Button icon="@Embed('/exit.png')" click="{settingsService.selectedConferenceId = null}"/>
+        </s:navigationContent>
     </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'schedule.title')}"
                      icon="@Embed('/schedule.png')" includeIn="default"
@@ -100,6 +111,9 @@
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
                       click="onOpenSettingsClicked(event)"/>
         </s:actionContent>
+        <s:navigationContent>
+            <s:Button label="&lt;" click="{onGoToMainClicked()}"/>
+        </s:navigationContent>
     </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'streams.title')}"
                      icon="@Embed('/stream.png')" includeIn="default"
@@ -108,6 +122,9 @@
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
                       click="onOpenSettingsClicked(event)"/>
         </s:actionContent>
+        <s:navigationContent>
+            <s:Button label="&lt;" click="{onGoToMainClicked()}"/>
+        </s:navigationContent>
     </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'locations.title')}"
                      icon="@Embed('/location.png')" includeIn="default"
@@ -116,6 +133,9 @@
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
                       click="onOpenSettingsClicked(event)"/>
         </s:actionContent>
+        <s:navigationContent>
+            <s:Button label="&lt;" click="{onGoToMainClicked()}"/>
+        </s:navigationContent>
     </s:ViewNavigator>
     <s:ViewNavigator label="{resourceManager.getString('dukecon', 'speakers.title')}"
                      icon="@Embed('/speaker.png')" includeIn="default"
@@ -124,6 +144,9 @@
             <s:Button icon="@Embed('/settings.png')" name="settingsButton"
                       click="onOpenSettingsClicked(event)"/>
         </s:actionContent>
+        <s:navigationContent>
+            <s:Button label="&lt;" click="{onGoToMainClicked()}"/>
+        </s:navigationContent>
     </s:ViewNavigator>
 
 </s:TabbedViewNavigatorApplication>
