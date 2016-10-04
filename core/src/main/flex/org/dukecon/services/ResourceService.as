@@ -40,6 +40,7 @@ public class ResourceService {
         // Prepare the remote service.
         service.channelSet = serverConnection.connection;
 
+        service.getLogosForConferences.addEventListener(ResultEvent.RESULT, onGetLogosForConferencesResult);
         service.getResourcesForConference.addEventListener(ResultEvent.RESULT, onGetResourcesForConferenceResult);
         service.addEventListener(FaultEvent.FAULT, onFault);
 
@@ -50,10 +51,14 @@ public class ResourceService {
 
     public function update():void {
         log.info("Updating conferences");
+        service.getLogosForConferences();
         service.getResourcesForConference(settingsService.selectedConferenceId);
     }
 
     public function getIconForConference(conferenceId:String):ByteArray {
+        if(resourcesSharedObject.data["conferenceLogos"]) {
+            return resourcesSharedObject.data.conferenceLogos[conferenceId];
+        }
         return null;
     }
 
@@ -95,6 +100,29 @@ public class ResourceService {
             return resourcesSharedObject.data.conferenceResources.speakers[speakerId];
         }
         return new defaultSpeaker();
+    }
+
+    private function onGetLogosForConferencesResult(resultEvent:ResultEvent):void {
+        log.info("Got response");
+        resourcesSharedObject.data.conferenceLogos = resultEvent.result;
+
+        var flushStatus:String = null;
+        try {
+            flushStatus = resourcesSharedObject.flush(10000);
+        } catch (error:Error) {
+            log.error("Error writing shared object to disk.", error);
+        }
+        if (flushStatus != null) {
+            switch (flushStatus) {
+                case SharedObjectFlushStatus.PENDING:
+                    log.info("Requesting permission to save object...\n");
+                    resourcesSharedObject.addEventListener(NetStatusEvent.NET_STATUS, onFlushStatus);
+                    break;
+                case SharedObjectFlushStatus.FLUSHED:
+                    log.info("Value flushed to disk.");
+                    break;
+            }
+        }
     }
 
     private function onGetResourcesForConferenceResult(resultEvent:ResultEvent):void {

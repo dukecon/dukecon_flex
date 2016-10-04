@@ -7,78 +7,79 @@
         xmlns:parsley="http://www.spicefactory.org/parsley"
         title="{resourceManager.getString('dukecon', 'main.title')}">
 
-    <fx:Metadata>
-        [ResourceBundle("dukecon")]
-    </fx:Metadata>
+  <fx:Metadata>
+    [ResourceBundle("dukecon")]
+  </fx:Metadata>
 
-    <fx:Declarations>
-        <parsley:FastInject injectionComplete="init()">
-            <parsley:Inject property="conferenceService" type="{ConferenceService}"/>
-            <parsley:Inject property="resourceService" type="{ResourceService}"/>
-            <parsley:Inject property="settingsService" type="{SettingsService}" />
-        </parsley:FastInject>
-        <s:DateTimeFormatter id="timeFormatter"
-                             dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
-    </fx:Declarations>
+  <fx:Declarations>
+    <parsley:FastInject injectionComplete="init()">
+      <parsley:Inject property="conferenceService" type="{ConferenceService}"/>
+      <parsley:Inject property="resourceService" type="{ResourceService}"/>
+      <parsley:Inject property="settingsService" type="{SettingsService}"/>
+    </parsley:FastInject>
+    <s:DateTimeFormatter id="timeFormatter"
+                         dateTimePattern="{resourceManager.getString('dukecon', 'dateTime.dateTime')}"/>
+  </fx:Declarations>
 
-    <fx:Script>
+  <fx:Script>
     <![CDATA[
-        import org.dukecon.events.ConferenceDataChangedEvent;
-        import org.dukecon.services.ConferenceService;
-        import org.dukecon.services.ResourceService;
-        import org.dukecon.services.SettingsService;
+    import org.dukecon.events.ConferenceDataChangedEvent;
+    import org.dukecon.services.ConferenceService;
+    import org.dukecon.services.ResourceService;
+    import org.dukecon.services.SettingsService;
 
-        public var conferenceService:ConferenceService;
-        public var resourceService:ResourceService;
-        [Bindable]
-        public var settingsService:SettingsService;
+    public var conferenceService:ConferenceService;
+    public var resourceService:ResourceService;
 
-        protected function init():void {
-            conferenceService.addEventListener(
-                    ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, handleConferenceDataChanged);
-            updateLastChangesDate();
-        }
+    [Bindable]
+    public var settingsService:SettingsService;
 
-        [MessageHandler]
-        public function handleConferenceDataChanged(conferenceDataChanged:ConferenceDataChangedEvent):void {
-            updateLastChangesDate();
-        }
+    protected function init():void {
+      conferenceLogo.source = resourceService.getIconForConference(settingsService.selectedConferenceId);
+      conferenceService.addEventListener(
+              ConferenceDataChangedEvent.CONFERENCE_DATA_CHANGED, handleConferenceDataChanged);
+      updateLastChangesDate();
+    }
 
-        protected function updateLastChangesDate():void {
-            var lastUpdatedDate:Date = conferenceService.lastUpdatedDate;
-            if(lastUpdatedDate) {
-                lastCahngesValue.text = timeFormatter.format(lastUpdatedDate);
-            } else {
-                lastCahngesValue.text = resourceManager.getString('dukecon', 'main.never-loaded');
-            }
-        }
+    [MessageHandler]
+    public function handleConferenceDataChanged(conferenceDataChanged:ConferenceDataChangedEvent):void {
+      updateLastChangesDate();
+    }
 
-        protected function onRefreshClicked(event:MouseEvent):void {
-            conferenceService.update();
-            resourceService.update();
-        }
+    protected function updateLastChangesDate():void {
+      var lastUpdatedDate:Date = conferenceService.lastUpdatedDate;
+      if (lastUpdatedDate) {
+        lastCahngesValue.text = timeFormatter.format(lastUpdatedDate);
+      } else {
+        lastCahngesValue.text = resourceManager.getString('dukecon', 'main.never-loaded');
+      }
+    }
 
-        protected function onLogoClicked(event:MouseEvent):void {
-            var localeParts:Array = resourceManager.localeChain[0].split("_");
-            var request:URLRequest=new URLRequest("https://www.javaland.eu/" + localeParts[0] + "/home/");
-            navigateToURL(request,"_blank");
-        }
+    protected function onRefreshClicked(event:MouseEvent):void {
+      conferenceService.update();
+      resourceService.update();
+    }
 
-        ]]>
+    protected function onLogoClicked(event:MouseEvent):void {
+      var localeParts:Array = resourceManager.localeChain[0].split("_");
+      var request:URLRequest = new URLRequest("https://www.javaland.eu/" + localeParts[0] + "/home/");
+      navigateToURL(request, "_blank");
+    }
+    ]]>
   </fx:Script>
 
-    <s:navigationContent>
-        <s:Button label="&lt;" click="{settingsService.selectedConferenceId = null}"/>
-    </s:navigationContent>
+  <s:navigationContent>
+    <s:Button label="&lt;" click="{settingsService.selectedConferenceId = null}"/>
+  </s:navigationContent>
 
-    <s:VGroup id="content" width="100%" height="100%" horizontalAlign="center" padding="20">
-        <s:Image source="@Embed('/logo_javaland.png')" scaleMode="letterbox" click="onLogoClicked(event)"/>
-        <s:VGroup height="100%" verticalAlign="middle" horizontalAlign="center">
-            <s:Label text="{resourceManager.getString('dukecon', 'main.last-changes')}"/>
-            <s:Label id="lastCahngesValue"/>
-            <s:Button id="refreshButton" label="{resourceManager.getString('dukecon', 'main.refresh')}"
-                      click="onRefreshClicked(event)"/>
-        </s:VGroup>
+  <s:VGroup id="content" width="100%" height="100%" horizontalAlign="center" padding="20">
+    <s:Image id="conferenceLogo" scaleMode="letterbox" click="onLogoClicked(event)"/>
+    <s:VGroup height="100%" verticalAlign="middle" horizontalAlign="center">
+      <s:Label text="{resourceManager.getString('dukecon', 'main.last-changes')}"/>
+      <s:Label id="lastCahngesValue"/>
+      <s:Button id="refreshButton" label="{resourceManager.getString('dukecon', 'main.refresh')}"
+                click="onRefreshClicked(event)"/>
     </s:VGroup>
+  </s:VGroup>
 
 </s:View>
