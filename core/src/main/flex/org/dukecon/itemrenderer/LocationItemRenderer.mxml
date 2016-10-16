@@ -79,7 +79,7 @@
     <s:Image source="{locationIcon}" top="10" left="10" width="110" bottom="10"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="itemLabel" text="{locationName}" styleName="listTitle"/>
+        <s:Label id="itemLabel" text="{locationName}" styleName="listTitle dark"/>
     </s:HGroup>
 
 </s:ItemRenderer>

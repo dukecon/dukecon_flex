@@ -72,7 +72,7 @@
     <s:Image id="speakerIcon" top="9" left="9" width="119" bottom="9"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="speakerLabel" styleName="listTitle"/>
+        <s:Label id="speakerLabel" styleName="listTitle dark"/>
     </s:HGroup>
 
 </s:ItemRenderer>

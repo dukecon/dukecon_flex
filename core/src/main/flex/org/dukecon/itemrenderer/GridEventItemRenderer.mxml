@@ -176,7 +176,7 @@
       <s:BitmapImage id="languageIcon"/>
       <s:Image id="favoriteImage" click="toggleSelection(event)"/>
     </s:HGroup>
-    <s:Label id="titleLabel" height="100" styleName="talkTitle" maxDisplayedLines="-1"/>
+    <s:Label id="titleLabel" height="100" styleName="talkTitle dark" maxDisplayedLines="-1"/>
     <s:Label id="speakersLabel" height="56" styleName="talkSpeakers" maxDisplayedLines="-1"/>
     <s:Label id="abstractLabel" height="110" styleName="talkAbstract" maxDisplayedLines="-1"/>
   </s:VGroup>

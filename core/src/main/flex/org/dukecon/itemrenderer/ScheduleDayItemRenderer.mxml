@@ -82,7 +82,7 @@
     <s:Label id="dayLabel" fontSize="50" top="47" left="22" text="{dayString}"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="itemLabel" text="{formattedData}" styleName="listTitle"/>
+        <s:Label id="itemLabel" text="{formattedData}" styleName="listTitle dark"/>
     </s:HGroup>
 
 </s:ItemRenderer>

@@ -91,7 +91,7 @@
   <s:Image source="{conferenceIcon}" top="10" left="10" width="110" bottom="10"/>
 
   <s:VGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-    <s:Label id="itemLabel" text="{conferenceName}" styleName="listTitle"/>
+    <s:Label id="itemLabel" text="{conferenceName}" styleName="listTitle dark"/>
     <s:Label id="datesLabel" text="{conferenceDates}" styleName="listsSubTitle"/>
   </s:VGroup>
 

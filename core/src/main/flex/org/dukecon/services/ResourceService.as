@@ -2,6 +2,7 @@
  * Created by christoferdutz on 24.08.16.
  */
 package org.dukecon.services {
+import flash.events.EventDispatcher;
 import flash.events.NetStatusEvent;
 import flash.net.SharedObject;
 import flash.net.SharedObjectFlushStatus;
@@ -14,7 +15,12 @@ import mx.rpc.events.FaultEvent;
 import mx.rpc.events.ResultEvent;
 import mx.rpc.remoting.RemoteObject;
 
-public class ResourceService {
+import org.dukecon.events.StyleDefinitionsChangedEvent;
+import org.dukecon.model.Resources;
+
+import org.dukecon.model.Styles;
+
+public class ResourceService extends EventDispatcher {
 
     protected static var log:ILogger = Log.getLogger(getQualifiedClassName(ConferenceService).replace("::"));
 
@@ -62,42 +68,50 @@ public class ResourceService {
         return null;
     }
 
+    public function getStylesForConference():Styles {
+        if(resourcesSharedObject.data["conferenceResources"] &&
+                resourcesSharedObject.data.conferenceResources["styles"]) {
+            return Resources(resourcesSharedObject.data.conferenceResources).styles;
+        }
+        return null;
+    }
+
     public function getIconForLocation(locationId:String):ByteArray {
         if(resourcesSharedObject.data["conferenceResources"] &&
-                resourcesSharedObject.data.conferenceResources["locations"]) {
-            return resourcesSharedObject.data.conferenceResources.locations[locationId];
+                resourcesSharedObject.data.conferenceResources["locationImages"]) {
+            return resourcesSharedObject.data.conferenceResources.locationImages[locationId];
         }
         return null;
     }
 
     public function getMapForLocation(locationId:String):ByteArray {
         if(resourcesSharedObject.data["conferenceResources"] &&
-                resourcesSharedObject.data.conferenceResources["locationMaps"]) {
-            return resourcesSharedObject.data.conferenceResources.locationMaps[locationId];
+                resourcesSharedObject.data.conferenceResources["locationMapImages"]) {
+            return resourcesSharedObject.data.conferenceResources.locationMapImages[locationId];
         }
         return null;
     }
 
     public function getIconForStream(streamId:String):ByteArray {
         if(resourcesSharedObject.data["conferenceResources"] &&
-                resourcesSharedObject.data.conferenceResources["streams"]) {
-            return resourcesSharedObject.data.conferenceResources.streams[streamId];
+                resourcesSharedObject.data.conferenceResources["streamImages"]) {
+            return resourcesSharedObject.data.conferenceResources.streamImages[streamId];
         }
         return null;
     }
 
     public function getIconForLanguage(languageId:String):ByteArray {
         if(resourcesSharedObject.data["conferenceResources"] &&
-                resourcesSharedObject.data.conferenceResources["languages"]) {
-            return resourcesSharedObject.data.conferenceResources.languages[languageId];
+                resourcesSharedObject.data.conferenceResources["languageImages"]) {
+            return resourcesSharedObject.data.conferenceResources.languageImages[languageId];
         }
         return null;
     }
 
     public function getIconForSpeaker(speakerId:String):ByteArray {
         if(resourcesSharedObject.data["conferenceResources"] &&
-                resourcesSharedObject.data.conferenceResources["speakers"]) {
-            return resourcesSharedObject.data.conferenceResources.speakers[speakerId];
+                resourcesSharedObject.data.conferenceResources["speakerImages"]) {
+            return resourcesSharedObject.data.conferenceResources.speakerImages[speakerId];
         }
         return new defaultSpeaker();
     }
@@ -127,7 +141,9 @@ public class ResourceService {
 
     private function onGetResourcesForConferenceResult(resultEvent:ResultEvent):void {
         log.info("Got response");
-        resourcesSharedObject.data.conferenceResources = resultEvent.result;
+        var resources:Resources = Resources(resultEvent.result);
+        resourcesSharedObject.data.conferenceResources = resources;
+        dispatchEvent(StyleDefinitionsChangedEvent.createStyleDefinitionsChangedEvent());
 
         var flushStatus:String = null;
         try {

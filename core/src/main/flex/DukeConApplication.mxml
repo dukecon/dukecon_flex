@@ -24,6 +24,9 @@
         import mx.logging.targets.TraceTarget;
 
         import org.dukecon.events.SettingsChangedEvent;
+        import org.dukecon.events.StyleDefinitionsChangedEvent;
+        import org.dukecon.model.Styles;
+        import org.dukecon.services.ResourceService;
 
         import org.dukecon.services.SettingsService;
         import org.dukecon.views.SettingsView;
@@ -32,17 +35,23 @@
 
         private var installedLanguages:Array;
         private var settingsService:SettingsService;
+        private var resourceService:ResourceService;
 
         protected function onPreInitialize(event:FlexEvent):void {
             initLogging();
             var context:Context = FlexContextBuilder.build(DukeConContext, this);
 
+            resourceService = ResourceService(context.getObjectByType(ResourceService));
+            if (resourceService) {
+                resourceService.addEventListener(StyleDefinitionsChangedEvent.STYLE_DEFINITIONS_CHANGED, onStyleDefinitionsChanged);
+            }
             // Save the initial list of installed resources.
             settingsService = SettingsService(context.getObjectByType(SettingsService));
             if (settingsService) {
                 settingsService.installedLanguages = resourceManager.localeChain;
                 settingsService.addEventListener(SettingsChangedEvent.SETTINGS_CHANGED, onSettingsChanged);
             }
+            updateStyles();
             updateState();
         }
 
@@ -67,7 +76,43 @@
             currentState = (settingsService.selectedConferenceId) ? "default" : "conferenceSelection";
         }
 
+        protected function updateStyles():void {
+            if(settingsService.selectedConferenceId) {
+                var styles:Styles = resourceService.getStylesForConference();
+                if(styles) {
+                    setConferenceStyle(".alternate", "color", styles.alternate);
+                    setConferenceStyle(".alternateBack", "background-color", styles.alternate);
+                    setConferenceStyle(".dark", "color", styles.dark);
+                    setConferenceStyle(".darkBack", "background-color", styles.dark);
+                    setConferenceStyle(".darkLink", "color", styles.darkLink);
+                    setConferenceStyle(".darkLinkBack", "background-color", styles.darkLink);
+                    setConferenceStyle(".highlight", "color", styles.highlight);
+                    setConferenceStyle(".highlightBack", "background-color", styles.highlight);
+                    setConferenceStyle(".hover", "color", styles.hover);
+                    setConferenceStyle(".hoverBack", "background-color", styles.hover);
+                    setConferenceStyle(".hoverLink", "color", styles.hoverLink);
+                    setConferenceStyle(".hoverLinkBack", "background-color", styles.hoverLink);
+                    setConferenceStyle(".reverse", "color", styles.reverse);
+                    setConferenceStyle(".reverseBack", "background-color", styles.reverse);
+                }
+            }
+        }
+
+        private function setConferenceStyle(styleName:String, propertyName:String, propertyValue:String):void {
+            var styleDeclaration:CSSStyleDeclaration = styleManager.getStyleDeclaration(styleName);
+            if(!styleDeclaration) {
+                styleDeclaration = new CSSStyleDeclaration();
+                styleManager.setStyleDeclaration(styleName, styleDeclaration, true);
+            }
+            styleDeclaration.setStyle(propertyName, propertyValue);
+        }
+
+        protected function onStyleDefinitionsChanged(event:StyleDefinitionsChangedEvent = null):void {
+            updateStyles()
+        }
+
         protected function onSettingsChanged(event:SettingsChangedEvent):void {
+            updateStyles();
             updateState();
         }
 
