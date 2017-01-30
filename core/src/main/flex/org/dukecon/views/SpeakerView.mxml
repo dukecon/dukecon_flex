@@ -64,7 +64,7 @@
             }
 
             if(speaker && resourceService && eventService) {
-                speakerImage.source = resourceService.getIconForSpeaker(speaker.name);
+                speakerImage.source = resourceService.getIconForSpeaker(speaker.id);
                 talkList.dataProvider = eventService.getEventsForSpeaker(settingsService.selectedConferenceId, speaker);
                 speakerNameLabel.text = speaker.name;
                 speakerCompanyLabel.text = speaker.company;
