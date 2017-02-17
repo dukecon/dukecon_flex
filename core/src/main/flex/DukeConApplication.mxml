@@ -26,6 +26,7 @@
         import org.dukecon.events.SettingsChangedEvent;
         import org.dukecon.events.StyleDefinitionsChangedEvent;
         import org.dukecon.model.Styles;
+        import org.dukecon.services.ConferenceService;
         import org.dukecon.services.ResourceService;
 
         import org.dukecon.services.SettingsService;
@@ -33,14 +34,18 @@
         import org.spicefactory.parsley.core.context.Context;
         import org.spicefactory.parsley.flex.FlexContextBuilder;
 
+        private var context:Context;
         private var installedLanguages:Array;
+        private var conferenceService:ConferenceService;
         private var settingsService:SettingsService;
         private var resourceService:ResourceService;
 
         protected function onPreInitialize(event:FlexEvent):void {
             initLogging();
-            var context:Context = FlexContextBuilder.build(DukeConContext, this);
 
+            context = FlexContextBuilder.build(DukeConContext, this);
+
+            conferenceService = ConferenceService(context.getObjectByType(ConferenceService));
             resourceService = ResourceService(context.getObjectByType(ResourceService));
             if (resourceService) {
                 resourceService.addEventListener(StyleDefinitionsChangedEvent.STYLE_DEFINITIONS_CHANGED, onStyleDefinitionsChanged);
@@ -116,6 +121,11 @@
             updateState();
         }
 
+        protected function onUpdateClicked(event:MouseEvent):void {
+            conferenceService.update();
+            resourceService.update();
+        }
+
         protected function onOpenSettingsClicked(event:MouseEvent):void {
             tabbedNavigator.activeView.navigator.pushView(SettingsView);
         }
@@ -135,7 +145,7 @@
                       click="onOpenSettingsClicked(event)"/>
         </s:actionContent>
         <s:navigationContent>
-            <s:Button icon="@Embed('/update.png')" click="{trace('Update')}"/>
+            <s:Button icon="@Embed('/update.png')" click="{onUpdateClicked(event)}"/>
         </s:navigationContent>
     </s:ViewNavigator>
     <s:ViewNavigator id="mainView" label="{resourceManager.getString('dukecon', 'main.title')}"
