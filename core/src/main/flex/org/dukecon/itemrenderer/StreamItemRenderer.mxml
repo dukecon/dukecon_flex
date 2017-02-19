@@ -15,7 +15,6 @@
       import org.dukecon.events.ListEvent;
       import org.dukecon.model.Track;
       import org.dukecon.services.ResourceService;
-      import org.dukecon.services.StreamService;
       import org.dukecon.utils.I18nHelper;
 
       [Bindable]
@@ -66,7 +65,16 @@
         </s:stroke>
     </s:Rect>
 
-    <s:Image source="{streamIcon}" top="8" left="8" width="120" bottom="8"/>
+    <s:Rect top="8" left="8" width="120" bottom="8">
+        <s:fill>
+            <s:SolidColor color="white"/>
+        </s:fill>
+        <s:stroke>
+            <s:SolidColorStroke color="black"/>
+        </s:stroke>
+    </s:Rect>
+
+    <s:Image source="{streamIcon}" top="10" left="10" width="110" bottom="10"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
         <s:Label id="itemLabel" text="{streamName}" styleName="listTitle dark"/>

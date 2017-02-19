@@ -16,6 +16,11 @@
         import org.dukecon.services.ResourceService;
 
         [Bindable]
+        protected var speakerIcon:ByteArray;
+        [Bindable]
+        protected var speakerName:String;
+
+        [Bindable]
         protected var speaker:Speaker;
 
         [Inject]
@@ -33,16 +38,17 @@
         }
 
         protected function update():void {
-            if (speaker && resourceService) {
-              speakerIcon.source = resourceService.getIconForSpeaker(speaker.id);
-              speakerLabel.text = speaker.name;
-            } else {
-              speakerIcon.source = null;
-              speakerLabel.text = null;
-            }
-            speakerLabel.width = this.parent.parent.width - 168;
+          if (speaker && resourceService) {
+            speakerIcon = resourceService.getIconForSpeaker(speaker.id);
+            speakerName = speaker.name;
+          } else {
+            speakerIcon = null;
+            speakerName = null;
+          }
 
-            invalidateDisplayList();
+          speakerLabel.width = this.parent.parent.width - 168;
+
+          invalidateDisplayList();
         }
 
         protected function onItemClick(event:MouseEvent):void {
@@ -69,10 +75,10 @@
         </s:stroke>
     </s:Rect>
 
-    <s:Image id="speakerIcon" top="9" left="9" width="119" bottom="9"/>
+    <s:Image source="{speakerIcon}" top="9" left="9" width="119" bottom="9"/>
 
     <s:HGroup top="8" left="150" right="18" bottom="8" verticalAlign="middle">
-        <s:Label id="speakerLabel" styleName="listTitle dark"/>
+        <s:Label id="speakerLabel" text="{speakerName}" styleName="listTitle dark"/>
     </s:HGroup>
 
 </s:ItemRenderer>
