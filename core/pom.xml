@@ -17,11 +17,11 @@
 
     <properties>
         <!-- Local server -->
-        <base-url>http://localhost:8080/develop</base-url>
+        <!--base-url>http://localhost:8080/develop</base-url-->
         <!-- Production server -->
         <!--base-url>https://dukecon.org/javaland</base-url-->
         <!-- Remote CI deployed development server -->
-        <!--base-url>https://dev.dukecon.org/latest</base-url-->
+        <base-url>https://dev.dukecon.org/latest</base-url>
         <feature.server-favorites>false</feature.server-favorites>
         <feature.event-rating>false</feature.event-rating>
     </properties>
@@ -173,11 +173,14 @@
                         </goals>
                         <configuration>
                             <targetPlatform>ios</targetPlatform>
-                            <iosPackagingType>ipa-debug</iosPackagingType>
+                            <iosPackagingType>ipa-test-interpreter</iosPackagingType>
+                            <!-iosPackagingType>ipa-debug</iosPackagingType->
+                            <!- Set these variables in your settings.xml ->
                             <storefile>${ios-certificate}</storefile>
                             <storepass>${ios-password}</storepass>
                             <iosProvisioningProfile>${ios-provisioning-profile}</iosProvisioningProfile>
-                            <-iosPlatformSdk>/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS8.4.sdk</iosPlatformSdk->
+                            <iosPlatformSdk>/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS10.2.sdk</iosPlatformSdk>
+                            <!-iosPlatformSdk>/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk</iosPlatformSdk->
                         </configuration>
                     </execution-->
                 </executions>

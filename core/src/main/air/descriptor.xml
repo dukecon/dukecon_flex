@@ -58,7 +58,7 @@
 		<!-- <transparent></transparent> -->
 
 		<!-- Whether the window is initially visible. Optional. Default false. -->
-		<!-- <visible></visible> -->
+		<visible>true</visible>
 
 		<!-- Whether the user can minimize the window. Optional. Default true. -->
 		<!-- <minimizable></minimizable> -->
@@ -88,33 +88,25 @@
 		<!-- <maxSize></maxSize> -->
 
         <!-- The aspect ratio of the app ("portrait" or "landscape" or "any"). Optional. Mobile only. Default is the natural orientation of the device -->
-
         <!-- <aspectRatio></aspectRatio> -->
 
         <!-- Whether the app will begin auto-orienting on launch. Optional. Mobile only. Default false -->
-
-        <!-- <autoOrients></autoOrients> -->
+        <autoOrients>true</autoOrients>
 
         <!-- Whether the app launches in full screen. Optional. Mobile only. Default false -->
-
-        <!-- <fullScreen></fullScreen> -->
+        <fullScreen>false</fullScreen>
 
         <!-- The render mode for the app (either auto, cpu, gpu, or direct). Optional. Default auto -->
-
         <!-- <renderMode></renderMode> -->
 
         <!-- Whether the default direct mode rendering context allocates storage for depth and stencil buffers.  Optional.  Default false. -->
         <!-- <depthAndStencil></depthAndStencil> -->
 
 		<!-- Whether or not to pan when a soft keyboard is raised or lowered (either "pan" or "none").  Optional.  Defaults "pan." -->
-		<!-- <softKeyboardBehavior></softKeyboardBehavior> -->
+		<softKeyboardBehavior>none</softKeyboardBehavior>
 
 		<!-- Display Resolution for the app (either "standard" or "high"). Optional, OSX-only. Default "standard" -->
 		<!-- <requestedDisplayResolution></requestedDisplayResolution> -->
-	<autoOrients>true</autoOrients>
-        <fullScreen>false</fullScreen>
-        <visible>true</visible>
-        <softKeyboardBehavior>none</softKeyboardBehavior>
     </initialWindow>
 
 	<!-- We recommend omitting the supportedProfiles element, -->
@@ -145,9 +137,9 @@
 		<image128x128>icons/icon-128.png</image128x128>
 	</icon-->
 
-	<!-- Whether the application handles the update when a user double-clicks an update version
-	of the AIR file (true), or the default AIR application installer handles the update (false).
-	Optional. Default false. -->
+    <!-- Whether the application handles the update when a user double-clicks an update version
+    of the AIR file (true), or the default AIR application installer handles the update (false).
+    Optional. Default false. -->
 	<!-- <customUpdateUI></customUpdateUI> -->
 	
 	<!-- Whether the application can be launched when the user clicks a link in a web browser.

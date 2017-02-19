@@ -24,8 +24,12 @@ public class ResourceService extends EventDispatcher {
 
     protected static var log:ILogger = Log.getLogger(getQualifiedClassName(ConferenceService).replace("::"));
 
-    [Embed(source="/speakers/default-speaker.jpg", mimeType="application/octet-stream")]
+    [Embed(source="/default-icons/default-stream.png", mimeType="application/octet-stream")]
+    public var defaultStream:Class;
+    [Embed(source="/default-icons/default-speaker.jpg", mimeType="application/octet-stream")]
     public var defaultSpeaker:Class;
+    [Embed(source="/default-icons/default-location.png", mimeType="application/octet-stream")]
+    public var defaultLocation:Class;
 
     private var service:RemoteObject;
 
@@ -78,10 +82,11 @@ public class ResourceService extends EventDispatcher {
 
     public function getIconForLocation(locationId:String):ByteArray {
         if(resourcesSharedObject.data["conferenceResources"] &&
-                resourcesSharedObject.data.conferenceResources["locationImages"]) {
+                resourcesSharedObject.data.conferenceResources["locationImages"] &&
+                resourcesSharedObject.data.conferenceResources.locationImages.hasOwnProperty(locationId)) {
             return resourcesSharedObject.data.conferenceResources.locationImages[locationId];
         }
-        return null;
+        return new defaultLocation();
     }
 
     public function getMapForLocation(locationId:String):ByteArray {
@@ -94,10 +99,11 @@ public class ResourceService extends EventDispatcher {
 
     public function getIconForStream(streamId:String):ByteArray {
         if(resourcesSharedObject.data["conferenceResources"] &&
-                resourcesSharedObject.data.conferenceResources["streamImages"]) {
+                resourcesSharedObject.data.conferenceResources["streamImages"] &&
+                resourcesSharedObject.data.conferenceResources.streamImages.hasOwnProperty(streamId)) {
             return resourcesSharedObject.data.conferenceResources.streamImages[streamId];
         }
-        return null;
+        return new defaultStream();
     }
 
     public function getIconForLanguage(languageId:String):ByteArray {
@@ -110,7 +116,8 @@ public class ResourceService extends EventDispatcher {
 
     public function getIconForSpeaker(speakerId:String):ByteArray {
         if(resourcesSharedObject.data["conferenceResources"] &&
-                resourcesSharedObject.data.conferenceResources["speakerImages"]) {
+                resourcesSharedObject.data.conferenceResources["speakerImages"] &&
+                resourcesSharedObject.data.conferenceResources.speakerImages.hasOwnProperty(speakerId)) {
             return resourcesSharedObject.data.conferenceResources.speakerImages[speakerId];
         }
         return new defaultSpeaker();
