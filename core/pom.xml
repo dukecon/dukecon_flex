@@ -296,7 +296,7 @@
         <profile>
             <id>debug-localhost</id>
             <properties>
-                <base-url>http://localhost:8080</base-url>
+                <base-url>http://localhost:8080/develop</base-url>
             </properties>
         </profile>
     </profiles>
