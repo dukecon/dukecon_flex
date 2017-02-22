@@ -230,7 +230,7 @@
         <s:FormItem id="languageSelection"
                     label="{resourceManager.getString('dukecon', 'settings.language')}:"
                     width="300"/>
-        <s:FormItem id="connectForm"
+        <!--s:FormItem id="connectForm"
                     label="{resourceManager.getString('dukecon', 'settings.server-account')}:" width="300">
             <s:Button id="bindButton"
                       label="{resourceManager.getString('dukecon', 'settings.server-account.bind')}"
@@ -244,7 +244,7 @@
                           label="{resourceManager.getString('dukecon', 'settings.server-account.unbind')}"
                           click="onUnbindClicked(event)" width="100%"/>
             </s:VGroup>
-        </s:FormItem>
+        </s:FormItem-->
     </s:Form>
 
 </s:View>
