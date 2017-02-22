@@ -67,6 +67,13 @@ public class ConferenceService extends EventDispatcher {
         for(var conferenceId:String in conferencesSharedObject.data.conferences) {
             conferenceStorages.addItem(conferencesSharedObject.data.conferences[conferenceId]);
         }
+        // Sort the conferences by starting time of the first event.
+        var dataSortField:SortField = new SortField("firstDay");
+        var dataSort:Sort = new Sort();
+        dataSort.fields=[dataSortField];
+        dataSort.reverse();
+        conferenceStorages.sort = dataSort;
+        conferenceStorages.refresh();
         return conferenceStorages;
     }
 
