@@ -21,13 +21,13 @@ public class SpeakerService {
         if(conference) {
             var speakers:ArrayCollection = conference.conference.speakers;
 
-            // Sort the locations by order.
-            var orderSortField:SortField = new SortField();
-            orderSortField.name = "name";
-            orderSortField.numeric = false;
-            var locationSort:Sort = new Sort();
-            locationSort.fields = [orderSortField];
-            speakers.sort = locationSort;
+            // Sort the speakers by last name.
+            var sortField:SortField = new SortField();
+            sortField.name = "lastname";
+            sortField.numeric = false;
+            var sort:Sort = new Sort();
+            sort.fields = [sortField];
+            speakers.sort = sort;
             speakers.refresh();
 
             return speakers;
